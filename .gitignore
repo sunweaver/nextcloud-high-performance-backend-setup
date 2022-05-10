@@ -1,1 +1,2 @@
-setup.sh
+*.log
+.vscode
