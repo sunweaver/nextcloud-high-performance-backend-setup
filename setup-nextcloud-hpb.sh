@@ -1,38 +1,38 @@
 #!/bin/bash
 
-# Collabora Online server
-# https://github.com/CollaboraOnline/online
-should_install_collabora=true
-# Signaling server
-# https://github.com/strukturag/nextcloud-spreed-signaling
-should_install_signaling=true
+# !!! Be careful, this script will be executed by the root user. !!!
 
 # -----------------------------------------------------------------------
-# Try to install high-performance-backend servers without any user input.
-unattented_install=true
-signaling_domain="signaling.example.org"
+# Try to install the high-performance-backend server without any user input.
+unattented_install=false
+
+# Collabora
 collabora_domain="collabora.example.org"
+should_install_collabora=true
+
+# Signaling
+signaling_domain="signaling.example.org"
+should_install_signaling=true
 # -----------------------------------------------------------------------
 
-# Be careful, this script will be executed by root.
-logfile="setup-nextcloud-hpb.log"
+logfile="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 
-# Not empty => Dry run (Don't actually alter anything on the system.)
-DRY_RUN="yes"
+# Dry run (Don't actually alter anything on the system.)
+DRY_RUN=true
 
-set -x
+set -eo pipefail
 
 function log() {
     if [ "$unattented_install" = true ]; then
-        echo "$1" 2>&1 | tee -a $logfile
+        echo "$@" 2>&1 | tee -a $logfile
     else
-        echo "$1"
+        echo "$@"
     fi
 }
 
 function check_root_perm() {
     if [[ $(id -u) -ne 0 ]]; then
-        log "Please run this script as root."
+        log "Please run the this (setup-nextcloud-hpb) script as root."
         exit 1
     fi
 }
@@ -44,11 +44,12 @@ function check_debian_system() {
         exit 1
     else
         DEBIAN_VERSION=$(cat /etc/debian_version)
+        DEBIAN_MAJOR_VERSION=$(echo $DEBIAN_VERSION | grep -o -E "[0-9][0-9]")
     fi
 }
 
 function is_dry_run() {
-    if [ -n "$DRY_RUN" ]; then
+    if [ "$DRY_RUN" == true ]; then
         return 0
     else
         return 1
@@ -66,7 +67,9 @@ function main() {
 
     log "$(date)"
 
-    is_dry_run && log "Running in dry-mode."
+    is_dry_run &&
+        log "Running in dry-mode. This script won't actually do anything on" \
+            "your system!"
 
     if [ "$unattented_install" = true ]; then
         log "Trying unattented installation."
@@ -75,5 +78,7 @@ function main() {
     install_collabora
 }
 
-# Execute main
+# Execute main function.
 main
+
+set +eo pipefail
