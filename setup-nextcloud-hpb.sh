@@ -75,7 +75,14 @@ function main() {
         log "Trying unattented installation."
     fi
 
+    scripts=('src/setup-collabora.sh' 'src/setup-signaling.sh')
+    for script in "${scripts[@]}"; do
+        log "Sourcing '$script'."
+        source "$script"
+    done
+
     install_collabora
+    install_signaling
 }
 
 # Execute main function.
