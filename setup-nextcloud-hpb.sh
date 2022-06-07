@@ -4,18 +4,18 @@
 
 # -----------------------------------------------------------------------
 # Try to install the high-performance-backend server without any user input.
-unattented_install=false
+UNATTENTED_INSTALL=false
+
+SERVER_FQDN="nextcloud-hpb.example.invalid"
 
 # Collabora
-collabora_domain="collabora.example.org"
-should_install_collabora=true
+SHOULD_INSTALL_COLLABORA=true
 
 # Signaling
-signaling_domain="signaling.example.org"
-should_install_signaling=true
+SHOULD_INSTALL_SIGNALING=true
 # -----------------------------------------------------------------------
 
-logfile="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
+LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 
 # Dry run (Don't actually alter anything on the system.)
 DRY_RUN=true
@@ -23,8 +23,8 @@ DRY_RUN=true
 set -eo pipefail
 
 function log() {
-    if [ "$unattented_install" = true ]; then
-        echo "$@" 2>&1 | tee -a $logfile
+    if [ "$UNATTENTED_INSTALL" = true ]; then
+        echo "$@" 2>&1 | tee -a $LOGFILE_PATH
     else
         echo "$@"
     fi
@@ -61,8 +61,8 @@ function main() {
 
     check_debian_system
 
-    if [ -s "$logfile" ]; then
-        rm $logfile
+    if [ -s "$LOGFILE_PATH" ]; then
+        rm $LOGFILE_PATH
     fi
 
     log "$(date)"
@@ -71,7 +71,7 @@ function main() {
         log "Running in dry-mode. This script won't actually do anything on" \
             "your system!"
 
-    if [ "$unattented_install" = true ]; then
+    if [ "$UNATTENTED_INSTALL" = true ]; then
         log "Trying unattented installation."
     fi
 

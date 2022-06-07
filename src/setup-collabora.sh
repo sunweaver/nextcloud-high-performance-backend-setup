@@ -12,9 +12,9 @@ SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
 function install_collabora() {
-    if [ "$should_install_collabora" != true ]; then
+    if [ "$SHOULD_INSTALL_COLLABORA" != true ]; then
         log "Won't install Collabora, since" \
-            "\$should_install_collabora is *not* true."
+            "\$SHOULD_INSTALL_COLLABORA is *not* true."
         return 0
     fi
 
@@ -51,19 +51,19 @@ function step3() {
     # 3. Install packages
     log "Step 3: Install packages"
 
-    is_dry_run || apt update 2>&1 | tee -a $logfile
+    is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
     # Installing:
     #   - coolwsd
     #   - code-brand
     #   - nginx (for a secure ws reverse-proxy.)
     if [ ! is_dry_run ]; then
-        if [ "$unattented_install" == true ]; then
+        if [ "$UNATTENTED_INSTALL" == true ]; then
             log "Trying unattented install for Collabora."
             export DEBIAN_FRONTEND=noninteractive
-            apt-get install -qqy coolwsd code-brand nginx 2>&1 | tee -a $logfile
+            apt-get install -qqy coolwsd code-brand nginx 2>&1 | tee -a $LOGFILE_PATH
         else
-            apt-get install -y coolwsd code-brand nginx 2>&1 | tee -a $logfile
+            apt-get install -y coolwsd code-brand nginx 2>&1 | tee -a $LOGFILE_PATH
         fi
     fi
 }
