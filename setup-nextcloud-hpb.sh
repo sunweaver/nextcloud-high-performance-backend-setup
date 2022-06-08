@@ -30,6 +30,41 @@ function log() {
     fi
 }
 
+# Deploys target_file_path to source_file_path while respecting
+# potential custom user config. The user will be asked before overwriting files.
+# param 1: source_file_path
+# param 2: target_file_path
+# returns: 1 if already deployed and 0 if not.
+function deploy_file() {
+    source_file_path="$1"
+    target_file_path="$2"
+    log "Deploying $target_file_path"
+    if [[ -s "$target_file_path" ]]; then
+        checksum_deployed=$(sha256sum "$target_file_path" | cut -d " " -f1)
+        checksum_expected=$(sha256sum "$source_file_path" | cut -d " " -f1)
+        if [ "${checksum_deployed}" = "${checksum_expected}" ]; then
+            log "$target_file_path was already deployed."
+            return 1
+        else
+            if [ "$UNATTENTED_INSTALL" = true ]; then
+                cp "$source_file_path" "$target_file_path"
+            else
+                read -p "Overwrite file '$target_file_path'? [Yy] " -n 1 -r && echo
+                if [[ $REPLY =~ ^[YyJj]$ ]]; then
+                    log "$target_file_path to be updated deployed."
+                    is_dry_run || cp "$source_file_path" "$target_file_path"
+                else
+                    log "$target_file_path won't be updated."
+                fi
+            fi
+        fi
+    else
+        # Target file is empty or doesn't exist.
+        is_dry_run || cp "$source_file_path" "$target_file_path"
+    fi
+    return 0
+}
+
 function check_root_perm() {
     if [[ $(id -u) -ne 0 ]]; then
         log "Please run the this (setup-nextcloud-hpb) script as root."
