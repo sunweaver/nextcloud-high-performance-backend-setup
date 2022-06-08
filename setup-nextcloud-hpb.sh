@@ -79,6 +79,17 @@ function check_debian_system() {
         exit 1
     else
         DEBIAN_VERSION=$(cat /etc/debian_version)
+
+        # Quick hack for debian testing (currently bookworm)
+        if [[ "$DEBIAN_VERSION" = "bookworm/sid" ]]; then
+            DEBIAN_VERSION="11.3"
+        fi
+
+        if ! [[ $DEBIAN_VERSION =~ [0-9] ]]; then
+            log "Debian version '$DEBIAN_VERSION' not supported!"
+            exit 1
+        fi
+
         DEBIAN_MAJOR_VERSION=$(echo $DEBIAN_VERSION | grep -o -E "[0-9][0-9]")
     fi
 }
