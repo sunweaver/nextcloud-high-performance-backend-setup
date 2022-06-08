@@ -11,6 +11,11 @@ KEYRING_FILE="$KEYRING_DIR/collaboraonline-release-keyring.gpg"
 SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
+TMP_DIR_PATH="tmp/collabora"
+
+SSL_CERT_PATH="/path/to/ssl/cert"
+SSL_CERT_KEY_PATH="/path/to/ssl/cert.key"
+
 function install_collabora() {
     if [ "$SHOULD_INSTALL_COLLABORA" != true ]; then
         log "Won't install Collabora, since" \
@@ -24,6 +29,7 @@ function install_collabora() {
     step2
     step3
     step4
+    step5
 }
 
 function step1() {
@@ -69,10 +75,43 @@ function step3() {
 }
 
 function step4() {
-    # 4. Configuration
-    log "Step 4: Configuration"
+    # 4. Prepare configuration
+    log "Step 4: Prepare configuration"
 
-    # is_dry_run || Edit /etc/coolwsd/coolwsd.xml…
+    if ! [ -e "$TMP_DIR_PATH" ]; then
+        log "Creating $TMP_DIR_PATH."
+        mkdir -p "$TMP_DIR_PATH"
+    else
+        REPLY=""
+        while ! [[ $REPLY =~ ^[YyJj]$ ]]; do
+            read -p "Delete * in '$TMP_DIR_PATH'? [Yy] " -n 1 -r && echo
+            if [[ $REPLY =~ ^[YyJj]$ ]]; then
+                log "Deleted contents of '$TMP_DIR_PATH'."
+                rm "$TMP_DIR_PATH"/* || true
+            fi
+        done
+    fi
+
+    log "Moving Collabora config files into '$TMP_DIR_PATH'."
+    cp data/collabora/* "$TMP_DIR_PATH"
+
+    log "Preparing Collabora config files."
+    log "Replacing '<HOST_FQDN>' with '$SERVER_FQDN'…"
+    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/*
+
+    log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
+    sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/*
+
+    log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
+    sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/*
+}
+
+function step5() {
+    # 5. Deploy configuration
+    log "Step 5: Deploy configuration"
+
+    #deploy_file "data/collabora/..." "/etc/coolwsd/coolwsd.xml"
+    deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf
 
     is_dry_run || systemctl restart coolwsd
 }
