@@ -110,10 +110,12 @@ function step5() {
     # 5. Deploy configuration
     log "Step 5: Deploy configuration"
 
-    #deploy_file "data/collabora/..." "/etc/coolwsd/coolwsd.xml"
     deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf || true
-    deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.nginx-debian.html || true
+    is_dry_run || rm /var/www/html/index.nginx-debian.html || true
+    deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.html || true
     deploy_file "$TMP_DIR_PATH"/robots.txt /var/www/html/robots.txt || true
+
+    deploy_file "$TMP_DIR_PATH"/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
 
     #log "Deleting every '127.0.1.1' entry in /etc/hosts."
     #sed -i "|127.0.1.1|d"
