@@ -112,6 +112,11 @@ function step5() {
 
     #deploy_file "data/collabora/..." "/etc/coolwsd/coolwsd.xml"
     deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf
+    deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.nginx-debian.html
+    deploy_file "$TMP_DIR_PATH"/robots.txt /var/www/html/robots.txt
 
-    is_dry_run || systemctl restart coolwsd
+    is_dry_run || systemctl enable --now coolwsd
+    is_dry_run || systemctl enable --now nginx
+    is_dry_run || systemctl enable --now janus
+    is_dry_run || systemctl enable --now nats-server
 }
