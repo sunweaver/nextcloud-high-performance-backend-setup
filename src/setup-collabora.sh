@@ -115,6 +115,12 @@ function step5() {
     deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.nginx-debian.html || true
     deploy_file "$TMP_DIR_PATH"/robots.txt /var/www/html/robots.txt || true
 
+    #log "Deleting every '127.0.1.1' entry in /etc/hosts."
+    #sed -i "|127.0.1.1|d"
+    entry="127.0.1.1 $SERVER_FQDN"
+    log "Deploying '$entry' in /etc/hosts."
+    is_dry_run || echo "$entry" >>/etc/hosts
+
     is_dry_run || systemctl enable --now coolwsd
     is_dry_run || systemctl enable --now nginx
     is_dry_run || systemctl enable --now janus
