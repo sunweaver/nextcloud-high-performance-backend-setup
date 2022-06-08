@@ -63,7 +63,7 @@ function step3() {
     #   - coolwsd
     #   - code-brand
     #   - nginx (for a secure ws reverse-proxy.)
-    if [ ! is_dry_run ]; then
+    if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
             log "Trying unattented install for Collabora."
             export DEBIAN_FRONTEND=noninteractive
