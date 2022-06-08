@@ -111,9 +111,9 @@ function step5() {
     log "Step 5: Deploy configuration"
 
     #deploy_file "data/collabora/..." "/etc/coolwsd/coolwsd.xml"
-    deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf
-    deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.nginx-debian.html
-    deploy_file "$TMP_DIR_PATH"/robots.txt /var/www/html/robots.txt
+    deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf || true
+    deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.nginx-debian.html || true
+    deploy_file "$TMP_DIR_PATH"/robots.txt /var/www/html/robots.txt || true
 
     is_dry_run || systemctl enable --now coolwsd
     is_dry_run || systemctl enable --now nginx
