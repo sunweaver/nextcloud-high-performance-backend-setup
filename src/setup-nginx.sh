@@ -34,6 +34,15 @@ function install_nginx() {
     fi
     sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
+    log "Replacing '<HOST_FQDN>' with '$SERVER_FQDN'…"
+    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
+
+    log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
+    sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/nginx/*
+
+    log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
+    sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/nginx/*
+
     log "Deploying config files…"
     deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
 

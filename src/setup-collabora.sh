@@ -74,15 +74,6 @@ function step3() {
 function step4() {
     # 4. Prepare configuration
     log "\nStep 4: Prepare configuration"
-
-    log "Replacing '<HOST_FQDN>' with '$SERVER_FQDN'…"
-    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/collabora/*
-
-    log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
-    sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/collabora/*
-
-    log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
-    sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/collabora/*
 }
 
 function step5() {
