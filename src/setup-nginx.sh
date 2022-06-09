@@ -9,7 +9,7 @@ function install_nginx() {
 
     log "Installing Nginx…"
 
-    # apt install Nginx
+    log "Installing nginx package…"
     if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
             log "Trying unattented install for Nginx."
@@ -20,8 +20,24 @@ function install_nginx() {
         fi
     fi
 
-    deploy_file "$TMP_DIR_PATH"nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
+    include_snippet_signaling=""
+    if [ "$SHOULD_INSTALL_SIGNALING" == true ]; then
+        include_snippet_signaling="# Signaling\n  include snippets/signaling.conf;\n"
+        log "Replacing '<INCLUDE_SNIPPET_SIGNALING>' with '$include_snippet_signaling'…"
+    fi
+    sed -i "s|<INCLUDE_SNIPPET_SIGNALING>|$include_snippet_signaling|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
+    include_snippet_collabora=""
+    if [ "$SHOULD_INSTALL_COLLABORA" == true ]; then
+        include_snippet_collabora="# Collabora\n  include snippets/coolwsd.conf;"
+        log "Replacing '<INCLUDE_SNIPPET_COLLABORA>' with '$include_snippet_collabora'…"
+    fi
+    sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
+
+    log "Deploying config files…"
+    deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
+
+    log "Restarting service…"
     is_dry_run || systemctl enable --now nginx
 
     log "Nginx install completed."

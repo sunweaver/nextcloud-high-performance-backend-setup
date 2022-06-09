@@ -103,6 +103,7 @@ function step5() {
     log "Deploying '$entry' in /etc/hosts."
     is_dry_run || echo "$entry" >>/etc/hosts
 
+    log "Restarting services…"
     is_dry_run || systemctl enable --now coolwsd
     is_dry_run || systemctl enable --now janus
     is_dry_run || systemctl enable --now nats-server
