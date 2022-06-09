@@ -4,9 +4,9 @@
 # https://github.com/strukturag/nextcloud-spreed-signaling
 
 function install_signaling() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
+    if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install SIGNALING, since" \
+        log "Won't install Signaling, since" \
             "\$SHOULD_INSTALL_SIGNALING or \$SHOULD_INSTALL_NGINX is *not* true."
         return 0
     fi
@@ -15,7 +15,7 @@ function install_signaling() {
 }
 
 function signaling_print_info() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
+    if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
         # Don't print any info…
         return 0
