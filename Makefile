@@ -7,7 +7,7 @@ check_root:
 		exit 1; \
 	fi
 
-clean:
+clean: check_root
 	-rm *.log
 	-rm -r tmp/
 	@echo "Clean done"
