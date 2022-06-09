@@ -13,6 +13,12 @@ SHOULD_INSTALL_COLLABORA=true
 
 # Signaling
 SHOULD_INSTALL_SIGNALING=true
+
+# nginx (needed by Signaling & Collabora)
+SHOULD_INSTALL_NGINX=true
+
+SSL_CERT_PATH="/path/to/ssl/cert"
+SSL_CERT_KEY_PATH="/path/to/ssl/cert.key"
 # -----------------------------------------------------------------------
 
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
@@ -152,11 +158,13 @@ function main() {
 
     install_collabora
     install_signaling
+    install_nginx
 
     log "\nInstallation completed."
 
     collabora_print_info
     signaling_print_info
+    nginx_print_info
 }
 
 # Execute main function.

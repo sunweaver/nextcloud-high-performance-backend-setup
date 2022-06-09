@@ -11,13 +11,11 @@ KEYRING_FILE="$KEYRING_DIR/collaboraonline-release-keyring.gpg"
 SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
-SSL_CERT_PATH="/path/to/ssl/cert"
-SSL_CERT_KEY_PATH="/path/to/ssl/cert.key"
-
 function install_collabora() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ]; then
+    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
+        [ "$SHOULD_INSTALL_NGINX" != true ]; then
         log "Won't install Collabora, since" \
-            "\$SHOULD_INSTALL_COLLABORA is *not* true."
+            "\$SHOULD_INSTALL_COLLABORA or \SHOULD_INSTALL_NGINX is *not* true."
         return 0
     fi
 
@@ -62,14 +60,13 @@ function step3() {
     # Installing:
     #   - coolwsd
     #   - code-brand
-    #   - nginx (for a secure ws reverse-proxy.)
     if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
             log "Trying unattented install for Collabora."
             export DEBIAN_FRONTEND=noninteractive
-            apt-get install -qqy coolwsd code-brand nginx 2>&1 | tee -a $LOGFILE_PATH
+            apt-get install -qqy coolwsd code-brand 2>&1 | tee -a $LOGFILE_PATH
         else
-            apt-get install -y coolwsd code-brand nginx 2>&1 | tee -a $LOGFILE_PATH
+            apt-get install -y coolwsd code-brand 2>&1 | tee -a $LOGFILE_PATH
         fi
     fi
 }
@@ -92,7 +89,7 @@ function step5() {
     # 5. Deploy configuration
     log "\nStep 5: Deploy configuration"
 
-    deploy_file "$TMP_DIR_PATH"/collabora/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf || true
+    deploy_file "$TMP_DIR_PATH"/collabora/snippet-coolwsd.conf /etc/nginx/snippets/coolwsd.conf || true
     is_dry_run || rm /var/www/html/index.nginx-debian.html || true
     deploy_file "$TMP_DIR_PATH"/collabora/index.html /var/www/html/index.html || true
     deploy_file "$TMP_DIR_PATH"/collabora/robots.txt /var/www/html/robots.txt || true
@@ -107,13 +104,17 @@ function step5() {
     is_dry_run || echo "$entry" >>/etc/hosts
 
     is_dry_run || systemctl enable --now coolwsd
-    is_dry_run || systemctl enable --now nginx
     is_dry_run || systemctl enable --now janus
     is_dry_run || systemctl enable --now nats-server
 }
 
 function collabora_print_info() {
-    # Just print info
+    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
+        [ "$SHOULD_INSTALL_NGINX" != true ]; then
+        # Don't print any info…
+        return 0
+    fi
+
     collabora_address="https://$SERVER_FQDN/"
 
     log "\nNow log into your Nextcloud instance with an adminstrator account" \

@@ -118,7 +118,7 @@
       <listen type="string" default="any" desc="Listen address that coolwsd binds to. Can be 'any' or 'loopback'.">loopback</listen>
       <!-- this allows you to shift all of our URLs into a sub-path from
            https://my.com/browser/a123... to https://my.com/my/sub/path/browser/a123... -->
-      <service_root type="path" default="" desc="Prefix all the pages, websockets, etc. with this path."></service_root>
+      <service_root type="path" default="" desc="Prefix all the pages, websockets, etc. with this path.">/collabora</service_root>
       <post_allow desc="Allow/deny client IP address for POST(REST)." allow="true">
         <host desc="The IPv4 loopback (localhost) address.">127\.0\.0\.1</host>
         <host desc="The IPv4 loopback (localhost) address.">127\.0\.1\.1</host>
