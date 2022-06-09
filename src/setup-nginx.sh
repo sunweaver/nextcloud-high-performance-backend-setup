@@ -31,6 +31,8 @@ function nginx_print_info() {
     if [ "$SHOULD_INSTALL_NGINX" == true ]; then
         log "Nginx got installed which acts as a reverse proxy for Signaling" \
             "and Collabora. No extra configuration needed.\n"
+    else
+        return 0
     fi
 
     if [ "$SHOULD_INSTALL_LETSENCRYPT" != true ]; then
