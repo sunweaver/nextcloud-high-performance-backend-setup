@@ -17,6 +17,9 @@ SHOULD_INSTALL_SIGNALING=true
 
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 
+# Configuration gets copied and prepared here before copying them into place.
+TMP_DIR_PATH="tmp"
+
 # Dry run (Don't actually alter anything on the system.)
 DRY_RUN=true
 
@@ -120,6 +123,26 @@ function main() {
     if [ "$UNATTENTED_INSTALL" = true ]; then
         log "Trying unattented installation."
     fi
+
+    if ! [ -e "$TMP_DIR_PATH" ]; then
+        log "Creating '$TMP_DIR_PATH'."
+        mkdir -p "$TMP_DIR_PATH" 2>&1 | tee -a $LOGFILE_PATH
+    else
+        REPLY=""
+        while ! [[ $REPLY =~ ^[YyJj]$ ]]; do
+            if [ "$UNATTENTED_INSTALL" = false ]; then
+                read -p "Delete * in '$TMP_DIR_PATH'? [Yy] " -n 1 -r && echo
+            else
+                break
+            fi
+        done
+
+        log "Deleted contents of '$TMP_DIR_PATH'."
+        rm -vr "$TMP_DIR_PATH"/* 2>&1 | tee -a $LOGFILE_PATH || true
+    fi
+
+    log "Moving config files into '$TMP_DIR_PATH'."
+    cp -rv data/* "$TMP_DIR_PATH" 2>&1 | tee -a $LOGFILE_PATH
 
     scripts=('src/setup-collabora.sh' 'src/setup-signaling.sh')
     for script in "${scripts[@]}"; do

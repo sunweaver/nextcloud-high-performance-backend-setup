@@ -11,8 +11,6 @@ KEYRING_FILE="$KEYRING_DIR/collaboraonline-release-keyring.gpg"
 SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
-TMP_DIR_PATH="tmp/collabora"
-
 SSL_CERT_PATH="/path/to/ssl/cert"
 SSL_CERT_KEY_PATH="/path/to/ssl/cert.key"
 
@@ -30,6 +28,8 @@ function install_collabora() {
     step3
     step4
     step5
+
+    log "Collabora install completed."
 }
 
 function step1() {
@@ -78,51 +78,26 @@ function step4() {
     # 4. Prepare configuration
     log "\nStep 4: Prepare configuration"
 
-    if ! [ -e "$TMP_DIR_PATH" ]; then
-        log "Creating $TMP_DIR_PATH."
-        mkdir -p "$TMP_DIR_PATH"
-    else
-        REPLY=""
-        while ! [[ $REPLY =~ ^[YyJj]$ ]]; do
-            if [ "$UNATTENTED_INSTALL" = false ]; then
-                read -p "Delete * in '$TMP_DIR_PATH'? [Yy] " -n 1 -r && echo
-                if [[ $REPLY =~ ^[YyJj]$ ]]; then
-                    log "Deleted contents of '$TMP_DIR_PATH'."
-                    rm "$TMP_DIR_PATH"/* || true
-                fi
-            else
-                break
-            fi
-        done
-
-        log "Deleted contents of '$TMP_DIR_PATH'."
-        rm "$TMP_DIR_PATH"/* || true
-    fi
-
-    log "Moving Collabora config files into '$TMP_DIR_PATH'."
-    cp data/collabora/* "$TMP_DIR_PATH"
-
-    log "Preparing Collabora config files."
     log "Replacing '<HOST_FQDN>' with '$SERVER_FQDN'…"
-    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/*
+    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/collabora/*
 
     log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
-    sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/*
+    sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/collabora/*
 
     log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
-    sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/*
+    sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/collabora/*
 }
 
 function step5() {
     # 5. Deploy configuration
     log "\nStep 5: Deploy configuration"
 
-    deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf || true
+    deploy_file "$TMP_DIR_PATH"/collabora/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf || true
     is_dry_run || rm /var/www/html/index.nginx-debian.html || true
-    deploy_file "$TMP_DIR_PATH"/index.html /var/www/html/index.html || true
-    deploy_file "$TMP_DIR_PATH"/robots.txt /var/www/html/robots.txt || true
+    deploy_file "$TMP_DIR_PATH"/collabora/index.html /var/www/html/index.html || true
+    deploy_file "$TMP_DIR_PATH"/collabora/robots.txt /var/www/html/robots.txt || true
 
-    deploy_file "$TMP_DIR_PATH"/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
+    deploy_file "$TMP_DIR_PATH"/collabora/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
 
     log "Deleting every '127.0.1.1' entry in /etc/hosts."
     is_dry_run || sed -i "/127.0.1.1/d" /etc/hosts
