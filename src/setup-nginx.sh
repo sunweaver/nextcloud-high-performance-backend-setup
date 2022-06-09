@@ -2,17 +2,17 @@
 
 function install_nginx() {
     if [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install nginx, since" \
+        log "Won't install Nginx, since" \
             "\$SHOULD_INSTALL_NGINX is *not* true."
         return 0
     fi
 
-    log "Installing nginx…"
+    log "Installing Nginx…"
 
-    # apt install nginx
+    # apt install Nginx
     if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
-            log "Trying unattented install for nginx."
+            log "Trying unattented install for Nginx."
             export DEBIAN_FRONTEND=noninteractive
             apt-get install -qqy nginx 2>&1 | tee -a $LOGFILE_PATH
         else
@@ -24,5 +24,19 @@ function install_nginx() {
 
     is_dry_run || systemctl enable --now nginx
 
-    log "nginx install completed."
+    log "Nginx install completed."
+}
+
+function nginx_print_info() {
+    if [ "$SHOULD_INSTALL_NGINX" == true ]; then
+        log "Nginx got installed which acts as a reverse proxy for Signaling" \
+            "and Collabora. No extra configuration needed.\n"
+    fi
+
+    if [ "$SHOULD_INSTALL_LETSENCRYPT" != true ]; then
+        log "Except one thing. Since you choose to not install an automatic" \
+            "\nSSL-Certificate renewer (certbot for example), you need to make" \
+            "\nsure that at all time a valid SSL-Cert is located at: " \
+            "\n'$SSL_CERT_PATH' and '$SSL_CERT_KEY_PATH'.\n"
+    fi
 }

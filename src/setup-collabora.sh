@@ -15,7 +15,7 @@ function install_collabora() {
     if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
         log "Won't install Collabora, since" \
-            "\$SHOULD_INSTALL_COLLABORA or \SHOULD_INSTALL_NGINX is *not* true."
+            "\$SHOULD_INSTALL_COLLABORA or \$SHOULD_INSTALL_NGINX is *not* true."
         return 0
     fi
 
@@ -115,10 +115,10 @@ function collabora_print_info() {
         return 0
     fi
 
-    collabora_address="https://$SERVER_FQDN/"
+    collabora_address="https://$SERVER_FQDN/collabora"
 
-    log "\nNow log into your Nextcloud instance with an adminstrator account" \
+    log "The Collabora Online service got installed. To set it up," \
+        "\nlog into your Nextcloud instance with an adminstrator account" \
         "\nand navigate to Settings -> Administration -> Nextcloud Office." \
-        "\nNow select 'Use your own server' and type in '$collabora_address'." \
-        "\nThank you for using this script.\n"
+        "\nNow select 'Use your own server' and type in '$collabora_address'.\n"
 }

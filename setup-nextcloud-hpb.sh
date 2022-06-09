@@ -150,21 +150,26 @@ function main() {
     log "Moving config files into '$TMP_DIR_PATH'."
     cp -rv data/* "$TMP_DIR_PATH" 2>&1 | tee -a $LOGFILE_PATH
 
-    scripts=('src/setup-collabora.sh' 'src/setup-signaling.sh')
+    scripts=('src/setup-collabora.sh' 'src/setup-signaling.sh'
+        'src/setup-nginx.sh')
     for script in "${scripts[@]}"; do
         log "Sourcing '$script'."
         source "$script"
     done
 
+    install_nginx
     install_collabora
     install_signaling
-    install_nginx
 
-    log "\nInstallation completed."
+    log "Every installation completed."
 
+    log "======================================================================"
+    nginx_print_info
     collabora_print_info
     signaling_print_info
-    nginx_print_info
+    log "======================================================================"
+
+    log "\nThank you for using this script.\n"
 }
 
 # Execute main function.

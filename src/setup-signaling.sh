@@ -7,7 +7,7 @@ function install_signaling() {
     if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
         log "Won't install SIGNALING, since" \
-            "\$SHOULD_INSTALL_SIGNALING or \SHOULD_INSTALL_NGINX is *not* true."
+            "\$SHOULD_INSTALL_SIGNALING or \$SHOULD_INSTALL_NGINX is *not* true."
         return 0
     fi
 
