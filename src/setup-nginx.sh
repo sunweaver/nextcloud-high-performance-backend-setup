@@ -14,7 +14,7 @@ function install_nginx() {
     nginx_step3
 
     log "Restarting service…"
-    is_dry_run || systemctl enable --now nginx
+    is_dry_run || systemctl enable --now nginx || true
 
     log "Nginx install completed."
 }

@@ -95,9 +95,9 @@ function collabora_step5() {
     is_dry_run || echo "$entry" >>/etc/hosts
 
     log "Restarting services…"
-    is_dry_run || systemctl enable --now coolwsd
-    is_dry_run || systemctl enable --now janus
-    is_dry_run || systemctl enable --now nats-server
+    is_dry_run || systemctl enable --now coolwsd || true
+    is_dry_run || systemctl enable --now janus || true
+    is_dry_run || systemctl enable --now nats-server || true
 }
 
 function collabora_print_info() {
