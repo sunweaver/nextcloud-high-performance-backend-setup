@@ -21,16 +21,16 @@ function install_collabora() {
 
     log "Installing Collabora…"
 
-    step1
-    step2
-    step3
-    step4
-    step5
+    collabora_step1
+    collabora_step2
+    collabora_step3
+    collabora_step4
+    collabora_step5
 
     log "Collabora install completed."
 }
 
-function step1() {
+function collabora_step1() {
     # 1. Import the signing key
     log "\nStep 1: Import the signing key"
 
@@ -39,7 +39,7 @@ function step1() {
     cd -
 }
 
-function step2() {
+function collabora_step2() {
     # 2. Add CODE package repositories
     log "\nStep 2: Add CODE package repositories"
 
@@ -51,7 +51,7 @@ Signed-By: $KEYRING_FILE
 EOF
 }
 
-function step3() {
+function collabora_step3() {
     # 3. Install packages
     log "\nStep 3: Install packages"
 
@@ -71,12 +71,12 @@ function step3() {
     fi
 }
 
-function step4() {
+function collabora_step4() {
     # 4. Prepare configuration
     log "\nStep 4: Prepare configuration"
 }
 
-function step5() {
+function collabora_step5() {
     # 5. Deploy configuration
     log "\nStep 5: Deploy configuration"
 

@@ -9,7 +9,18 @@ function install_nginx() {
 
     log "Installing Nginx…"
 
-    log "Installing nginx package…"
+    nginx_step1
+    nginx_step2
+    nginx_step3
+
+    log "Restarting service…"
+    is_dry_run || systemctl enable --now nginx
+
+    log "Nginx install completed."
+}
+
+function nginx_step1() {
+    log "\nStep 1: Installing Nginx package"
     if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
             log "Trying unattented install for Nginx."
@@ -19,7 +30,10 @@ function install_nginx() {
             apt-get install -y nginx 2>&1 | tee -a $LOGFILE_PATH
         fi
     fi
+}
 
+function nginx_step2() {
+    log "\nStep 2: Prepare configuration"
     include_snippet_signaling=""
     if [ "$SHOULD_INSTALL_SIGNALING" == true ]; then
         include_snippet_signaling="# Signaling\n  include snippets/signaling.conf;\n"
@@ -42,14 +56,11 @@ function install_nginx() {
 
     log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
     sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/nginx/*
+}
 
+function nginx_step3() {
     log "Deploying config files…"
     deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
-
-    log "Restarting service…"
-    is_dry_run || systemctl enable --now nginx
-
-    log "Nginx install completed."
 }
 
 function nginx_print_info() {

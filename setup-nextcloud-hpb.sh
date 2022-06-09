@@ -26,7 +26,7 @@ LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 # Configuration gets copied and prepared here before copying them into place.
 TMP_DIR_PATH="tmp"
 
-# Dry run (Don't actually alter anything on the system.)
+# Dry run (Don't actually alter anything on the system. (except in $TMP_DIR_PATH))
 DRY_RUN=true
 
 set -eo pipefail
