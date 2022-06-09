@@ -34,7 +34,7 @@ function install_collabora() {
 
 function step1() {
     # 1. Import the signing key
-    log "Step 1: Import the signing key"
+    log "\nStep 1: Import the signing key"
 
     cd $KEYRING_DIR
     is_dry_run || wget "$KEYRING_URL" || exit 1
@@ -43,7 +43,7 @@ function step1() {
 
 function step2() {
     # 2. Add CODE package repositories
-    log "Step 2: Add CODE package repositories"
+    log "\nStep 2: Add CODE package repositories"
 
     is_dry_run || cat <<EOF >$SOURCES_FILE
 Types: deb
@@ -55,7 +55,7 @@ EOF
 
 function step3() {
     # 3. Install packages
-    log "Step 3: Install packages"
+    log "\nStep 3: Install packages"
 
     is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
@@ -76,7 +76,7 @@ function step3() {
 
 function step4() {
     # 4. Prepare configuration
-    log "Step 4: Prepare configuration"
+    log "\nStep 4: Prepare configuration"
 
     if ! [ -e "$TMP_DIR_PATH" ]; then
         log "Creating $TMP_DIR_PATH."
@@ -108,7 +108,7 @@ function step4() {
 
 function step5() {
     # 5. Deploy configuration
-    log "Step 5: Deploy configuration"
+    log "\nStep 5: Deploy configuration"
 
     deploy_file "$TMP_DIR_PATH"/collabora-server.conf /etc/nginx/sites-enabled/collabora-server.conf || true
     is_dry_run || rm /var/www/html/index.nginx-debian.html || true
@@ -127,4 +127,14 @@ function step5() {
     is_dry_run || systemctl enable --now nginx
     is_dry_run || systemctl enable --now janus
     is_dry_run || systemctl enable --now nats-server
+}
+
+function collabora_print_info() {
+    # Just print info
+    collabora_address="https://$SERVER_FQDN/"
+
+    log "\nNow log into your Nextcloud instance with an adminstrator account" \
+        "\nand navigate to Settings -> Administration -> Nextcloud Office." \
+        "\nNow select 'Use your own server' and type in '$collabora_address'." \
+        "\nThank you for using this script.\n"
 }

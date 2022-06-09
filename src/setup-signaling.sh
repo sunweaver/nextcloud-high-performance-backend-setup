@@ -12,3 +12,8 @@ function install_signaling() {
 
     log "Installing Signaling…"
 }
+
+function signaling_print_info() {
+    # placeholder
+    log "Signaling info…"
+}

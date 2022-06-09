@@ -24,9 +24,9 @@ set -eo pipefail
 
 function log() {
     if [ "$UNATTENTED_INSTALL" = true ]; then
-        echo "$@" 2>&1 | tee -a $LOGFILE_PATH
+        echo -e "$@" 2>&1 | tee -a $LOGFILE_PATH
     else
-        echo "$@"
+        echo -e "$@"
     fi
 }
 
@@ -129,6 +129,11 @@ function main() {
 
     install_collabora
     install_signaling
+
+    log "\nInstallation completed."
+
+    collabora_print_info
+    signaling_print_info
 }
 
 # Execute main function.
