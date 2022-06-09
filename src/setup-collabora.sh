@@ -84,12 +84,19 @@ function step4() {
     else
         REPLY=""
         while ! [[ $REPLY =~ ^[YyJj]$ ]]; do
-            read -p "Delete * in '$TMP_DIR_PATH'? [Yy] " -n 1 -r && echo
-            if [[ $REPLY =~ ^[YyJj]$ ]]; then
-                log "Deleted contents of '$TMP_DIR_PATH'."
-                rm "$TMP_DIR_PATH"/* || true
+            if [ "$UNATTENTED_INSTALL" = false ]; then
+                read -p "Delete * in '$TMP_DIR_PATH'? [Yy] " -n 1 -r && echo
+                if [[ $REPLY =~ ^[YyJj]$ ]]; then
+                    log "Deleted contents of '$TMP_DIR_PATH'."
+                    rm "$TMP_DIR_PATH"/* || true
+                fi
+            else
+                break
             fi
         done
+
+        log "Deleted contents of '$TMP_DIR_PATH'."
+        rm "$TMP_DIR_PATH"/* || true
     fi
 
     log "Moving Collabora config files into '$TMP_DIR_PATH'."
