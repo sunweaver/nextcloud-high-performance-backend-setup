@@ -87,13 +87,6 @@ function collabora_step5() {
 
     deploy_file "$TMP_DIR_PATH"/collabora/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
 
-    log "Deleting every '127.0.1.1' entry in /etc/hosts."
-    is_dry_run || sed -i "/127.0.1.1/d" /etc/hosts
-
-    entry="127.0.1.1 $SERVER_FQDN $(hostname)"
-    log "Deploying '$entry' in /etc/hosts."
-    is_dry_run || echo "$entry" >>/etc/hosts
-
     log "Restarting services…"
     is_dry_run || systemctl enable --now coolwsd || true
 }

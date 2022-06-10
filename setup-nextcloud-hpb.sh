@@ -150,6 +150,13 @@ function main() {
     log "Moving config files into '$TMP_DIR_PATH'."
     cp -rv data/* "$TMP_DIR_PATH" 2>&1 | tee -a $LOGFILE_PATH
 
+    log "Deleting every '127.0.1.1' entry in /etc/hosts."
+    is_dry_run || sed -i "/127.0.1.1/d" /etc/hosts
+
+    entry="127.0.1.1 $SERVER_FQDN $(hostname)"
+    log "Deploying '$entry' in /etc/hosts."
+    is_dry_run || echo "$entry" >>/etc/hosts
+
     scripts=('src/setup-collabora.sh' 'src/setup-signaling.sh'
         'src/setup-nginx.sh')
     for script in "${scripts[@]}"; do
