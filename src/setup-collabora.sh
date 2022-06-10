@@ -4,12 +4,12 @@
 # https://github.com/CollaboraOnline/online
 # https://www.collaboraoffice.com/code/linux-packages/
 
-KEYRING_URL="https://collaboraoffice.com/downloads/gpg/collaboraonline-release-keyring.gpg"
-KEYRING_DIR="/usr/share/keyrings"
-KEYRING_FILE="$KEYRING_DIR/collaboraonline-release-keyring.gpg"
+COLLABORA_KEYRING_URL="https://collaboraoffice.com/downloads/gpg/collaboraonline-release-keyring.gpg"
+COLLABORA_KEYRING_DIR="/usr/share/keyrings"
+COLLABORA_KEYRING_FILE="$COLLABORA_KEYRING_DIR/collaboraonline-release-keyring.gpg"
 
-SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
-REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
+COLLABORA_SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
+COLLABORA_REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
 function install_collabora() {
     if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
@@ -34,8 +34,8 @@ function collabora_step1() {
     # 1. Import the signing key
     log "\nStep 1: Import the signing key"
 
-    cd $KEYRING_DIR
-    is_dry_run || wget "$KEYRING_URL" || exit 1
+    cd $COLLABORA_KEYRING_DIR
+    is_dry_run || wget "$COLLABORA_KEYRING_URL" || exit 1
     cd -
 }
 
@@ -43,11 +43,11 @@ function collabora_step2() {
     # 2. Add CODE package repositories
     log "\nStep 2: Add CODE package repositories"
 
-    is_dry_run || cat <<EOF >$SOURCES_FILE
+    is_dry_run || cat <<EOF >$COLLABORA_SOURCES_FILE
 Types: deb
-URIs: $REPO_URL
+URIs: $COLLABORA_REPO_URL
 Suites: ./
-Signed-By: $KEYRING_FILE
+Signed-By: $COLLABORA_KEYRING_FILE
 EOF
 }
 
