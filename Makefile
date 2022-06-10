@@ -13,4 +13,4 @@ clean: check_root
 	@echo "Clean done"
 
 install: check_root clean
-	sudo ./setup-nextcloud-hpb.sh
+	./setup-nextcloud-hpb.sh
