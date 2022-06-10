@@ -96,8 +96,6 @@ function collabora_step5() {
 
     log "Restarting services…"
     is_dry_run || systemctl enable --now coolwsd || true
-    is_dry_run || systemctl enable --now janus || true
-    is_dry_run || systemctl enable --now nats-server || true
 }
 
 function collabora_print_info() {
