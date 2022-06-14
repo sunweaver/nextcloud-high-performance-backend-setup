@@ -3,6 +3,17 @@
 # Signaling server
 # https://github.com/strukturag/nextcloud-spreed-signaling
 
+SIGNALING_SUNWEAVER_SOURCE_FILE="/etc/apt/sources.list.d/sunweaver.list"
+
+SIGNALING_TURN_STATIC_AUTH_SECRET="$(openssl rand -hex 32)"
+SIGNALING_JANUS_API_KEY="$(openssl rand -base64 16)"
+SIGNALING_HASH_KEY="$(openssl rand -hex 16)"
+SIGNALING_BLOCK_KEY="$(openssl rand -hex 16)"
+SIGNALING_NEXTCLOUD_SECRET_KEY="$(openssl rand -hex 16)"
+
+SIGNALING_NEXTCLOUD_URL="$SERVER_FQDN"
+SIGNALING_COTURN_URL="$SERVER_FQDN"
+
 function install_signaling() {
     if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
@@ -12,6 +23,102 @@ function install_signaling() {
     fi
 
     log "Installing Signaling…"
+
+    signaling_step1
+    signaling_step2
+    signaling_step3
+    signaling_step4
+    signaling_step5
+
+    log "Signaling install completed."
+}
+
+function signaling_step1() {
+    log "\nStep 1: Import sunweaver's gpg key."
+    wget http://packages.sunweavers.net/archive.key \
+        -O /etc/apt/trusted.gpg.d/sunweaver-archive-keyring.asc
+}
+
+function signaling_step2() {
+    log "\nStep 2: Add sunweaver package repository"
+
+    is_dry_run || cat <<EOF >$SIGNALING_SUNWEAVER_SOURCE_FILE
+# Added by nextcloud-high-performance-backend setup-script.
+deb http://packages.sunweavers.net/debian bookworm main
+EOF
+}
+
+function signaling_step3() {
+    log "\nStep 3: Install packages"
+
+    is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
+
+    # Installing:
+    # - janus
+    # - nats Server
+    # - nextcloud-spreed-signaling
+    # - coturn
+    if ! is_dry_run; then
+        if [ "$UNATTENTED_INSTALL" == true ]; then
+            log "Trying unattented install for Collabora."
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get install -qqy janus nats-server \
+                nextcloud-spreed-signaling coturn 2>&1 | tee -a $LOGFILE_PATH
+        else
+            apt-get install -y janus nats-server \
+                nextcloud-spreed-signaling coturn 2>&1 | tee -a $LOGFILE_PATH
+        fi
+    fi
+}
+
+function signaling_step4() {
+    log "\nStep 4: Prepare configuration"
+
+    # Don't actually log passwords! (Or do for debugging…)
+
+    log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>' with '$SIGNALING_TURN_STATIC_AUTH_SECRET'…"
+    # log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>'…"
+    sed -i "s|<SIGNALING_TURN_STATIC_AUTH_SECRET>|$SIGNALING_TURN_STATIC_AUTH_SECRET|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SIGNALING_JANUS_API_KEY>' with '$SIGNALING_JANUS_API_KEY'…"
+    # log "Replacing '<SIGNALING_JANUS_API_KEY>…'
+    sed -i "s|<SIGNALING_JANUS_API_KEY>|$SIGNALING_JANUS_API_KEY|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SIGNALING_HASH_KEY>' with '$SIGNALING_HASH_KEY'…"
+    # log "Replacing '<SIGNALING_HASH_KEY>…'
+    sed -i "s|<SIGNALING_HASH_KEY>|$SIGNALING_HASH_KEY|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SIGNALING_BLOCK_KEY>' with '$SIGNALING_BLOCK_KEY'…"
+    # log "Replacing '<SIGNALING_BLOCK_KEY>…'
+    sed -i "s|<SIGNALING_BLOCK_KEY>|$SIGNALING_BLOCK_KEY|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>' with '$SIGNALING_NEXTCLOUD_SECRET_KEY'…"
+    # log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>…'
+    sed -i "s|<SIGNALING_NEXTCLOUD_SECRET_KEY>|$SIGNALING_NEXTCLOUD_SECRET_KEY|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SIGNALING_NEXTCLOUD_URL>' with '$SIGNALING_NEXTCLOUD_URL'…"
+    # log "Replacing '<SIGNALING_NEXTCLOUD_URL>…'
+    sed -i "s|<SIGNALING_NEXTCLOUD_URL>|$SIGNALING_NEXTCLOUD_URL|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SIGNALING_COTURN_URL>' with '$SIGNALING_COTURN_URL'…"
+    # log "Replacing '<SIGNALING_COTURN_URL>…'
+    sed -i "s|<SIGNALING_COTURN_URL>|$SIGNALING_COTURN_URL|g" "$TMP_DIR_PATH"/signaling/*
+}
+
+function signaling_step5() {
+    log "\nStep 5: Deploy configuration"
+
+    deploy_file "$TMP_DIR_PATH"/signaling/snippet-signaling.conf /etc/nginx/snippets/signaling.conf || true
+
+    deploy_file "$TMP_DIR_PATH"/signaling/janus.jcfg /etc/janus/janus.jcfg || true
+    deploy_file "$TMP_DIR_PATH"/signaling/janus.transport.http.jcfg /etc/janus/janus.transport.http.jcfg || true
+    deploy_file "$TMP_DIR_PATH"/signaling/janus.transport.websockets.jcfg /etc/janus/janus.transport.websockets.jcfg || true
+
+    deploy_file "$TMP_DIR_PATH"/signaling/signaling-server.conf /etc/nextcloud-spreed-signaling/server.conf || true
+
+    is_dry_run || systemctl enable --now janus || true
+    is_dry_run || systemctl enable --now nats-server || true
+    is_dry_run || systemctl enable --now nextcloud-spreed-signaling || true
 }
 
 function signaling_print_info() {
@@ -21,5 +128,13 @@ function signaling_print_info() {
         return 0
     fi
 
-    log "Signaling info will follow soon…"
+    # Don't actually log passwords!
+    log "Signaling is now installed blah blah do this do that lorem ipsum…"
+    echo -e "\$SIGNALING_TURN_STATIC_AUTH_SECRET = '$SIGNALING_TURN_STATIC_AUTH_SECRET'"
+    echo -e "\$SIGNALING_JANUS_API_KEY           = '$SIGNALING_JANUS_API_KEY'"
+    echo -e "\$SIGNALING_HASH_KEY                = '$SIGNALING_HASH_KEY'"
+    echo -e "\$SIGNALING_BLOCK_KEY               = '$SIGNALING_BLOCK_KEY'"
+    echo -e "\$SIGNALING_NEXTCLOUD_SECRET_KEY    = '$SIGNALING_NEXTCLOUD_SECRET_KEY'"
+    echo -e "\$SIGNALING_NEXTCLOUD_URL           = '$SIGNALING_NEXTCLOUD_URL'"
+    echo -e "\$SIGNALING_COTURN_URL              = '$SIGNALING_COTURN_URL'"
 }
