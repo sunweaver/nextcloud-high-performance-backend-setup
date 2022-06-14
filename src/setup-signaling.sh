@@ -97,18 +97,23 @@ function signaling_step4() {
     sed -i "s|<SIGNALING_NEXTCLOUD_SECRET_KEY>|$SIGNALING_NEXTCLOUD_SECRET_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
     log "Replacing '<SIGNALING_NEXTCLOUD_URL>' with '$SIGNALING_NEXTCLOUD_URL'…"
-    # log "Replacing '<SIGNALING_NEXTCLOUD_URL>…'
     sed -i "s|<SIGNALING_NEXTCLOUD_URL>|$SIGNALING_NEXTCLOUD_URL|g" "$TMP_DIR_PATH"/signaling/*
 
     log "Replacing '<SIGNALING_COTURN_URL>' with '$SIGNALING_COTURN_URL'…"
-    # log "Replacing '<SIGNALING_COTURN_URL>…'
     sed -i "s|<SIGNALING_COTURN_URL>|$SIGNALING_COTURN_URL|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
+    sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
+    sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
 }
 
 function signaling_step5() {
     log "\nStep 5: Deploy configuration"
 
-    deploy_file "$TMP_DIR_PATH"/signaling/snippet-signaling.conf /etc/nginx/snippets/signaling.conf || true
+    deploy_file "$TMP_DIR_PATH"/signaling/nginx-signaling-upstream-servers.conf /etc/nginx/snippets/signaling-upstream-servers.conf || true
+    deploy_file "$TMP_DIR_PATH"/signaling/nginx-signaling-forwarding.conf /etc/nginx/snippets/signaling-forwarding.conf || true
 
     deploy_file "$TMP_DIR_PATH"/signaling/janus.jcfg /etc/janus/janus.jcfg || true
     deploy_file "$TMP_DIR_PATH"/signaling/janus.transport.http.jcfg /etc/janus/janus.transport.http.jcfg || true

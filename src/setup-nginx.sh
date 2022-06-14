@@ -34,12 +34,16 @@ function nginx_step1() {
 
 function nginx_step2() {
     log "\nStep 2: Prepare configuration"
-    include_snippet_signaling=""
+    include_snippet_signaling_forwarding=""
+    include_snippet_signaling_upstream_servers=""
     if [ "$SHOULD_INSTALL_SIGNALING" == true ]; then
-        include_snippet_signaling="# Signaling\n  include snippets/signaling.conf;\n"
-        log "Replacing '<INCLUDE_SNIPPET_SIGNALING>' with '$include_snippet_signaling'…"
+        include_snippet_signaling_forwarding="# Signaling\n  include snippets/signaling-forwarding.conf;\n"
+        include_snippet_signaling_upstream_servers="include snippets/signaling-upstream-servers.conf;\n"
+        log "Replacing '<INCLUDE_SNIPPET_SIGNALING_FORWARDING>' with '$include_snippet_signaling_forwarding'…"
+        log "Replacing '<INCLUDE_SNIPPET_SIGNALING_UPSTREAM_SERVERS>' with '$include_snippet_signaling_upstream_servers'…"
     fi
-    sed -i "s|<INCLUDE_SNIPPET_SIGNALING>|$include_snippet_signaling|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
+    sed -i "s|<INCLUDE_SNIPPET_SIGNALING_FORWARDING>|$include_snippet_signaling_forwarding|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
+    sed -i "s|<INCLUDE_SNIPPET_SIGNALING_UPSTREAM_SERVERS>|$include_snippet_signaling_upstream_servers|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
     include_snippet_collabora=""
     if [ "$SHOULD_INSTALL_COLLABORA" == true ]; then
