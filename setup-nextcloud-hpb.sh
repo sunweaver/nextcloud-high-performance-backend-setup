@@ -6,6 +6,7 @@
 # Try to install the high-performance-backend server without any user input.
 UNATTENTED_INSTALL=false
 
+NEXTCLOUD_SERVER_FQDN="nextcloud-server.example.invalid"
 SERVER_FQDN="nextcloud-hpb.example.invalid"
 
 # Collabora

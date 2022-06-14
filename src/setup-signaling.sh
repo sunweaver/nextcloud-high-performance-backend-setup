@@ -11,7 +11,7 @@ SIGNALING_HASH_KEY="$(openssl rand -hex 16)"
 SIGNALING_BLOCK_KEY="$(openssl rand -hex 16)"
 SIGNALING_NEXTCLOUD_SECRET_KEY="$(openssl rand -hex 16)"
 
-SIGNALING_NEXTCLOUD_URL="$SERVER_FQDN"
+SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDN"
 SIGNALING_COTURN_URL="$SERVER_FQDN"
 
 function install_signaling() {
@@ -74,6 +74,9 @@ function signaling_step3() {
 function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
+    openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
+    adduser turnserver ssl-cert
+
     # Don't actually log passwords! (Or do for debugging…)
 
     log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>' with '$SIGNALING_TURN_STATIC_AUTH_SECRET'…"
@@ -121,9 +124,12 @@ function signaling_step5() {
 
     deploy_file "$TMP_DIR_PATH"/signaling/signaling-server.conf /etc/nextcloud-spreed-signaling/server.conf || true
 
+    deploy_file "$TMP_DIR_PATH"/signaling/turnserver.conf /etc/turnserver.conf || true
+
     is_dry_run || systemctl enable --now janus || true
     is_dry_run || systemctl enable --now nats-server || true
     is_dry_run || systemctl enable --now nextcloud-spreed-signaling || true
+    is_dry_run || systemctl enable --now coturn || true
 }
 
 function signaling_print_info() {
