@@ -268,7 +268,7 @@ media: {
 # be used for gathering candidates, and enable or disable the
 # internal libnice debugging, if needed.
 nat: {
-	stun_server = <SIGNALING_COTURN_URL> # HAND-EDIT
+	stun_server = "<SIGNALING_COTURN_URL>" # HAND-EDIT
 	stun_port = 1271 # HAND-EDIT PORT-EDIT (443)
 	nice_debug = false
 	full_trickle = true # HAND-EDIT
