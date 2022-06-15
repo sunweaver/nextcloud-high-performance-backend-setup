@@ -130,6 +130,11 @@ function signaling_step5() {
     is_dry_run || systemctl enable --now nats-server || true
     is_dry_run || systemctl enable --now nextcloud-spreed-signaling || true
     is_dry_run || systemctl enable --now coturn || true
+
+    is_dry_run || service janus restart || true
+    is_dry_run || service nats-server restart || true
+    is_dry_run || service nextcloud-spreed-signaling restart || true
+    is_dry_run || service coturn restart || true
 }
 
 function signaling_print_info() {

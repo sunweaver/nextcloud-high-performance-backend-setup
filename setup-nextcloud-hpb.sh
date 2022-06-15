@@ -165,9 +165,9 @@ function main() {
         source "$script"
     done
 
-    install_nginx
     install_collabora
     install_signaling
+    install_nginx
 
     log "Every installation completed."
 
