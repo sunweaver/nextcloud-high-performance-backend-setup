@@ -172,9 +172,11 @@ function main() {
     log "Every installation completed."
 
     log "======================================================================"
+    collabora_print_info &&
+        log "======================================================================"
+    signaling_print_info &&
+        log "======================================================================"
     nginx_print_info
-    collabora_print_info
-    signaling_print_info
     log "======================================================================"
 
     log "\nThank you for using this script.\n"

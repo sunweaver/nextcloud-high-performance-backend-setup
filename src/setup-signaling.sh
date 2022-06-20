@@ -149,16 +149,12 @@ function signaling_print_info() {
     if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
         # Don't print any info…
-        return 0
+        return 1
     fi
 
     # Don't actually log passwords!
     log "Signaling is now installed blah blah do this do that lorem ipsum…"
-    echo -e "\$SIGNALING_TURN_STATIC_AUTH_SECRET = '$SIGNALING_TURN_STATIC_AUTH_SECRET'"
-    echo -e "\$SIGNALING_JANUS_API_KEY           = '$SIGNALING_JANUS_API_KEY'"
-    echo -e "\$SIGNALING_HASH_KEY                = '$SIGNALING_HASH_KEY'"
-    echo -e "\$SIGNALING_BLOCK_KEY               = '$SIGNALING_BLOCK_KEY'"
-    echo -e "\$SIGNALING_NEXTCLOUD_SECRET_KEY    = '$SIGNALING_NEXTCLOUD_SECRET_KEY'"
-    echo -e "\$SIGNALING_NEXTCLOUD_URL           = '$SIGNALING_NEXTCLOUD_URL'"
-    echo -e "\$SIGNALING_COTURN_URL              = '$SIGNALING_COTURN_URL'"
+    echo -e "STUN server              = wss://$SERVER_FQDN:1271"
+    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET"
+    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling $SIGNALING_NEXTCLOUD_SECRET_KEY"
 }

@@ -73,13 +73,13 @@ function nginx_print_info() {
         log "Nginx got installed which acts as a reverse proxy for Signaling" \
             "and Collabora. No extra configuration needed.\n"
     else
-        return 0
+        return 1
     fi
 
     if [ "$SHOULD_INSTALL_LETSENCRYPT" != true ]; then
         log "Except one thing. Since you choose to not install an automatic" \
             "\nSSL-Certificate renewer (certbot for example), you need to make" \
             "\nsure that at all time a valid SSL-Cert is located at: " \
-            "\n'$SSL_CERT_PATH' and '$SSL_CERT_KEY_PATH'.\n"
+            "\n'$SSL_CERT_PATH' and '$SSL_CERT_KEY_PATH'."
     fi
 }

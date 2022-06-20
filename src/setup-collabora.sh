@@ -96,7 +96,7 @@ function collabora_print_info() {
     if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then
         # Don't print any info…
-        return 0
+        return 1
     fi
 
     collabora_address="https://$SERVER_FQDN/collabora"
@@ -106,5 +106,5 @@ function collabora_print_info() {
         "\nand navigate to Settings -> Administration -> Nextcloud Office." \
         "\nNow select 'Use your own server' and type in '$collabora_address'." \
         "\nPlease note that you need to have a working HTTPS setup on your" \
-        "\nNextcloud server in order to get Nextcloud Office working.\n"
+        "\nNextcloud server in order to get Nextcloud Office working."
 }
