@@ -35,7 +35,7 @@ function install_signaling() {
 
 function signaling_step1() {
     log "\nStep 1: Import sunweaver's gpg key."
-    wget http://packages.sunweavers.net/archive.key \
+    is_dry_run || wget http://packages.sunweavers.net/archive.key \
         -O /etc/apt/trusted.gpg.d/sunweaver-archive-keyring.asc
 }
 
@@ -74,8 +74,8 @@ function signaling_step3() {
 function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
-    openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
-    adduser turnserver ssl-cert
+    is_dry_run || openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
+    is_dry_run || adduser turnserver ssl-cert
 
     # Don't actually log passwords! (Or do for debugging…)
 
