@@ -13,9 +13,9 @@ general: {
 		# The next settings configure logging
 	#log_to_stdout = false					# Whether the Janus output should be written
 											# to stdout or not (default=true)
-	#log_to_file = "/path/to/janus.log"		# Whether to use a log file or not
+	log_to_file = "/var/log/janus.log"		# Whether to use a log file or not
 	debug_level = 4							# Debug/logging level, valid values are 0-7
-	#debug_timestamps = true				# Whether to show a timestamp for each log line
+	debug_timestamps = true					# Whether to show a timestamp for each log line
 	#debug_colors = false					# Whether colors should be disabled in the log
 	#debug_locks = true						# Whether to enable debugging of locks (very verbose!)
 	#log_prefix = "[janus] "				# In case you want log lines to be prefixed by some
