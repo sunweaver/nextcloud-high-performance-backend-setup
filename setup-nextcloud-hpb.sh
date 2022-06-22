@@ -1,36 +1,138 @@
 #!/bin/bash
 
-# !!! Be careful, this script will be executed by the root user. !!!
-
-# -----------------------------------------------------------------------
-# Try to install the high-performance-backend server without any user input.
-UNATTENTED_INSTALL=false
-
-NEXTCLOUD_SERVER_FQDN="nextcloud-server.example.invalid"
-SERVER_FQDN="nextcloud-hpb.example.invalid"
-
-# Collabora
-SHOULD_INSTALL_COLLABORA=true
-
-# Signaling
-SHOULD_INSTALL_SIGNALING=true
-
-# nginx (needed by Signaling & Collabora)
-SHOULD_INSTALL_NGINX=true
-
-SSL_CERT_PATH="/path/to/ssl/cert"
-SSL_CERT_KEY_PATH="/path/to/ssl/cert.key"
-# -----------------------------------------------------------------------
-
-LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
-
-# Configuration gets copied and prepared here before copying them into place.
-TMP_DIR_PATH="tmp"
-
-# Dry run (Don't actually alter anything on the system. (except in $TMP_DIR_PATH))
-DRY_RUN=true
-
 set -eo pipefail
+
+# Sane defaults (Don't override these settings here!)
+# Can be overridden by specifying a settings file as first parameter.
+# See settings.sh
+DRY_RUN=false
+UNATTENTED_INSTALL=false
+NEXTCLOUD_SERVER_FQDN="" # Ask user
+SERVER_FQDN=""           # Ask user
+SSL_CERT_PATH="/etc/ssl/certs/nextcloud-hpb.crt"
+SSL_CERT_KEY_PATH="/etc/ssl/private/nextcloud-hpb.key"
+LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
+TMP_DIR_PATH="./tmp"
+
+function show_dialogs() {
+    if [ "$DRY_RUN" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and  I'm missing DRY_RUN!"
+            exit 1
+        fi
+
+        if whiptail --title "Dry-Run Mode" --yesno "Do you want to run in dry $(
+        )mode? This will ensure that no serious changes get done to your $(
+        )system." 10 65 --defaultno; then
+            DRY_RUN=true
+        else
+            DRY_RUN=true
+        fi
+    fi
+    log "Using '$DRY_RUN' for DRY_RUN".
+
+    if [ "$NEXTCLOUD_SERVER_FQDN" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing NEXTCLOUD_SERVER_FQDN!"
+            exit 1
+        fi
+
+        NEXTCLOUD_SERVER_FQDN=$(
+            whiptail --title "Nextcloud Server Domain" \
+                --inputbox "Please input your Nextcloud Server domain. $(
+                )No http(s) or similar! And don't input the domain for $(
+                )the High-Performance backend yet!" 10 65 \
+                "nextcloud.example.org" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$NEXTCLOUD_SERVER_FQDN' for NEXTCLOUD_SERVER_FQDN".
+
+    if [ "$SERVER_FQDN" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing SERVER_FQDN!"
+            exit 1
+        fi
+
+        SERVER_FQDN=$(
+            whiptail --title "High-Performance Backend Server Domain" \
+                --inputbox "Please input your High-Performance backend $(
+                )server domain. (No http(s) or similar!)\n$(
+                )Also please note that this domain should already exist $(
+                )or else SSL certificate creation will fail!" \
+                10 65 "nc-workhorse.example.org" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$SERVER_FQDN' for SERVER_FQDN".
+
+    if [ "$SSL_CERT_PATH" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing SSL_CERT_PATH!"
+            exit 1
+        fi
+
+        SSL_CERT_PATH=$(
+            whiptail --title "SSL Certificate file path" \
+                --inputbox "Please input a path where the SSL certificate $(
+                )(.crt) should be saved." \
+                10 65 "/path/to/ssl/certificate.crt" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$SSL_CERT_PATH' for SSL_CERT_PATH".
+
+    if [ "$SSL_CERT_KEY_PATH" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing SSL_CERT_KEY_PATH!"
+            exit 1
+        fi
+
+        SSL_CERT_KEY_PATH=$(
+            whiptail --title "SSL Certificate key-file path" \
+                --inputbox "Please input a path where the SSL certificate $(
+                )key file (.key) should be saved." \
+                10 65 "/path/to/ssl/private-key.key" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$SSL_CERT_KEY_PATH' for SSL_CERT_KEY_PATH".
+
+    if [ "$LOGFILE_PATH" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing LOGFILE_PATH!"
+            exit 1
+        fi
+
+        LOGFILE_PATH=$(
+            whiptail --title "Logfile path" \
+                --inputbox "Please input a path to which this script can put $(
+                )a logging file. The directory, it's parents and the file get $(
+                )created automatically." 10 65 \
+                "setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log" \
+                3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$LOGFILE_PATH' for LOGFILE_PATH"
+
+    if [ "$TMP_DIR_PATH" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing TMP_DIR_PATH!"
+            exit 1
+        fi
+
+        TMP_DIR_PATH=$(
+            whiptail --title "Temporary directory for configuration" \
+                --inputbox "Please input a directory path in which this "$(
+                )"script can put temporary configuration files. "$(
+                )"The directory and it's parents get created automatically." \
+                10 65 "./tmp" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$TMP_DIR_PATH' for TMP_DIR_PATH".
+}
 
 function log() {
     echo -e "$@" 2>&1 | tee -a $LOGFILE_PATH
@@ -113,6 +215,48 @@ function main() {
 
     check_debian_system
 
+    # Load Settings (hopefully vars above get overwritten!)
+    SETTINGS_FILE="$1"
+    if [ -s "$SETTINGS_FILE" ]; then
+        log "Loading settings file '$SETTINGS_FILE'…"
+        source "$SETTINGS_FILE"
+    else
+        log "No settings file specified using defaults or asking user for input."
+    fi
+
+    # Let's check if we should open dialogs.
+    if [ "$UNATTENTED_INSTALL" != true ]; then
+        CHOICES=$(whiptail --separate-output --checklist "Choose options" 10 40 2 \
+            "1" "Install Collabora" ON \
+            "2" "Install Signaling" ON 3>&1 1>&2 2>&3)
+
+        if [ -z "$CHOICES" ]; then
+            log "No service was selected (user hit Cancel or unselected all options) Exiting…"
+            exit 0
+        else
+            for CHOICE in $CHOICES; do
+                case "$CHOICE" in
+                "1")
+                    log "Collabora will be installed."
+                    SHOULD_INSTALL_COLLABORA=true
+                    SHOULD_INSTALL_NGINX=true
+                    ;;
+                "2")
+                    log "Signaling will be installed."
+                    SHOULD_INSTALL_SIGNALING=true
+                    SHOULD_INSTALL_NGINX=true
+                    ;;
+                *)
+                    log "Unsupported service $CHOICE!" >&2
+                    exit 1
+                    ;;
+                esac
+            done
+        fi
+    fi
+
+    show_dialogs
+
     if [ -s "$LOGFILE_PATH" ]; then
         rm $LOGFILE_PATH
     fi
@@ -179,6 +323,6 @@ function main() {
 }
 
 # Execute main function.
-main
+main $1
 
 set +eo pipefail
