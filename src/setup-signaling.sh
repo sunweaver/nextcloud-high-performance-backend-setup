@@ -74,6 +74,7 @@ function signaling_step3() {
 function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
+    is_dry_run || mkdir -p /etc/turnserver/ && touch /etc/turnserver/dhp.pem
     is_dry_run || openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
     is_dry_run || adduser turnserver ssl-cert
 
@@ -154,7 +155,7 @@ function signaling_print_info() {
 
     # Don't actually log passwords!
     log "Signaling is now installed blah blah do this do that lorem ipsum…"
-    echo -e "STUN server              = wss://$SERVER_FQDN:1271"
+    echo -e "STUN server              = $SERVER_FQDN:1271"
     echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET"
     echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling $SIGNALING_NEXTCLOUD_SECRET_KEY"
 }
