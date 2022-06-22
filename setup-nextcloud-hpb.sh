@@ -33,11 +33,7 @@ DRY_RUN=true
 set -eo pipefail
 
 function log() {
-    if [ "$UNATTENTED_INSTALL" = true ]; then
-        echo -e "$@" 2>&1 | tee -a $LOGFILE_PATH
-    else
-        echo -e "$@"
-    fi
+    echo -e "$@" 2>&1 | tee -a $LOGFILE_PATH
 }
 
 # Deploys target_file_path to source_file_path while respecting
