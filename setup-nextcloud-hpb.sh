@@ -246,9 +246,9 @@ function main() {
     if [ "$UNATTENTED_INSTALL" != true ]; then
         CHOICES=$(whiptail --title "Select services" --separate-output \
             --checklist "Please select/deselect the services you want to $(
-            )install with the space key." 15 100 2 \
-            "1" "Install Collabora (coolwsd, nginx)" ON \
-            "2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling, nginx)" ON \
+            )install with the space key." 15 110 2 \
+            "1" "Install Collabora (coolwsd, nginx, certbot)" ON \
+            "2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling, nginx, certbot)" ON \
             3>&1 1>&2 2>&3)
 
         if [ -z "$CHOICES" ]; then
@@ -261,11 +261,13 @@ function main() {
                     log "Collabora will be installed."
                     SHOULD_INSTALL_COLLABORA=true
                     SHOULD_INSTALL_NGINX=true
+                    SHOULD_INSTALL_CERTBOT=true
                     ;;
                 "2")
                     log "Signaling will be installed."
                     SHOULD_INSTALL_SIGNALING=true
                     SHOULD_INSTALL_NGINX=true
+                    SHOULD_INSTALL_CERTBOT=true
                     ;;
                 *)
                     log "Unsupported service $CHOICE!" >&2
@@ -320,7 +322,7 @@ function main() {
     is_dry_run || echo "$entry" >>/etc/hosts
 
     scripts=('src/setup-collabora.sh' 'src/setup-signaling.sh'
-        'src/setup-nginx.sh')
+        'src/setup-nginx.sh' 'src/setup-certbot.sh')
     for script in "${scripts[@]}"; do
         log "Sourcing '$script'."
         source "$script"
@@ -329,6 +331,7 @@ function main() {
     install_collabora
     install_signaling
     install_nginx
+    install_certbot
 
     log "Every installation completed."
 
@@ -337,7 +340,9 @@ function main() {
         log "======================================================================"
     signaling_print_info &&
         log "======================================================================"
-    nginx_print_info
+    nginx_print_info &&
+        log "======================================================================"
+    certbot_print_info
     log "======================================================================"
 
     is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
@@ -350,6 +355,7 @@ function main() {
     collabora_write_secrets_to_file "$SECRETS_FILE_PATH"
     signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
     nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
+    certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
 
     log "\nThank you for using this script.\n"
 }

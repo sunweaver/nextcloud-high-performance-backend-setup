@@ -90,7 +90,7 @@ function nginx_print_info() {
         return 1
     fi
 
-    if [ "$SHOULD_INSTALL_LETSENCRYPT" != true ]; then
+    if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
         log "Except one thing. Since you choose to not install an automatic" \
             "\nSSL-Certificate renewer (certbot for example), you need to make" \
             "\nsure that at all time a valid SSL-Cert is located at: " \
