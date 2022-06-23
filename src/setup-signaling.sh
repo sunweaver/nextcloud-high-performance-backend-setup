@@ -157,7 +157,7 @@ function signaling_write_secrets_to_file() {
     echo -e "Hash key:      $SIGNALING_HASH_KEY" >>$1
     echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
     echo -e "" >>$1
-    echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN"
+    echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN" >>$1
     echo -e "STUN server              = $SERVER_FQDN:1271" >>$1
     echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp" >>$1
     echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling + $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
@@ -172,7 +172,7 @@ function signaling_print_info() {
 
     log "The services coturn janus nats-server and nextcloud-signaling-spreed" \
         "got installed.\nTo set it up, log into your Nextcloud instance" \
-        "with an adminstrator account\nand install the Talk app." \
+        "(https://$NEXTCLOUD_SERVER_FQDN) with an adminstrator account\nand install the Talk app." \
         "Then navigate to\nSettings -> Administration -> Talk and put in the following:"
 
     # Don't actually *log* passwords!
