@@ -341,6 +341,7 @@ function main() {
     log "======================================================================"
 
     is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
+    is_dry_run || touch "$SECRETS_FILE_PATH"
     is_dry_run || chmod 0640 "$SECRETS_FILE_PATH"
     collabora_write_secrets_to_file "$SECRETS_FILE_PATH"
     signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
