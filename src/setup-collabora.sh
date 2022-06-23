@@ -111,7 +111,8 @@ function collabora_print_info() {
 
     log "The Collabora Online service got installed. To set it up," \
         "\nlog into your Nextcloud instance with an adminstrator account" \
-        "\nand navigate to Settings -> Administration -> Nextcloud Office." \
+        "\n install the Nextcloud Office app and navigate to " \
+        "\nSettings -> Administration -> Nextcloud Office." \
         "\nNow select 'Use your own server' and type in '$collabora_address'." \
         "\nPlease note that you need to have a working HTTPS setup on your" \
         "\nNextcloud server in order to get Nextcloud Office working."

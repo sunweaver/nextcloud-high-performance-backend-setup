@@ -170,9 +170,13 @@ function signaling_print_info() {
         return 1
     fi
 
-    # Don't actually log passwords!
-    log "Signaling is now installed blah blah do this do that lorem ipsum…"
+    log "The services coturn janus nats-server and nextcloud-signaling-spreed" \
+        "got installed.\nTo set it up, log into your Nextcloud instance\n" \
+        "with an adminstrator account and install the Talk app.\n" \
+        "Then navigate to Settings -> Administration -> Talk and put in the following:"
+
+    # Don't actually *log* passwords!
     echo -e "STUN server              = $SERVER_FQDN:1271"
-    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET"
+    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp"
     echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling $SIGNALING_NEXTCLOUD_SECRET_KEY"
 }

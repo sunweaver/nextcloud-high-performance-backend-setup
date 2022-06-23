@@ -244,9 +244,12 @@ function main() {
 
     # Let's check if we should open dialogs.
     if [ "$UNATTENTED_INSTALL" != true ]; then
-        CHOICES=$(whiptail --separate-output --checklist "Choose options" 10 40 2 \
-            "1" "Install Collabora" ON \
-            "2" "Install Signaling" ON 3>&1 1>&2 2>&3)
+        CHOICES=$(whiptail --title "Select services" --separate-output \
+            --checklist "Please select/deselect the services you want to $(
+            )install with the space key." 15 100 2 \
+            "1" "Install Collabora (coolwsd, nginx)" ON \
+            "2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling, nginx)" ON \
+            3>&1 1>&2 2>&3)
 
         if [ -z "$CHOICES" ]; then
             log "No service was selected (user hit Cancel or unselected all options) Exiting…"
