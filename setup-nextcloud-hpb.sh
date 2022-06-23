@@ -13,6 +13,7 @@ SSL_CERT_PATH="/etc/ssl/certs/nextcloud-hpb.crt"
 SSL_CERT_KEY_PATH="/etc/ssl/private/nextcloud-hpb.key"
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
+SECRETS_FILE_PATH="" # Ask user
 
 function show_dialogs() {
     if [ "$DRY_RUN" = "" ]; then
@@ -132,6 +133,23 @@ function show_dialogs() {
         )
     fi
     log "Using '$TMP_DIR_PATH' for TMP_DIR_PATH".
+
+    if [ "$SECRETS_FILE_PATH" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing SECRETS_FILE_PATH!"
+            exit 1
+        fi
+
+        SECRETS_FILE_PATH=$(
+            whiptail --title "Secrets, passwords and configuration file" \
+                --inputbox "Please input a path to a file in which all "$(
+                )"secrets, passwords and configuration can be stored.\n"$(
+                )"The directory and it's parents get created automatically." \
+                10 65 "./nextcloud-hpb.secrets" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH".
 }
 
 function log() {
@@ -318,6 +336,12 @@ function main() {
         log "======================================================================"
     nginx_print_info
     log "======================================================================"
+
+    is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
+    is_dry_run || chmod 0640 "$SECRETS_FILE_PATH"
+    collabora_write_secrets_to_file "$SECRETS_FILE_PATH"
+    signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
+    nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
 
     log "\nThank you for using this script.\n"
 }

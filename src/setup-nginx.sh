@@ -68,6 +68,14 @@ function nginx_step3() {
     deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
 }
 
+# arg: $1 is secret file path
+function nginx_write_secrets_to_file() {
+    # No secrets, passwords, keys or something to worry about.
+    if is_dry_run; then
+        return 0
+    fi
+}
+
 function nginx_print_info() {
     if [ "$SHOULD_INSTALL_NGINX" == true ]; then
         log "Nginx got installed which acts as a reverse proxy for Signaling" \

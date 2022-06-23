@@ -146,6 +146,23 @@ function signaling_step5() {
     is_dry_run || service coturn restart || true
 }
 
+# arg: $1 is secret file path
+function signaling_write_secrets_to_file() {
+    if is_dry_run; then
+        return 0
+    fi
+
+    echo -e "=== SIGNALING ===" >>$1
+    echo -e "Janus API key: $SIGNALING_JANUS_API_KEY" >>$1
+    echo -e "Hash key:      $SIGNALING_HASH_KEY" >>$1
+    echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
+    echo -e "" >>$1
+    echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN"
+    echo -e "STUN server              = $SERVER_FQDN:1271" >>$1
+    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp" >>$1
+    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling + $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
+}
+
 function signaling_print_info() {
     if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then

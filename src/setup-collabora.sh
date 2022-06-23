@@ -92,6 +92,14 @@ function collabora_step5() {
     is_dry_run || service coolwsd restart || true
 }
 
+# arg: $1 is secret file path
+function collabora_write_secrets_to_file() {
+    # No secrets, passwords, keys or something to worry about.
+    if is_dry_run; then
+        return 0
+    fi
+}
+
 function collabora_print_info() {
     if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
         [ "$SHOULD_INSTALL_NGINX" != true ]; then

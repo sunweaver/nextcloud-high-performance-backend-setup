@@ -36,3 +36,7 @@ LOGFILE_PATH="./setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 # This prevents config being broken if something goes wrong.
 # Leave empty, if you wish that the user will be asked about this.
 TMP_DIR_PATH="./tmp"
+
+# Secrets, passwords and configuration gets saved in this file.
+# Leave empty, if you wish that the user will be asked about this.
+SECRETS_FILE_PATH=""
