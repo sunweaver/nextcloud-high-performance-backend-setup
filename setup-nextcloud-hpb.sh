@@ -144,7 +144,7 @@ function show_dialogs() {
         SECRETS_FILE_PATH=$(
             whiptail --title "Secrets, passwords and configuration file" \
                 --inputbox "Please input a path to a file in which all "$(
-                )"secrets, passwords and configuration can be stored.\n"$(
+                )"secrets, passwords and configuration should be stored.\n"$(
                 )"The directory and it's parents get created automatically." \
                 10 65 "./nextcloud-hpb.secrets" 3>&1 1>&2 2>&3
         )
