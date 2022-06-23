@@ -258,13 +258,13 @@ function main() {
             for CHOICE in $CHOICES; do
                 case "$CHOICE" in
                 "1")
-                    log "Collabora will be installed."
+                    log "Collabora (certbot + nginx) will be installed."
                     SHOULD_INSTALL_COLLABORA=true
                     SHOULD_INSTALL_NGINX=true
                     SHOULD_INSTALL_CERTBOT=true
                     ;;
                 "2")
-                    log "Signaling will be installed."
+                    log "Signaling (certbot + nginx) will be installed."
                     SHOULD_INSTALL_SIGNALING=true
                     SHOULD_INSTALL_NGINX=true
                     SHOULD_INSTALL_CERTBOT=true
@@ -301,7 +301,7 @@ function main() {
         REPLY=""
         while ! [[ $REPLY =~ ^[YyJj]$ ]]; do
             if [ "$UNATTENTED_INSTALL" = false ]; then
-                read -p "Delete * in '$TMP_DIR_PATH'? [Yy] " -n 1 -r && echo
+                read -p "Delete * in '$TMP_DIR_PATH'? [Yy/CTRL-C] " -n 1 -r && echo
             else
                 break
             fi
