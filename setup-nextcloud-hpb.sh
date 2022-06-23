@@ -175,7 +175,7 @@ function deploy_file() {
             if [ "$UNATTENTED_INSTALL" = true ]; then
                 cp "$source_file_path" "$target_file_path"
             else
-                read -p "Overwrite file '$target_file_path'? [Yy] " -n 1 -r && echo
+                read -p "Overwrite file '$target_file_path'? [YyNn] " -n 1 -r && echo
                 if [[ $REPLY =~ ^[YyJj]$ ]]; then
                     log "$target_file_path to be updated deployed."
                     is_dry_run || cp "$source_file_path" "$target_file_path"
