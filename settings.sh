@@ -15,7 +15,7 @@ UNATTENTED_INSTALL=true
 #SERVER_FQDN="nextcloud-hpb.example.invalid"
 
 # Leave empty, if you wish that the user will be asked about this.
-SSL_CERT_PATH="/etc/ssl/certs/nextcloud-hpb.fullchain.crt"
+SSL_CERT_PATH="/etc/ssl/certs/nextcloud-hpb.crt"
 # Leave empty, if you wish that the user will be asked about this.
 SSL_CERT_KEY_PATH="/etc/ssl/private/nextcloud-hpb.key"
 
