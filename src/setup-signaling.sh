@@ -74,7 +74,7 @@ function signaling_step3() {
 function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
-    is_dry_run || mkdir -p /etc/turnserver/ && touch /etc/turnserver/dhp.pem
+    is_dry_run || (mkdir -p /etc/turnserver/ && touch /etc/turnserver/dhp.pem)
     is_dry_run || openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
     is_dry_run || adduser turnserver ssl-cert
 
