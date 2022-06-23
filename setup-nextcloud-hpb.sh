@@ -78,7 +78,7 @@ function show_dialogs() {
             whiptail --title "SSL Certificate file path" \
                 --inputbox "Please input a path where the SSL certificate $(
                 )(.crt) should be saved." \
-                10 65 "/path/to/ssl/certificate.crt" 3>&1 1>&2 2>&3
+                10 65 "/etc/letsencrypt/live/$SERVER_FQDN/fullchain.pem" 3>&1 1>&2 2>&3
         )
     fi
     log "Using '$SSL_CERT_PATH' for SSL_CERT_PATH".
@@ -94,7 +94,7 @@ function show_dialogs() {
             whiptail --title "SSL Certificate key-file path" \
                 --inputbox "Please input a path where the SSL certificate $(
                 )key file (.key) should be saved." \
-                10 65 "/path/to/ssl/private-key.key" 3>&1 1>&2 2>&3
+                10 65 "/etc/letsencrypt/live/$SERVER_FQDN/privkey.pem" 3>&1 1>&2 2>&3
         )
     fi
     log "Using '$SSL_CERT_KEY_PATH' for SSL_CERT_KEY_PATH".

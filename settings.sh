@@ -15,9 +15,9 @@ UNATTENTED_INSTALL=true
 #SERVER_FQDN="nextcloud-hpb.example.invalid"
 
 # Leave empty, if you wish that the user will be asked about this.
-SSL_CERT_PATH="/etc/ssl/certs/nextcloud-hpb.crt"
+SSL_CERT_PATH=""
 # Leave empty, if you wish that the user will be asked about this.
-SSL_CERT_KEY_PATH="/etc/ssl/private/nextcloud-hpb.key"
+SSL_CERT_KEY_PATH=""
 
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
