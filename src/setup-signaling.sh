@@ -171,9 +171,9 @@ function signaling_print_info() {
     fi
 
     log "The services coturn janus nats-server and nextcloud-signaling-spreed" \
-        "got installed.\nTo set it up, log into your Nextcloud instance\n" \
-        "with an adminstrator account and install the Talk app.\n" \
-        "Then navigate to Settings -> Administration -> Talk and put in the following:"
+        "got installed.\nTo set it up, log into your Nextcloud instance" \
+        "with an adminstrator account\nand install the Talk app." \
+        "Then navigate to\nSettings -> Administration -> Talk and put in the following:"
 
     # Don't actually *log* passwords!
     echo -e "STUN server              = $SERVER_FQDN:1271"
