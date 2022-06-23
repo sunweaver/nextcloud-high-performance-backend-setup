@@ -78,26 +78,26 @@ function signaling_step4() {
     is_dry_run || openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
     is_dry_run || adduser turnserver ssl-cert
 
-    # Don't actually log passwords! (Or do for debugging…)
+    # Don't actually *log* passwords! (Or do for debugging…)
 
-    log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>' with '$SIGNALING_TURN_STATIC_AUTH_SECRET'…"
-    # log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>'…"
+    # log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>' with '$SIGNALING_TURN_STATIC_AUTH_SECRET'…"
+    log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>'…"
     sed -i "s|<SIGNALING_TURN_STATIC_AUTH_SECRET>|$SIGNALING_TURN_STATIC_AUTH_SECRET|g" "$TMP_DIR_PATH"/signaling/*
 
-    log "Replacing '<SIGNALING_JANUS_API_KEY>' with '$SIGNALING_JANUS_API_KEY'…"
-    # log "Replacing '<SIGNALING_JANUS_API_KEY>…'
+    # log "Replacing '<SIGNALING_JANUS_API_KEY>' with '$SIGNALING_JANUS_API_KEY'…"
+    log "Replacing '<SIGNALING_JANUS_API_KEY>…'"
     sed -i "s|<SIGNALING_JANUS_API_KEY>|$SIGNALING_JANUS_API_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
-    log "Replacing '<SIGNALING_HASH_KEY>' with '$SIGNALING_HASH_KEY'…"
-    # log "Replacing '<SIGNALING_HASH_KEY>…'
+    # log "Replacing '<SIGNALING_HASH_KEY>' with '$SIGNALING_HASH_KEY'…"
+    log "Replacing '<SIGNALING_HASH_KEY>…'"
     sed -i "s|<SIGNALING_HASH_KEY>|$SIGNALING_HASH_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
-    log "Replacing '<SIGNALING_BLOCK_KEY>' with '$SIGNALING_BLOCK_KEY'…"
-    # log "Replacing '<SIGNALING_BLOCK_KEY>…'
+    # log "Replacing '<SIGNALING_BLOCK_KEY>' with '$SIGNALING_BLOCK_KEY'…"
+    log "Replacing '<SIGNALING_BLOCK_KEY>…'"
     sed -i "s|<SIGNALING_BLOCK_KEY>|$SIGNALING_BLOCK_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
-    log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>' with '$SIGNALING_NEXTCLOUD_SECRET_KEY'…"
-    # log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>…'
+    # log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>' with '$SIGNALING_NEXTCLOUD_SECRET_KEY'…"
+    log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>…'"
     sed -i "s|<SIGNALING_NEXTCLOUD_SECRET_KEY>|$SIGNALING_NEXTCLOUD_SECRET_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
     log "Replacing '<SIGNALING_NEXTCLOUD_URL>' with '$SIGNALING_NEXTCLOUD_URL'…"
