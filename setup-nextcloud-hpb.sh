@@ -331,8 +331,8 @@ function main() {
 
     install_collabora
     install_signaling
-    install_nginx
     install_certbot
+    install_nginx
 
     log "Every installation completed."
 
@@ -341,9 +341,9 @@ function main() {
         log "======================================================================"
     signaling_print_info &&
         log "======================================================================"
-    nginx_print_info &&
+    certbot_print_info &&
         log "======================================================================"
-    certbot_print_info
+    nginx_print_info
     log "======================================================================"
 
     is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
@@ -355,8 +355,8 @@ function main() {
         >$SECRETS_FILE_PATH
     collabora_write_secrets_to_file "$SECRETS_FILE_PATH"
     signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
-    nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
     certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
+    nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
 
     log "\nThank you for using this script.\n"
 }
