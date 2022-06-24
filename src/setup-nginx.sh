@@ -1,12 +1,6 @@
 #!/bin/bash
 
 function install_nginx() {
-    if [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install Nginx, since" \
-            "\$SHOULD_INSTALL_NGINX is *not* true."
-        return 0
-    fi
-
     log "Installing Nginx…"
 
     nginx_step1

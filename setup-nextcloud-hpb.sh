@@ -329,10 +329,18 @@ function main() {
         source "$script"
     done
 
-    install_collabora
-    install_signaling
-    install_certbot
-    install_nginx
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then install_collabora; else
+        log "Won't install Collabora."
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then install_signaling; else
+        log "Won't install Signaling."
+    fi
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then install_certbot; else
+        log "Won't install Certbot."
+    fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then install_nginx; else
+        log "Won't install Nginx."
+    fi
 
     log "Every installation completed."
 

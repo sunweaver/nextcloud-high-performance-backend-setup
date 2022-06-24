@@ -1,11 +1,6 @@
 #!/bin/bash
 
 function install_certbot() {
-    if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
-        log "Won't install Certbot, since \$SHOULD_INSTALL_CERTBOT is *not* true."
-        return 0
-    fi
-
     log "Installing Certbot…"
 
     log "\nStep 1: Installing Certbot packages"

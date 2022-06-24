@@ -12,13 +12,6 @@ COLLABORA_SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 COLLABORA_REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
 function install_collabora() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install Collabora, since" \
-            "\$SHOULD_INSTALL_COLLABORA or \$SHOULD_INSTALL_NGINX is *not* true."
-        return 0
-    fi
-
     log "Installing Collabora…"
 
     collabora_step1

@@ -15,13 +15,6 @@ SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDN"
 SIGNALING_COTURN_URL="$SERVER_FQDN"
 
 function install_signaling() {
-    if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install Signaling, since" \
-            "\$SHOULD_INSTALL_SIGNALING or \$SHOULD_INSTALL_NGINX is *not* true."
-        return 0
-    fi
-
     log "Installing Signaling…"
 
     signaling_step1
