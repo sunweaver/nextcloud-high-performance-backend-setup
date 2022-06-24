@@ -28,14 +28,29 @@ function install_certbot() {
 
     arg_interactive=""
     if [ "$UNATTENTED_INSTALL" == true ]; then
-        arg_interactive="--non-interactive --domains "$SERVER_FQDN""
+        arg_interactive="--non-interactive"
     else
         arg_interactive="--force-interactive"
     fi
 
-    certbot certonly --nginx $arg_interactive $arg_dry_run \
-        --key-path "$SSL_CERT_KEY_PATH" \
-        --fullchain-path "$SSL_CERT_PATH" |& tee -a $LOGFILE_PATH
+    if ! certbot certonly --nginx $arg_interactive $arg_dry_run \
+        --key-path "$SSL_CERT_KEY_PATH" --domains "$SERVER_FQDN" \
+        --fullchain-path "$SSL_CERT_PATH" |& tee -a $LOGFILE_PATH; then
+        log "Something wen't wrong while starting Certbot."
+
+        if [ "$UNATTENTED_INSTALL" != true ]; then
+            log "Maybe the error is in the nextcloud-hpb.conf" \
+                "file (please read the error message above).\n"
+            read -p "Do you wish to delete this file:$(
+            )'/etc/nginx/sites-enabled/nextcloud-hbp.conf'? [YyNn]" -n 1 -r && echo
+            if [[ $REPLY =~ ^[YyJj]$ ]]; then
+                rm -v "/etc/nginx/sites-enabled/nextcloud-hpb.conf" |& tee -a $LOGFILE_PATH || true
+                log "File got deleted. Please try again now."
+            fi
+        fi
+
+        exit 1
+    fi
 
     log "Certbot install completed."
 }
