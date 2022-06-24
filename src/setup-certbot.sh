@@ -28,7 +28,7 @@ function install_certbot() {
 
     arg_interactive=""
     if [ "$UNATTENTED_INSTALL" == true ]; then
-        arg_interactive="--non-interactive"
+        arg_interactive="--non-interactive --domains "$SERVER_FQDN""
     else
         arg_interactive="--force-interactive"
     fi
