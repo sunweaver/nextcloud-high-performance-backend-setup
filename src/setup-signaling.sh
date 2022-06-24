@@ -62,11 +62,11 @@ function signaling_step3() {
         if [ "$UNATTENTED_INSTALL" == true ]; then
             log "Trying unattented install for Collabora."
             export DEBIAN_FRONTEND=noninteractive
-            apt-get install -qqy janus nats-server \
-                nextcloud-spreed-signaling coturn 2>&1 | tee -a $LOGFILE_PATH
+            apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
+                coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
         else
-            apt-get install -y janus nats-server \
-                nextcloud-spreed-signaling coturn 2>&1 | tee -a $LOGFILE_PATH
+            apt-get install -y janus nats-server nextcloud-spreed-signaling \
+                coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
         fi
     fi
 }
