@@ -35,7 +35,7 @@ function install_certbot() {
 
     certbot certonly --nginx $arg_interactive $arg_dry_run \
         --key-path "$SSL_CERT_KEY_PATH" \
-        --fullchain-path "$SSL_CERT_PATH"
+        --fullchain-path "$SSL_CERT_PATH" |& tee -a $LOGFILE_PATH
 
     log "Certbot install completed."
 }
@@ -49,5 +49,6 @@ function certbot_write_secrets_to_file() {
 }
 
 function certbot_print_info() {
-    return 0
+    log "SSL certificate we're installed successfully and get refreshed" \
+        "\nautomatically by Certbot."
 }
