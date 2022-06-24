@@ -77,8 +77,8 @@ function nginx_write_secrets_to_file() {
 }
 
 function nginx_print_info() {
-    log "Nginx got installed which acts as a reverse proxy for Signaling" \
-        "and Collabora. No extra configuration needed."
+    log "Nginx got installed which acts as a reverse proxy for your selected " \
+        "services. No extra configuration needed."
 
     if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
         log "\nExcept one thing. Since you choose to not install an automatic" \
