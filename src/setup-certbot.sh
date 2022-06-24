@@ -26,8 +26,14 @@ function install_certbot() {
         arg_dry_run="--dry-run"
     fi
 
-    # TODO: FIXME: Find a way for unattended mode
-    certbot certonly --nginx --force-interactive $arg_dry_run \
+    arg_interactive=""
+    if [ "$UNATTENTED_INSTALL" == true ]; then
+        arg_interactive="--non-interactive"
+    else
+        arg_interactive="--force-interactive"
+    fi
+
+    certbot certonly --nginx $arg_interactive $arg_dry_run \
         --key-path "$SSL_CERT_KEY_PATH" \
         --fullchain-path "$SSL_CERT_PATH"
 
