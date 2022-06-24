@@ -77,7 +77,7 @@ function show_dialogs() {
         SSL_CERT_PATH=$(
             whiptail --title "SSL Certificate file path" \
                 --inputbox "Please input a path where the SSL certificate is $(
-                )located. Change the default only if you're knowing what you do!" \
+                )located. Change the default only if you know what you're doing!" \
                 10 65 "/etc/letsencrypt/live/$SERVER_FQDN/fullchain.pem" 3>&1 1>&2 2>&3
         )
     fi
@@ -93,8 +93,8 @@ function show_dialogs() {
         SSL_CERT_KEY_PATH=$(
             whiptail --title "SSL Certificate key-file path" \
                 --inputbox "Please input a path where the SSL certificate $(
-                )key file is located. Change the default only if you're $(
-                )knowing what you do!" \
+                )key file is located. Change the default only if you know what $(
+                )you're doing!" \
                 10 65 "/etc/letsencrypt/live/$SERVER_FQDN/privkey.pem" 3>&1 1>&2 2>&3
         )
     fi
