@@ -337,13 +337,21 @@ function main() {
     log "Every installation completed."
 
     log "======================================================================"
-    collabora_print_info &&
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
+        collabora_print_info
         log "======================================================================"
-    signaling_print_info &&
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+        signaling_print_info
         log "======================================================================"
-    certbot_print_info &&
+    fi
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        certbot_print_info
         log "======================================================================"
-    nginx_print_info
+    fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then
+        nginx_print_info
+    fi
     log "======================================================================"
 
     is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"

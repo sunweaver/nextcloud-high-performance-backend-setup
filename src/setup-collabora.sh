@@ -101,12 +101,6 @@ function collabora_write_secrets_to_file() {
 }
 
 function collabora_print_info() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        # Don't print any info…
-        return 1
-    fi
-
     collabora_address="https://$SERVER_FQDN/collabora"
 
     log "The Collabora Online service got installed. To set it up," \

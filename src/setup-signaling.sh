@@ -152,24 +152,22 @@ function signaling_write_secrets_to_file() {
         return 0
     fi
 
-    echo -e "=== SIGNALING ===" >>$1
+    echo -e "=== Signaling / Nextcloud Talk ===" >>$1
     echo -e "Janus API key: $SIGNALING_JANUS_API_KEY" >>$1
     echo -e "Hash key:      $SIGNALING_HASH_KEY" >>$1
     echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
     echo -e "" >>$1
     echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN" >>$1
     echo -e "STUN server              = $SERVER_FQDN:1271" >>$1
-    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp" >>$1
+    echo -e "TURN server:" >>$1
+    echo -e " -> 'turn and turns'" >>$1
+    echo -e " -> $SERVER_FQDN:1271" >>$1
+    echo -e " -> $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
+    echo -e " -> udp & tcp" >>$1
     echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling + $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
 }
 
 function signaling_print_info() {
-    if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        # Don't print any info…
-        return 1
-    fi
-
     log "The services coturn janus nats-server and nextcloud-signaling-spreed got installed. " \
         "\nTo set it up, log into your Nextcloud instance" \
         "\n(https://$NEXTCLOUD_SERVER_FQDN) with an adminstrator account" \
@@ -178,6 +176,11 @@ function signaling_print_info() {
 
     # Don't actually *log* passwords!
     echo -e "STUN server              = $SERVER_FQDN:1271"
-    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp"
-    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling $SIGNALING_NEXTCLOUD_SECRET_KEY"
+    echo -e "TURN server:"
+    echo -e " -> 'turn and turns'"
+    echo -e " -> turnserver+port: $SERVER_FQDN:1271"
+    echo -e " -> secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
+    echo -e " -> 'udp & tcp'"
+    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling"
+    echo -e " -> $SIGNALING_NEXTCLOUD_SECRET_KEY"
 }

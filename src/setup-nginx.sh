@@ -83,15 +83,11 @@ function nginx_write_secrets_to_file() {
 }
 
 function nginx_print_info() {
-    if [ "$SHOULD_INSTALL_NGINX" == true ]; then
-        log "Nginx got installed which acts as a reverse proxy for Signaling" \
-            "and Collabora. No extra configuration needed.\n"
-    else
-        return 1
-    fi
+    log "Nginx got installed which acts as a reverse proxy for Signaling" \
+        "and Collabora. No extra configuration needed."
 
     if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
-        log "Except one thing. Since you choose to not install an automatic" \
+        log "\nExcept one thing. Since you choose to not install an automatic" \
             "\nSSL-Certificate renewer (certbot for example), you need to make" \
             "\nsure that at all time a valid SSL-Cert is located at: " \
             "\n'$SSL_CERT_PATH' and '$SSL_CERT_KEY_PATH'."
