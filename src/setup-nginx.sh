@@ -59,8 +59,8 @@ function nginx_step2() {
     fi
     sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
-    log "Replacing '<HOST_FQDN>' with '$SERVER_FQDN'…"
-    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
+    log "Replacing '<SERVER_FQDN>' with '$SERVER_FQDN'…"
+    sed -i "s|<SERVER_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
 
     log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
     sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/nginx/*
