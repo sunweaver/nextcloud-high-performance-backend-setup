@@ -10,9 +10,9 @@ UNATTENTED_INSTALL=true
 
 # General settings
 # Leave empty, if you wish that the user will be asked about this.
-#NEXTCLOUD_SERVER_FQDN="nextcloud-server.example.invalid"
+#NEXTCLOUD_SERVER_FQDN="nextcloud.example.org"
 # Leave empty, if you wish that the user will be asked about this.
-#SERVER_FQDN="nextcloud-hpb.example.invalid"
+#SERVER_FQDN="nc-workhorse.example.org"
 
 # Leave empty, if you wish that the user will be asked about this.
 SSL_CERT_PATH=""
