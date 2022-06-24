@@ -245,6 +245,12 @@ function main() {
 
     # Let's check if we should open dialogs.
     if [ "$UNATTENTED_INSTALL" != true ]; then
+        # Override settings file!
+        SHOULD_INSTALL_COLLABORA=false
+        SHOULD_INSTALL_SIGNALING=false
+        SHOULD_INSTALL_CERTBOT=false
+        SHOULD_INSTALL_NGINX=false
+
         CHOICES=$(whiptail --title "Select services" --separate-output \
             --checklist "Please select/deselect the services you want to $(
             )install with the space key." 15 110 2 \
