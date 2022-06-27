@@ -55,7 +55,7 @@ function signaling_step3() {
     # - coturn
     if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
-            log "Trying unattented install for Collabora."
+            log "Trying unattented install for Signaling."
             export DEBIAN_FRONTEND=noninteractive
             apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
                 coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
