@@ -70,21 +70,20 @@ function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
     # Jump through extra hoops for coturn.
-    if is_dry_run; then
-        if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
-            mkdir -p "$COTURN_DIR/certs"
-            COTURN_SSL_CERT_PATH="$COTURN_DIR/certs/$SERVER_FQDN.crt"
-            COTURN_SSL_CERT_KEY_PATH="$COTURN_DIR/certs/$SERVER_FQDN.key"
-        else
-            COTURN_SSL_CERT_PATH="$SSL_CERT_PATH"
-            COTURN_SSL_CERT_KEY_PATH="$SSL_CERT_KEY_PATH"
-            mkdir -p "$COTURN_DIR"
-        fi
-        chown -R turnserver:turnserver "$COTURN_DIR"
-        chmod -R 700 "$COTURN_DIR"
-        touch "$COTURN_DIR/dhp.pem"
-        openssl dhparam -dsaparam -out "$COTURN_DIR/dhp.pem" 4096
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        COTURN_SSL_CERT_PATH="$COTURN_DIR/certs/$SERVER_FQDN.crt"
+        COTURN_SSL_CERT_KEY_PATH="$COTURN_DIR/certs/$SERVER_FQDN.key"
+        is_dry_run || mkdir -p "$COTURN_DIR/certs"
+    else
+        COTURN_SSL_CERT_PATH="$SSL_CERT_PATH"
+        COTURN_SSL_CERT_KEY_PATH="$SSL_CERT_KEY_PATH"
+        is_dry_run || mkdir -p "$COTURN_DIR"
     fi
+
+    is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
+    is_dry_run || chmod -R 700 "$COTURN_DIR"
+    is_dry_run || touch "$COTURN_DIR/dhp.pem"
+    is_dry_run || openssl dhparam -dsaparam -out "$COTURN_DIR/dhp.pem" 4096
 
     # Don't actually *log* passwords! (Or do for debugging…)
 
