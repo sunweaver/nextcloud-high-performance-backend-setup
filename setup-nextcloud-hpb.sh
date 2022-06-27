@@ -350,6 +350,33 @@ function main() {
 
     log "Every installation completed."
 
+    log "Enabling and restarting services…"
+    SERVICES_TO_ENABLE=()
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
+        SERVICES_TO_ENABLE+=("coolwsd")
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+        SERVICES_TO_ENABLE+=("coturn" "nats-server" "nextcloud-spreed-signaling" "janus")
+    fi
+    #if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then
+        SERVICES_TO_ENABLE+=("nginx")
+    fi
+
+    if ! is_dry_run; then
+        for i in "${SERVICES_TO_ENABLE[@]}"; do
+            log "Enabling and restarting service '$i'…"
+            if ! service "$i" stop; then
+                log "Something went wrong while stopping service '$i'…"
+            fi
+
+            if ! systemctl enable --now "$i"; then
+                log "Something went wrong while enabling/starting service '$i'…"
+            fi
+            sleep 0.25s
+        done
+    fi
+
     log "======================================================================"
     if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
         collabora_print_info

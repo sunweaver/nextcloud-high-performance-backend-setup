@@ -79,10 +79,6 @@ function collabora_step5() {
     deploy_file "$TMP_DIR_PATH"/collabora/robots.txt /var/www/html/robots.txt || true
 
     deploy_file "$TMP_DIR_PATH"/collabora/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
-
-    log "Restarting services…"
-    is_dry_run || systemctl enable --now coolwsd || true
-    is_dry_run || service coolwsd restart || true
 }
 
 # arg: $1 is secret file path

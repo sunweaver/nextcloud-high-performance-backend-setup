@@ -152,16 +152,6 @@ function signaling_step5() {
         deploy_file "$TMP_DIR_PATH"/signaling/coturn-certbot-deploy.sh /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh || true
         chmod 700 /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh
     fi
-
-    is_dry_run || systemctl enable --now janus || true
-    is_dry_run || systemctl enable --now nats-server || true
-    is_dry_run || systemctl enable --now nextcloud-spreed-signaling || true
-    is_dry_run || systemctl enable --now coturn || true
-
-    is_dry_run || service janus restart || true
-    is_dry_run || service nats-server restart || true
-    is_dry_run || service nextcloud-spreed-signaling restart || true
-    is_dry_run || service coturn restart || true
 }
 
 # arg: $1 is secret file path
