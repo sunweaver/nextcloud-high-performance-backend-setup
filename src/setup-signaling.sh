@@ -74,6 +74,7 @@ function signaling_step4() {
         COTURN_SSL_CERT_PATH="$COTURN_DIR/certs/$SERVER_FQDN.crt"
         COTURN_SSL_CERT_KEY_PATH="$COTURN_DIR/certs/$SERVER_FQDN.key"
         is_dry_run || mkdir -p "$COTURN_DIR/certs"
+        is_dry_run || mkdir -p "/etc/letsencrypt/renewal-hooks/deploy/"
     else
         COTURN_SSL_CERT_PATH="$SSL_CERT_PATH"
         COTURN_SSL_CERT_KEY_PATH="$SSL_CERT_KEY_PATH"
