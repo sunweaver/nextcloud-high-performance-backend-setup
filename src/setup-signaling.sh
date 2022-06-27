@@ -14,6 +14,8 @@ SIGNALING_NEXTCLOUD_SECRET_KEY="$(openssl rand -hex 16)"
 SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDN"
 SIGNALING_COTURN_URL="$SERVER_FQDN"
 
+COTURN_DIR="/etc/coturn"
+
 function install_signaling() {
     log "Installing Signaling…"
 
@@ -67,9 +69,22 @@ function signaling_step3() {
 function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
-    is_dry_run || (mkdir -p /etc/turnserver/ && touch /etc/turnserver/dhp.pem)
-    is_dry_run || openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
-    is_dry_run || adduser turnserver ssl-cert
+    # Jump through extra hoops for coturn.
+    if is_dry_run; then
+        if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+            mkdir -p "$COTURN_DIR/certs"
+            COTURN_SSL_CERT_PATH="$COTURN_DIR/certs/$SERVER_FQDN.crt"
+            COTURN_SSL_CERT_KEY_PATH="$COTURN_DIR/certs/$SERVER_FQDN.key"
+        else
+            COTURN_SSL_CERT_PATH="$SSL_CERT_PATH"
+            COTURN_SSL_CERT_KEY_PATH="$SSL_CERT_KEY_PATH"
+            mkdir -p "$COTURN_DIR"
+        fi
+        chown -R turnserver:turnserver "$COTURN_DIR"
+        chmod -R 700 "$COTURN_DIR"
+        touch "$COTURN_DIR/dhp.pem"
+        openssl dhparam -dsaparam -out "$COTURN_DIR/dhp.pem" 4096
+    fi
 
     # Don't actually *log* passwords! (Or do for debugging…)
 
@@ -105,6 +120,12 @@ function signaling_step4() {
     log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
     sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
 
+    log "Replacing '<COTURN_SSL_CERT_PATH>' with '$COTURN_SSL_CERT_PATH'…"
+    sed -i "s|<COTURN_SSL_CERT_PATH>|$COTURN_SSL_CERT_PATH|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<COTURN_SSL_CERT_KEY_PATH>' with '$COTURN_SSL_CERT_KEY_PATH'…"
+    sed -i "s|<COTURN_SSL_CERT_KEY_PATH>|$COTURN_SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
+
     EXTERN_IPv4=$(wget -4 ident.me -O - -o /dev/null || true)
     log "Replacing '<SIGNALING_COTURN_EXTERN_IPV4>' with '$EXTERN_IPv4'…"
     sed -i "s|<SIGNALING_COTURN_EXTERN_IPV4>|$EXTERN_IPv4|g" "$TMP_DIR_PATH"/signaling/*
@@ -127,6 +148,11 @@ function signaling_step5() {
     deploy_file "$TMP_DIR_PATH"/signaling/signaling-server.conf /etc/nextcloud-spreed-signaling/server.conf || true
 
     deploy_file "$TMP_DIR_PATH"/signaling/turnserver.conf /etc/turnserver.conf || true
+
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        deploy_file "$TMP_DIR_PATH"/signaling/coturn-certbot-deploy.sh /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh || true
+        chmod 700 /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh
+    fi
 
     is_dry_run || systemctl enable --now janus || true
     is_dry_run || systemctl enable --now nats-server || true
