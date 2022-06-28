@@ -68,9 +68,15 @@ function certbot_write_secrets_to_file() {
     if is_dry_run; then
         return 0
     fi
+
+    echo -e "=== Certbot ===" >>$1
+    echo -e "Notifications regarding SSL certificates get sent to:" >>$1
+    echo -e " ↳ '$EMAIL_ADDRESS'" >>$1
 }
 
 function certbot_print_info() {
     log "SSL certificate we're installed successfully and get refreshed" \
         "\nautomatically by Certbot."
+    log "Notifications regarding SSL-Certificates get sent to:"
+    log " ↳ '$EMAIL_ADDRESS'"
 }
