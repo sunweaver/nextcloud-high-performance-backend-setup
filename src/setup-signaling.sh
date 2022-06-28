@@ -167,13 +167,15 @@ function signaling_write_secrets_to_file() {
     echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
     echo -e "" >>$1
     echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN" >>$1
-    echo -e "STUN server              = $SERVER_FQDN:1271" >>$1
+    echo -e "STUN server = $SERVER_FQDN:1271" >>$1
     echo -e "TURN server:" >>$1
-    echo -e " -> 'turn and turns'" >>$1
-    echo -e " -> $SERVER_FQDN:1271" >>$1
-    echo -e " -> $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
-    echo -e " -> udp & tcp" >>$1
-    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling + $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
+    echo -e " ↳ 'turn and turns'" >>$1
+    echo -e " ↳ $SERVER_FQDN:1271" >>$1
+    echo -e " ↳ $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
+    echo -e " ↳ 'udp & tcp'" >>$1
+    echo -e "High-performance backend:" >>$1
+    echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling" >>$1
+    echo -e " ↳ $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
 }
 
 function signaling_print_info() {
@@ -184,12 +186,13 @@ function signaling_print_info() {
         "\nSettings -> Administration -> Talk and put in the following:"
 
     # Don't actually *log* passwords!
-    echo -e "STUN server              = $SERVER_FQDN:1271"
+    echo -e "STUN server = $SERVER_FQDN:1271"
     echo -e "TURN server:"
-    echo -e " -> 'turn and turns'"
-    echo -e " -> turnserver+port: $SERVER_FQDN:1271"
-    echo -e " -> secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
-    echo -e " -> 'udp & tcp'"
-    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling"
-    echo -e " -> $SIGNALING_NEXTCLOUD_SECRET_KEY"
+    echo -e " ↳ 'turn and turns'"
+    echo -e " ↳ turnserver+port: $SERVER_FQDN:1271"
+    echo -e " ↳ secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
+    echo -e " ↳ 'udp & tcp'"
+    echo -e "High-performance backend:"
+    echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling"
+    echo -e " ↳ $SIGNALING_NEXTCLOUD_SECRET_KEY"
 }
