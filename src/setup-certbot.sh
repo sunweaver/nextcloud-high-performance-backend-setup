@@ -23,14 +23,14 @@ function install_certbot() {
 
     arg_interactive=""
     if [ "$UNATTENTED_INSTALL" == true ]; then
-        arg_interactive="--non-interactive"
+        arg_interactive="--non-interactive --agree-tos"
     else
         arg_interactive="--force-interactive"
     fi
 
     CERTBOT_COMMAND="certbot certonly --nginx $arg_interactive $arg_dry_run \
         --key-path '$SSL_CERT_KEY_PATH' --domains '$SERVER_FQDN' \
-        --fullchain-path '$SSL_CERT_PATH'"
+        --fullchain-path '$SSL_CERT_PATH' --email '$EMAIL_ADDRESS'"
 
     log "Executing Certbot using arguments: '$CERTBOT_COMMAND'."
 

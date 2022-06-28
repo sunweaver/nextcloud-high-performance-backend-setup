@@ -14,6 +14,7 @@ SSL_CERT_KEY_PATH=""     # Ask user (Most likely they will just press enter)
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
+EMAIL_ADDRESS=""     # Ask user
 
 function show_dialogs() {
     if [ "$DRY_RUN" = "" ]; then
@@ -151,6 +152,22 @@ function show_dialogs() {
         )
     fi
     log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH".
+
+    if [ "$EMAIL_ADDRESS" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing EMAIL_ADDRESS!"
+            exit 1
+        fi
+
+        EMAIL_ADDRESS=$(
+            whiptail --title "E-Mail Address" \
+                --inputbox "Enter email address (used for urgent renewal $(
+                )and security notices regarding SSL certificates)" \
+                10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
 }
 
 function log() {
