@@ -163,8 +163,9 @@ function show_dialogs() {
         EMAIL_ADDRESS=$(
             whiptail --title "E-Mail Address" \
                 --inputbox "Enter email address (used for urgent renewal $(
-                )and security notices regarding SSL certificates)" \
-                10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
+                )and security notices regarding SSL certificates)\nYou can $(
+                )specify multiple addresses by stringing them together with $(
+                )a comma." 10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
         )
     fi
     log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".

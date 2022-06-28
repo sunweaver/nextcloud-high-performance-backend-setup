@@ -43,5 +43,6 @@ SECRETS_FILE_PATH=""
 
 # This email address gets passed on to Certbot which will send notifications
 # if a certificate is about to run out.
+# You can specify multiple addresses by stringing them together with a comma.
 # Leave empty, if you wish that the user will be asked about this.
 EMAIL_ADDRESS=""
