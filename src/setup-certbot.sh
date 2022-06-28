@@ -29,8 +29,8 @@ function install_certbot() {
     fi
 
     CERTBOT_COMMAND="certbot certonly --nginx $arg_interactive $arg_dry_run \
-        --key-path '$SSL_CERT_KEY_PATH' --domains '$SERVER_FQDN' \
-        --fullchain-path '$SSL_CERT_PATH' --email '$EMAIL_ADDRESS'"
+        --key-path \"$SSL_CERT_KEY_PATH\" --domains \"$SERVER_FQDN\" \
+        --fullchain-path \"$SSL_CERT_PATH\" --email \"$EMAIL_ADDRESS\""
 
     log "Executing Certbot using arguments: '$CERTBOT_COMMAND'."
 
