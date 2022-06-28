@@ -14,14 +14,9 @@ SIGNALING_NEXTCLOUD_SECRET_KEY="$(openssl rand -hex 16)"
 SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDN"
 SIGNALING_COTURN_URL="$SERVER_FQDN"
 
-function install_signaling() {
-    if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install Signaling, since" \
-            "\$SHOULD_INSTALL_SIGNALING or \$SHOULD_INSTALL_NGINX is *not* true."
-        return 0
-    fi
+COTURN_DIR="/etc/coturn"
 
+function install_signaling() {
     log "Installing Signaling…"
 
     signaling_step1
@@ -60,13 +55,13 @@ function signaling_step3() {
     # - coturn
     if ! is_dry_run; then
         if [ "$UNATTENTED_INSTALL" == true ]; then
-            log "Trying unattented install for Collabora."
+            log "Trying unattented install for Signaling."
             export DEBIAN_FRONTEND=noninteractive
-            apt-get install -qqy janus nats-server \
-                nextcloud-spreed-signaling coturn 2>&1 | tee -a $LOGFILE_PATH
+            apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
+                coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
         else
-            apt-get install -y janus nats-server \
-                nextcloud-spreed-signaling coturn 2>&1 | tee -a $LOGFILE_PATH
+            apt-get install -y janus nats-server nextcloud-spreed-signaling \
+                coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
         fi
     fi
 }
@@ -74,9 +69,22 @@ function signaling_step3() {
 function signaling_step4() {
     log "\nStep 4: Prepare configuration"
 
-    is_dry_run || (mkdir -p /etc/turnserver/ && touch /etc/turnserver/dhp.pem)
-    is_dry_run || openssl dhparam -dsaparam -out /etc/turnserver/dhp.pem 4096
-    is_dry_run || adduser turnserver ssl-cert
+    # Jump through extra hoops for coturn.
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        COTURN_SSL_CERT_PATH="$COTURN_DIR/certs/$SERVER_FQDN.crt"
+        COTURN_SSL_CERT_KEY_PATH="$COTURN_DIR/certs/$SERVER_FQDN.key"
+        is_dry_run || mkdir -p "$COTURN_DIR/certs"
+        is_dry_run || mkdir -p "/etc/letsencrypt/renewal-hooks/deploy/"
+    else
+        COTURN_SSL_CERT_PATH="$SSL_CERT_PATH"
+        COTURN_SSL_CERT_KEY_PATH="$SSL_CERT_KEY_PATH"
+        is_dry_run || mkdir -p "$COTURN_DIR"
+    fi
+
+    is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
+    is_dry_run || chmod -R 700 "$COTURN_DIR"
+    is_dry_run || touch "$COTURN_DIR/dhp.pem"
+    is_dry_run || openssl dhparam -dsaparam -out "$COTURN_DIR/dhp.pem" 4096
 
     # Don't actually *log* passwords! (Or do for debugging…)
 
@@ -112,6 +120,12 @@ function signaling_step4() {
     log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
     sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
 
+    log "Replacing '<COTURN_SSL_CERT_PATH>' with '$COTURN_SSL_CERT_PATH'…"
+    sed -i "s|<COTURN_SSL_CERT_PATH>|$COTURN_SSL_CERT_PATH|g" "$TMP_DIR_PATH"/signaling/*
+
+    log "Replacing '<COTURN_SSL_CERT_KEY_PATH>' with '$COTURN_SSL_CERT_KEY_PATH'…"
+    sed -i "s|<COTURN_SSL_CERT_KEY_PATH>|$COTURN_SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
+
     EXTERN_IPv4=$(wget -4 ident.me -O - -o /dev/null || true)
     log "Replacing '<SIGNALING_COTURN_EXTERN_IPV4>' with '$EXTERN_IPv4'…"
     sed -i "s|<SIGNALING_COTURN_EXTERN_IPV4>|$EXTERN_IPv4|g" "$TMP_DIR_PATH"/signaling/*
@@ -135,15 +149,10 @@ function signaling_step5() {
 
     deploy_file "$TMP_DIR_PATH"/signaling/turnserver.conf /etc/turnserver.conf || true
 
-    is_dry_run || systemctl enable --now janus || true
-    is_dry_run || systemctl enable --now nats-server || true
-    is_dry_run || systemctl enable --now nextcloud-spreed-signaling || true
-    is_dry_run || systemctl enable --now coturn || true
-
-    is_dry_run || service janus restart || true
-    is_dry_run || service nats-server restart || true
-    is_dry_run || service nextcloud-spreed-signaling restart || true
-    is_dry_run || service coturn restart || true
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        deploy_file "$TMP_DIR_PATH"/signaling/coturn-certbot-deploy.sh /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh || true
+        chmod 700 /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh
+    fi
 }
 
 # arg: $1 is secret file path
@@ -152,24 +161,24 @@ function signaling_write_secrets_to_file() {
         return 0
     fi
 
-    echo -e "=== SIGNALING ===" >>$1
+    echo -e "=== Signaling / Nextcloud Talk ===" >>$1
     echo -e "Janus API key: $SIGNALING_JANUS_API_KEY" >>$1
     echo -e "Hash key:      $SIGNALING_HASH_KEY" >>$1
     echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
     echo -e "" >>$1
     echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN" >>$1
-    echo -e "STUN server              = $SERVER_FQDN:1271" >>$1
-    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp" >>$1
-    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling + $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
+    echo -e "STUN server = $SERVER_FQDN:1271" >>$1
+    echo -e "TURN server:" >>$1
+    echo -e " ↳ 'turn and turns'" >>$1
+    echo -e " ↳ $SERVER_FQDN:1271" >>$1
+    echo -e " ↳ $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
+    echo -e " ↳ 'udp & tcp'" >>$1
+    echo -e "High-performance backend:" >>$1
+    echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling" >>$1
+    echo -e " ↳ $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
 }
 
 function signaling_print_info() {
-    if [ "$SHOULD_INSTALL_SIGNALING" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        # Don't print any info…
-        return 1
-    fi
-
     log "The services coturn janus nats-server and nextcloud-signaling-spreed got installed. " \
         "\nTo set it up, log into your Nextcloud instance" \
         "\n(https://$NEXTCLOUD_SERVER_FQDN) with an adminstrator account" \
@@ -177,7 +186,13 @@ function signaling_print_info() {
         "\nSettings -> Administration -> Talk and put in the following:"
 
     # Don't actually *log* passwords!
-    echo -e "STUN server              = $SERVER_FQDN:1271"
-    echo -e "TURN server              = 'turn and turns' + $SERVER_FQDN:1271 + $SIGNALING_TURN_STATIC_AUTH_SECRET + udp & tcp"
-    echo -e "High-performance backend = wss://$SERVER_FQDN/standalone-signaling $SIGNALING_NEXTCLOUD_SECRET_KEY"
+    echo -e "STUN server = $SERVER_FQDN:1271"
+    echo -e "TURN server:"
+    echo -e " ↳ 'turn and turns'"
+    echo -e " ↳ turnserver+port: $SERVER_FQDN:1271"
+    echo -e " ↳ secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
+    echo -e " ↳ 'udp & tcp'"
+    echo -e "High-performance backend:"
+    echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling"
+    echo -e " ↳ $SIGNALING_NEXTCLOUD_SECRET_KEY"
 }

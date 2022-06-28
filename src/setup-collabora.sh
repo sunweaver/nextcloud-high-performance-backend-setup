@@ -12,13 +12,6 @@ COLLABORA_SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 COLLABORA_REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$DEBIAN_MAJOR_VERSION"
 
 function install_collabora() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install Collabora, since" \
-            "\$SHOULD_INSTALL_COLLABORA or \$SHOULD_INSTALL_NGINX is *not* true."
-        return 0
-    fi
-
     log "Installing Collabora…"
 
     collabora_step1
@@ -86,10 +79,6 @@ function collabora_step5() {
     deploy_file "$TMP_DIR_PATH"/collabora/robots.txt /var/www/html/robots.txt || true
 
     deploy_file "$TMP_DIR_PATH"/collabora/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
-
-    log "Restarting services…"
-    is_dry_run || systemctl enable --now coolwsd || true
-    is_dry_run || service coolwsd restart || true
 }
 
 # arg: $1 is secret file path
@@ -101,12 +90,6 @@ function collabora_write_secrets_to_file() {
 }
 
 function collabora_print_info() {
-    if [ "$SHOULD_INSTALL_COLLABORA" != true ] ||
-        [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        # Don't print any info…
-        return 1
-    fi
-
     collabora_address="https://$SERVER_FQDN/collabora"
 
     log "The Collabora Online service got installed. To set it up," \

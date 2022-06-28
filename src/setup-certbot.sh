@@ -1,11 +1,32 @@
 #!/bin/bash
 
-function install_certbot() {
-    if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
-        log "Won't install Certbot, since \$SHOULD_INSTALL_CERTBOT is *not* true."
-        return 0
+function run_certbot_command() {
+    arg_dry_run=""
+    if is_dry_run; then
+        arg_dry_run="--dry-run"
     fi
 
+    arg_interactive=""
+    if [ "$UNATTENTED_INSTALL" == true ]; then
+        arg_interactive="--non-interactive --agree-tos"
+    else
+        arg_interactive="--force-interactive"
+    fi
+
+    certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
+        --key-path "$SSL_CERT_KEY_PATH" --domains "$SERVER_FQDN"
+        --fullchain-path "$SSL_CERT_PATH" --email "$EMAIL_ADDRESS")
+
+    log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+
+    if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function install_certbot() {
     log "Installing Certbot…"
 
     log "\nStep 1: Installing Certbot packages"
@@ -21,21 +42,22 @@ function install_certbot() {
 
     log "\nStep 2: Configuring Certbot"
 
-    arg_dry_run=""
-    if is_dry_run; then
-        arg_dry_run="--dry-run"
-    fi
+    if ! run_certbot_command; then
+        log "Something wen't wrong while starting Certbot."
 
-    arg_interactive=""
-    if [ "$UNATTENTED_INSTALL" == true ]; then
-        arg_interactive="--non-interactive"
-    else
-        arg_interactive="--force-interactive"
-    fi
+        if [ "$UNATTENTED_INSTALL" != true ]; then
+            log "Maybe the error is in the nextcloud-hpb.conf" \
+                "file (please read the error message above).\n"
+            read -p "Do you wish to delete this file:$(
+            )'/etc/nginx/sites-enabled/nextcloud-hbp.conf'? [YyNn]" -n 1 -r && echo
+            if [[ $REPLY =~ ^[YyJj]$ ]]; then
+                rm -v "/etc/nginx/sites-enabled/nextcloud-hpb.conf" |& tee -a $LOGFILE_PATH || true
+                log "File got deleted. Please try again now."
+            fi
+        fi
 
-    certbot certonly --nginx $arg_interactive $arg_dry_run \
-        --key-path "$SSL_CERT_KEY_PATH" \
-        --fullchain-path "$SSL_CERT_PATH"
+        exit 1
+    fi
 
     log "Certbot install completed."
 }
@@ -46,8 +68,15 @@ function certbot_write_secrets_to_file() {
     if is_dry_run; then
         return 0
     fi
+
+    echo -e "=== Certbot ===" >>$1
+    echo -e "Notifications regarding SSL certificates get sent to:" >>$1
+    echo -e " ↳ '$EMAIL_ADDRESS'" >>$1
 }
 
 function certbot_print_info() {
-    return 0
+    log "SSL certificate we're installed successfully and get refreshed" \
+        "\nautomatically by Certbot."
+    log "Notifications regarding SSL-Certificates get sent to:"
+    log " ↳ '$EMAIL_ADDRESS'"
 }

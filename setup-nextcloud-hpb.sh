@@ -9,11 +9,12 @@ DRY_RUN=false
 UNATTENTED_INSTALL=false
 NEXTCLOUD_SERVER_FQDN="" # Ask user
 SERVER_FQDN=""           # Ask user
-SSL_CERT_PATH="/etc/ssl/certs/nextcloud-hpb.crt"
-SSL_CERT_KEY_PATH="/etc/ssl/private/nextcloud-hpb.key"
+SSL_CERT_PATH=""         # Ask user (Most likely they will just press enter)
+SSL_CERT_KEY_PATH=""     # Ask user (Most likely they will just press enter)
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
+EMAIL_ADDRESS=""     # Ask user
 
 function show_dialogs() {
     if [ "$DRY_RUN" = "" ]; then
@@ -76,8 +77,8 @@ function show_dialogs() {
 
         SSL_CERT_PATH=$(
             whiptail --title "SSL Certificate file path" \
-                --inputbox "Please input a path where the SSL certificate $(
-                )(.crt) should be saved." \
+                --inputbox "Please input a path where the SSL certificate is $(
+                )located. Change the default only if you know what you're doing!" \
                 10 65 "/etc/letsencrypt/live/$SERVER_FQDN/fullchain.pem" 3>&1 1>&2 2>&3
         )
     fi
@@ -93,7 +94,8 @@ function show_dialogs() {
         SSL_CERT_KEY_PATH=$(
             whiptail --title "SSL Certificate key-file path" \
                 --inputbox "Please input a path where the SSL certificate $(
-                )key file (.key) should be saved." \
+                )key file is located. Change the default only if you know what $(
+                )you're doing!" \
                 10 65 "/etc/letsencrypt/live/$SERVER_FQDN/privkey.pem" 3>&1 1>&2 2>&3
         )
     fi
@@ -150,6 +152,23 @@ function show_dialogs() {
         )
     fi
     log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH".
+
+    if [ "$EMAIL_ADDRESS" = "" ]; then
+        if [ "$UNATTENTED_INSTALL" = true ]; then
+            log "Can't go on since this is an unattended install and I'm" \
+                "missing EMAIL_ADDRESS!"
+            exit 1
+        fi
+
+        EMAIL_ADDRESS=$(
+            whiptail --title "E-Mail Address" \
+                --inputbox "Enter email address (used for urgent renewal $(
+                )and security notices regarding SSL certificates)\nYou can $(
+                )specify multiple addresses by stringing them together with $(
+                )a comma." 10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
+        )
+    fi
+    log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
 }
 
 function log() {
@@ -244,6 +263,12 @@ function main() {
 
     # Let's check if we should open dialogs.
     if [ "$UNATTENTED_INSTALL" != true ]; then
+        # Override settings file!
+        SHOULD_INSTALL_COLLABORA=false
+        SHOULD_INSTALL_SIGNALING=false
+        SHOULD_INSTALL_CERTBOT=false
+        SHOULD_INSTALL_NGINX=false
+
         CHOICES=$(whiptail --title "Select services" --separate-output \
             --checklist "Please select/deselect the services you want to $(
             )install with the space key." 15 110 2 \
@@ -328,21 +353,64 @@ function main() {
         source "$script"
     done
 
-    install_collabora
-    install_signaling
-    install_nginx
-    install_certbot
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then install_collabora; else
+        log "Won't install Collabora."
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then install_signaling; else
+        log "Won't install Signaling."
+    fi
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then install_certbot; else
+        log "Won't install Certbot."
+    fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then install_nginx; else
+        log "Won't install Nginx."
+    fi
 
     log "Every installation completed."
 
+    log "Enabling and restarting services…"
+    SERVICES_TO_ENABLE=()
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
+        SERVICES_TO_ENABLE+=("coolwsd")
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+        SERVICES_TO_ENABLE+=("coturn" "nats-server" "nextcloud-spreed-signaling" "janus")
+    fi
+    #if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then
+        SERVICES_TO_ENABLE+=("nginx")
+    fi
+
+    if ! is_dry_run; then
+        for i in "${SERVICES_TO_ENABLE[@]}"; do
+            log "Enabling and restarting service '$i'…"
+            if ! service "$i" stop; then
+                log "Something went wrong while stopping service '$i'…"
+            fi
+
+            if ! systemctl enable --now "$i"; then
+                log "Something went wrong while enabling/starting service '$i'…"
+            fi
+            sleep 0.25s
+        done
+    fi
+
     log "======================================================================"
-    collabora_print_info &&
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
+        collabora_print_info
         log "======================================================================"
-    signaling_print_info &&
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+        signaling_print_info
         log "======================================================================"
-    nginx_print_info &&
+    fi
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        certbot_print_info
         log "======================================================================"
-    certbot_print_info
+    fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then
+        nginx_print_info
+    fi
     log "======================================================================"
 
     is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
@@ -352,10 +420,18 @@ function main() {
     echo -e "This file contains secrets, passwords and configuration" \
         "generated by the Nextcloud High-Performance backend setup." \
         >$SECRETS_FILE_PATH
-    collabora_write_secrets_to_file "$SECRETS_FILE_PATH"
-    signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
-    nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
-    certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
+    if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
+        collabora_write_secrets_to_file "$SECRETS_FILE_PATH"
+    fi
+    if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+        signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
+    fi
+    if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+        certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
+    fi
+    if [ "$SHOULD_INSTALL_NGINX" = true ]; then
+        nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
+    fi
 
     log "\nThank you for using this script.\n"
 }

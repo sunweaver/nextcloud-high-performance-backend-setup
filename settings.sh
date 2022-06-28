@@ -10,9 +10,9 @@ UNATTENTED_INSTALL=true
 
 # General settings
 # Leave empty, if you wish that the user will be asked about this.
-#NEXTCLOUD_SERVER_FQDN="nextcloud-server.example.invalid"
+#NEXTCLOUD_SERVER_FQDN="nextcloud.example.org"
 # Leave empty, if you wish that the user will be asked about this.
-#SERVER_FQDN="nextcloud-hpb.example.invalid"
+#SERVER_FQDN="nc-workhorse.example.org"
 
 # Leave empty, if you wish that the user will be asked about this.
 SSL_CERT_PATH=""
@@ -40,3 +40,9 @@ TMP_DIR_PATH="./tmp"
 # Secrets, passwords and configuration gets saved in this file.
 # Leave empty, if you wish that the user will be asked about this.
 SECRETS_FILE_PATH=""
+
+# This email address gets passed on to Certbot which will send notifications
+# if a certificate is about to run out.
+# You can specify multiple addresses by stringing them together with a comma.
+# Leave empty, if you wish that the user will be asked about this.
+EMAIL_ADDRESS=""

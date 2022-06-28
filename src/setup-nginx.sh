@@ -1,27 +1,11 @@
 #!/bin/bash
 
 function install_nginx() {
-    if [ "$SHOULD_INSTALL_NGINX" != true ]; then
-        log "Won't install Nginx, since" \
-            "\$SHOULD_INSTALL_NGINX is *not* true."
-        return 0
-    fi
-
     log "Installing Nginx…"
 
     nginx_step1
     nginx_step2
     nginx_step3
-
-    log "Restarting service…"
-    is_dry_run || systemctl enable --now nginx || true
-
-    if is_dry_run || service nginx restart; then
-        log "Nginx restarted succesfully."
-    else
-        # This has to have some consequences…
-        log "Nginx did *not* restart succesfully."
-    fi
 
     log "Nginx install completed."
 }
@@ -59,8 +43,8 @@ function nginx_step2() {
     fi
     sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
-    log "Replacing '<HOST_FQDN>' with '$SERVER_FQDN'…"
-    sed -i "s|<HOST_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
+    log "Replacing '<SERVER_FQDN>' with '$SERVER_FQDN'…"
+    sed -i "s|<SERVER_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
 
     log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
     sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/nginx/*
@@ -83,15 +67,11 @@ function nginx_write_secrets_to_file() {
 }
 
 function nginx_print_info() {
-    if [ "$SHOULD_INSTALL_NGINX" == true ]; then
-        log "Nginx got installed which acts as a reverse proxy for Signaling" \
-            "and Collabora. No extra configuration needed.\n"
-    else
-        return 1
-    fi
+    log "Nginx got installed which acts as a reverse proxy for your selected" \
+        "\nservices.No extra configuration needed."
 
     if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
-        log "Except one thing. Since you choose to not install an automatic" \
+        log "\nExcept one thing. Since you choose to not install an automatic" \
             "\nSSL-Certificate renewer (certbot for example), you need to make" \
             "\nsure that at all time a valid SSL-Cert is located at: " \
             "\n'$SSL_CERT_PATH' and '$SSL_CERT_KEY_PATH'."
