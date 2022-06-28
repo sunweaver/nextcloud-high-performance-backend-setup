@@ -1,5 +1,31 @@
 #!/bin/bash
 
+function run_certbot_command() {
+    arg_dry_run=""
+    if is_dry_run; then
+        arg_dry_run="--dry-run"
+    fi
+
+    arg_interactive=""
+    if [ "$UNATTENTED_INSTALL" == true ]; then
+        arg_interactive="--non-interactive --agree-tos"
+    else
+        arg_interactive="--force-interactive"
+    fi
+
+    certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
+        --key-path "$SSL_CERT_KEY_PATH" --domains "$SERVER_FQDN"
+        --fullchain-path "$SSL_CERT_PATH" --email "$EMAIL_ADDRESS")
+
+    log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+
+    if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function install_certbot() {
     log "Installing Certbot…"
 
@@ -16,25 +42,7 @@ function install_certbot() {
 
     log "\nStep 2: Configuring Certbot"
 
-    arg_dry_run=""
-    if is_dry_run; then
-        arg_dry_run="--dry-run"
-    fi
-
-    arg_interactive=""
-    if [ "$UNATTENTED_INSTALL" == true ]; then
-        arg_interactive="--non-interactive --agree-tos"
-    else
-        arg_interactive="--force-interactive"
-    fi
-
-    CERTBOT_COMMAND="certbot certonly --nginx $arg_interactive $arg_dry_run \
-        --key-path \"$SSL_CERT_KEY_PATH\" --domains \"$SERVER_FQDN\" \
-        --fullchain-path \"$SSL_CERT_PATH\" --email \"$EMAIL_ADDRESS\""
-
-    log "Executing Certbot using arguments: '$CERTBOT_COMMAND'."
-
-    if ! $CERTBOT_COMMAND |& tee -a $LOGFILE_PATH; then
+    if ! run_certbot_command; then
         log "Something wen't wrong while starting Certbot."
 
         if [ "$UNATTENTED_INSTALL" != true ]; then
