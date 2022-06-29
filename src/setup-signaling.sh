@@ -151,7 +151,7 @@ function signaling_step5() {
 
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		deploy_file "$TMP_DIR_PATH"/signaling/coturn-certbot-deploy.sh /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh || true
-		chmod 700 /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh
+		is_dry_run || chmod 700 /etc/letsencrypt/renewal-hooks/deploy/coturn-certbot-deploy.sh
 	fi
 }
 
