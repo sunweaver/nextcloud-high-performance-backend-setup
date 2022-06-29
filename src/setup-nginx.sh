@@ -16,9 +16,9 @@ function nginx_step1() {
 		if [ "$UNATTENTED_INSTALL" == true ]; then
 			log "Trying unattented install for Nginx."
 			export DEBIAN_FRONTEND=noninteractive
-			apt-get install -qqy nginx 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install -qqy nginx ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 		else
-			apt-get install -y nginx 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install -y nginx ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 		fi
 	fi
 }

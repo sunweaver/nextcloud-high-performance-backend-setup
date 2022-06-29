@@ -273,9 +273,10 @@ function main() {
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
 			--checklist "Please select/deselect the services you want to $(
-			)install with the space key." 15 110 2 \
-			"1" "Install Collabora (coolwsd, nginx, certbot)" ON \
-			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling, nginx, certbot)" ON \
+			)install with the space key.\nThe following services/packages will$(
+			) also be installed: Certbot Nginx ssl-cert" 15 90 2 \
+			"1" "Install Collabora (coolwsd, code-brand)" ON \
+			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
 			3>&1 1>&2 2>&3)
 
 		if [ -z "$CHOICES" ]; then
