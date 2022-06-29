@@ -11,7 +11,7 @@ SIGNALING_HASH_KEY="$(openssl rand -hex 16)"
 SIGNALING_BLOCK_KEY="$(openssl rand -hex 16)"
 SIGNALING_NEXTCLOUD_SECRET_KEY="$(openssl rand -hex 16)"
 
-SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDN"
+SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDNS"
 SIGNALING_COTURN_URL="$SERVER_FQDN"
 
 COTURN_DIR="/etc/coturn"
@@ -166,7 +166,7 @@ function signaling_write_secrets_to_file() {
 	echo -e "Hash key:      $SIGNALING_HASH_KEY" >>$1
 	echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
 	echo -e "" >>$1
-	echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDN" >>$1
+	echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDNS" >>$1
 	echo -e "STUN server = $SERVER_FQDN:1271" >>$1
 	echo -e "TURN server:" >>$1
 	echo -e " ↳ 'turn and turns'" >>$1
@@ -181,7 +181,7 @@ function signaling_write_secrets_to_file() {
 function signaling_print_info() {
 	log "The services coturn janus nats-server and nextcloud-signaling-spreed got installed. " \
 		"\nTo set it up, log into your Nextcloud instance" \
-		"\n(https://$NEXTCLOUD_SERVER_FQDN) with an adminstrator account" \
+		"\n(https://$NEXTCLOUD_SERVER_FQDNS) with an adminstrator account" \
 		"\nand install the Talk app. Then navigate to" \
 		"\nSettings -> Administration -> Talk and put in the following:"
 

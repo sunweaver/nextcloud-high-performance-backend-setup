@@ -7,10 +7,10 @@ set -eo pipefail
 # See settings.sh
 DRY_RUN=false
 UNATTENTED_INSTALL=false
-NEXTCLOUD_SERVER_FQDN="" # Ask user
-SERVER_FQDN=""           # Ask user
-SSL_CERT_PATH=""         # Ask user (Most likely they will just press enter)
-SSL_CERT_KEY_PATH=""     # Ask user (Most likely they will just press enter)
+NEXTCLOUD_SERVER_FQDNS="" # Ask user
+SERVER_FQDN=""            # Ask user
+SSL_CERT_PATH=""          # Ask user (Most likely they will just press enter)
+SSL_CERT_KEY_PATH=""      # Ask user (Most likely they will just press enter)
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
@@ -33,22 +33,24 @@ function show_dialogs() {
 	fi
 	log "Using '$DRY_RUN' for DRY_RUN".
 
-	if [ "$NEXTCLOUD_SERVER_FQDN" = "" ]; then
+	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
 			log "Can't go on since this is an unattended install and I'm" \
-				"missing NEXTCLOUD_SERVER_FQDN!"
+				"missing NEXTCLOUD_SERVER_FQDNS!"
 			exit 1
 		fi
 
-		NEXTCLOUD_SERVER_FQDN=$(
+		NEXTCLOUD_SERVER_FQDNS=$(
 			whiptail --title "Nextcloud Server Domain" \
 				--inputbox "Please input your Nextcloud Server domain. $(
 				)No http(s) or similar! And don't input the domain for $(
-				)the High-Performance backend yet!" 10 65 \
+				)the High-Performance backend yet!\n$(
+				)You can also specify multiple Nextcloud servers by separating$(
+				)them using a comma." 10 65 \
 				"nextcloud.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$NEXTCLOUD_SERVER_FQDN' for NEXTCLOUD_SERVER_FQDN".
+	log "Using '$NEXTCLOUD_SERVER_FQDNS' for NEXTCLOUD_SERVER_FQDNS".
 
 	if [ "$SERVER_FQDN" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then

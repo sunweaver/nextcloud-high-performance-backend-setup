@@ -10,7 +10,8 @@ UNATTENTED_INSTALL=true
 
 # General settings
 # Leave empty, if you wish that the user will be asked about this.
-#NEXTCLOUD_SERVER_FQDN="nextcloud.example.org"
+# You can also specify multiple Nextcloud servers by separating them with commas.
+#NEXTCLOUD_SERVER_FQDNS="nextcloud.example.org"
 # Leave empty, if you wish that the user will be asked about this.
 #SERVER_FQDN="nc-workhorse.example.org"
 
