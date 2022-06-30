@@ -20,12 +20,12 @@ for domain in $RENEWED_DOMAINS; do
 
                 # Apply the proper file ownership and permissions for
                 # the daemon to read its certificate and key.
-                chown turnserver "$daemon_cert_root/$domain.crt" \
+                chown root:turnserver "$daemon_cert_root/$domain.crt" \
                         "$daemon_cert_root/$domain.key"
-                chmod 400 "$daemon_cert_root/$domain.crt" \
+                chmod 640 "$daemon_cert_root/$domain.crt" \
                         "$daemon_cert_root/$domain.key"
 
-                service coturn restart >/dev/null
+                service coturn restart &> /dev/null
                 ;;
         esac
 done
