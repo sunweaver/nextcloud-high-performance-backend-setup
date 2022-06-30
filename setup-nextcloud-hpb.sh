@@ -18,6 +18,24 @@ EMAIL_ADDRESS=""     # Ask user
 DISABLE_SSH_SERVER=false
 
 function show_dialogs() {
+	if [ "$LOGFILE_PATH" = "" ]; then
+		if [ "$UNATTENTED_INSTALL" = true ]; then
+			log "Can't go on since this is an unattended install and I'm" \
+				"missing LOGFILE_PATH!"
+			exit 1
+		fi
+
+		LOGFILE_PATH=$(
+			whiptail --title "Logfile path" \
+				--inputbox "Please input a path to which this script can put $(
+				)a logging file. The directory, it's parents and the file get $(
+				)created automatically." 10 65 \
+				"setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log" \
+				3>&1 1>&2 2>&3
+		)
+	fi
+	log "Using '$LOGFILE_PATH' for LOGFILE_PATH"
+
 	if [ "$DRY_RUN" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
 			log "Can't go on since this is an unattended install and  I'm missing DRY_RUN!"
@@ -88,24 +106,6 @@ function show_dialogs() {
 	else
 		log "Using '$SSL_CERT_KEY_PATH' for SSL_CERT_KEY_PATH".
 	fi
-
-	if [ "$LOGFILE_PATH" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
-				"missing LOGFILE_PATH!"
-			exit 1
-		fi
-
-		LOGFILE_PATH=$(
-			whiptail --title "Logfile path" \
-				--inputbox "Please input a path to which this script can put $(
-				)a logging file. The directory, it's parents and the file get $(
-				)created automatically." 10 65 \
-				"setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log" \
-				3>&1 1>&2 2>&3
-		)
-	fi
-	log "Using '$LOGFILE_PATH' for LOGFILE_PATH"
 
 	if [ "$TMP_DIR_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
@@ -287,7 +287,7 @@ function main() {
 			) also be installed: Certbot Nginx ssl-cert" 15 90 2 \
 			"1" "Install Collabora (coolwsd, code-brand)" ON \
 			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
-			3>&1 1>&2 2>&3)
+			3>&1 1>&2 2>&3 || true)
 
 		if [ -z "$CHOICES" ]; then
 			log "No service was selected (user hit Cancel or unselected all options) Exiting…"
