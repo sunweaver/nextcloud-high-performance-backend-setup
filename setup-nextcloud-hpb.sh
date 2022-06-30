@@ -152,6 +152,17 @@ function show_dialogs() {
 		)
 	fi
 	log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
+
+	CERTBOT_AGREE_TOS=""
+	if whiptail --title "Letsencrypt - Terms of Service" --defaultno \
+		--yesno "When Certbot starts for the first time, it asks if you want $(
+		)to accept the Letsencrypt Terms of Service. Do you wish to skip this? $(
+		)To read it you can either select 'no' here or read it online at:\n$(
+		)https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf" \
+		10 70 3>&1 1>&2 2>&3; then
+		CERTBOT_AGREE_TOS="--agree-tos"
+	fi
+	log "Using '$CERTBOT_AGREE_TOS' for CERTBOT_AGREE_TOS".
 }
 
 function log() {

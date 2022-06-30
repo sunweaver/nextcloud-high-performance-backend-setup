@@ -10,7 +10,7 @@ function run_certbot_command() {
 	if [ "$UNATTENTED_INSTALL" == true ]; then
 		arg_interactive="--non-interactive --agree-tos"
 	else
-		arg_interactive="--force-interactive"
+		arg_interactive="--force-interactive $CERTBOT_AGREE_TOS"
 	fi
 
 	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
