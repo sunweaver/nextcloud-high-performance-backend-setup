@@ -50,6 +50,8 @@ function show_dialogs() {
 				"nextcloud.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
+	# Filter out HTTPS:// or HTTP://
+	NEXTCLOUD_SERVER_FQDNS=$(echo $NEXTCLOUD_SERVER_FQDNS | sed -r "s#https?\:\/\/##gi")
 	log "Using '$NEXTCLOUD_SERVER_FQDNS' for NEXTCLOUD_SERVER_FQDNS".
 
 	if [ "$SERVER_FQDN" = "" ]; then
@@ -68,6 +70,8 @@ function show_dialogs() {
 				10 65 "nc-workhorse.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
+	# Filter out HTTPS:// or HTTP://
+	SERVER_FQDN=$(echo $SERVER_FQDN | sed -r "s#https?\:\/\/##gi")
 	log "Using '$SERVER_FQDN' for SERVER_FQDN".
 
 	if [ "$SSL_CERT_PATH" = "" ]; then
