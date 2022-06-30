@@ -9,8 +9,8 @@ DRY_RUN=false
 UNATTENTED_INSTALL=false
 NEXTCLOUD_SERVER_FQDNS="" # Ask user
 SERVER_FQDN=""            # Ask user
-SSL_CERT_PATH=""          # Ask user (Most likely they will just press enter)
-SSL_CERT_KEY_PATH=""      # Ask user (Most likely they will just press enter)
+SSL_CERT_PATH=""          # Will be auto filled, if not overriden by settings file.
+SSL_CERT_KEY_PATH=""      # Will be auto filled, if not overriden by settings file.
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
@@ -71,37 +71,18 @@ function show_dialogs() {
 	log "Using '$SERVER_FQDN' for SERVER_FQDN".
 
 	if [ "$SSL_CERT_PATH" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
-				"missing SSL_CERT_PATH!"
-			exit 1
-		fi
-
-		SSL_CERT_PATH=$(
-			whiptail --title "SSL Certificate file path" \
-				--inputbox "Please input a path where the SSL certificate is $(
-				)located. Change the default only if you know what you're doing!" \
-				10 65 "/etc/letsencrypt/live/$SERVER_FQDN/fullchain.pem" 3>&1 1>&2 2>&3
-		)
+		SSL_CERT_PATH="/etc/letsencrypt/live/$SERVER_FQDN/fullchain.pem"
+		log "Using default path '$SSL_CERT_PATH' for SSL_CERT_PATH".
+	else
+		log "Using '$SSL_CERT_PATH' for SSL_CERT_PATH".
 	fi
-	log "Using '$SSL_CERT_PATH' for SSL_CERT_PATH".
 
 	if [ "$SSL_CERT_KEY_PATH" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
-				"missing SSL_CERT_KEY_PATH!"
-			exit 1
-		fi
-
-		SSL_CERT_KEY_PATH=$(
-			whiptail --title "SSL Certificate key-file path" \
-				--inputbox "Please input a path where the SSL certificate $(
-				)key file is located. Change the default only if you know what $(
-				)you're doing!" \
-				10 65 "/etc/letsencrypt/live/$SERVER_FQDN/privkey.pem" 3>&1 1>&2 2>&3
-		)
+		SSL_CERT_KEY_PATH="/etc/letsencrypt/live/$SERVER_FQDN/privkey.pem"
+		log "Using default path '$SSL_CERT_KEY_PATH' for SSL_CERT_KEY_PATH".
+	else
+		log "Using '$SSL_CERT_KEY_PATH' for SSL_CERT_KEY_PATH".
 	fi
-	log "Using '$SSL_CERT_KEY_PATH' for SSL_CERT_KEY_PATH".
 
 	if [ "$LOGFILE_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
