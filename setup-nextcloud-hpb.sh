@@ -15,6 +15,7 @@ LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
 EMAIL_ADDRESS=""     # Ask user
+DISABLE_SSH_SERVER=false
 
 function show_dialogs() {
 	if [ "$DRY_RUN" = "" ]; then
@@ -158,15 +159,28 @@ function show_dialogs() {
 	log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
 
 	CERTBOT_AGREE_TOS=""
-	if whiptail --title "Letsencrypt - Terms of Service" --defaultno \
-		--yesno "When Certbot starts for the first time, it asks if you want $(
-		)to accept the Letsencrypt Terms of Service. Do you wish to skip this? $(
-		)To read it you can either select 'no' here or read it online at:\n$(
-		)https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf" \
-		10 70 3>&1 1>&2 2>&3; then
-		CERTBOT_AGREE_TOS="--agree-tos"
+	if [ "$UNATTENTED_INSTALL" != true ]; then
+		if whiptail --title "Letsencrypt - Terms of Service" --defaultno \
+			--yesno "When Certbot starts for the first time, it asks if you want $(
+			)to accept the Letsencrypt Terms of Service. Do you wish to skip this? $(
+			)To read it you can either select 'no' here or read it online at:\n$(
+			)https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf" \
+			10 70 3>&1 1>&2 2>&3; then
+			CERTBOT_AGREE_TOS="--agree-tos"
+		fi
 	fi
-	log "Using '$CERTBOT_AGREE_TOS' for CERTBOT_AGREE_TOS".
+	log "Using '$CERTBOT_AGREE_TOS' for CERTBOT_AGREE_TOS."
+
+	if [ "$DISABLE_SSH_SERVER" != true ]; then
+		if [ "$UNATTENTED_INSTALL" != true ]; then
+			if whiptail --title "Deactivate SSH server?" --defaultno \
+				--yesno "Should the 'ssh' service be disabled?" \
+				10 70 3>&1 1>&2 2>&3; then
+				DISABLE_SSH_SERVER=true
+			fi
+		fi
+	fi
+	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
 }
 
 function log() {
@@ -366,6 +380,11 @@ function main() {
 	fi
 
 	log "Every installation completed."
+
+	if [ "DISABLE_SSH_SERVER" = true ]; then
+		log "Disabling 'ssh' service…"
+		is_dry_run || systemctl disable ssh
+	fi
 
 	log "Enabling and restarting services…"
 	SERVICES_TO_ENABLE=()

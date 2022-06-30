@@ -46,3 +46,6 @@ SECRETS_FILE_PATH=""
 # You can specify multiple addresses by stringing them together with a comma.
 # Leave empty, if you wish that the user will be asked about this.
 EMAIL_ADDRESS=""
+
+# Should the ssh service be disabled?
+#DISABLE_SSH_SERVER=false
