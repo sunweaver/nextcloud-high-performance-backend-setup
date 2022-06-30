@@ -85,10 +85,6 @@ function collabora_step5() {
 	log "\nStep 5: Deploy configuration"
 
 	deploy_file "$TMP_DIR_PATH"/collabora/snippet-coolwsd.conf /etc/nginx/snippets/coolwsd.conf || true
-	is_dry_run || rm /var/www/html/index.nginx-debian.html || true
-	deploy_file "$TMP_DIR_PATH"/collabora/index.html /var/www/html/index.html || true
-	deploy_file "$TMP_DIR_PATH"/collabora/robots.txt /var/www/html/robots.txt || true
-
 	deploy_file "$TMP_DIR_PATH"/collabora/coolwsd.xml /etc/coolwsd/coolwsd.xml || true
 }
 
