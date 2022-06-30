@@ -53,14 +53,25 @@ function collabora_step3() {
 	# Installing:
 	#   - coolwsd
 	#   - code-brand
+	#   - some dictionaries, German, English, France, Spanish, Dutch
+	#   - Microsoft fonts.
 	if ! is_dry_run; then
 		if [ "$UNATTENTED_INSTALL" == true ]; then
 			log "Trying unattented install for Collabora."
 			export DEBIAN_FRONTEND=noninteractive
-			apt-get install -qqy coolwsd code-brand 2>&1 | tee -a $LOGFILE_PATH
+			args_apt="-qqy"
 		else
-			apt-get install -y coolwsd code-brand 2>&1 | tee -a $LOGFILE_PATH
+			args_apt="-y"
 		fi
+
+		apt-get install "$args_apt" \
+			coolwsd code-brand ttf-mscorefonts-installer \
+			collaboraoffice-dict-en \
+			collaboraofficebasis-de collaboraoffice-dict-de \
+			collaboraofficebasis-fr collaboraoffice-dict-fr \
+			collaboraofficebasis-nl collaboraoffice-dict-nl \
+			collaboraofficebasis-es collaboraoffice-dict-es \
+			2>&1 | tee -a $LOGFILE_PATH
 	fi
 }
 
