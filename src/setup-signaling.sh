@@ -83,7 +83,7 @@ function signaling_step4() {
 
 	is_dry_run || touch "$COTURN_DIR/dhp.pem"
 	is_dry_run || openssl dhparam -dsaparam -out "$COTURN_DIR/dhp.pem" 4096
-	is_dry_run || chown -R root:turnserver "$COTURN_DIR"
+	is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
 	is_dry_run || chmod -R 740 "$COTURN_DIR"
 
 	# Don't actually *log* passwords! (Or do for debugging…)
