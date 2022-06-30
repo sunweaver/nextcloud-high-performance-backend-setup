@@ -10,14 +10,14 @@ UNATTENTED_INSTALL=true
 
 # General settings
 # Leave empty, if you wish that the user will be asked about this.
-#NEXTCLOUD_SERVER_FQDN="nextcloud.example.org"
+# You can also specify multiple Nextcloud servers by separating them with commas.
+#NEXTCLOUD_SERVER_FQDNS="nextcloud.example.org"
 # Leave empty, if you wish that the user will be asked about this.
 #SERVER_FQDN="nc-workhorse.example.org"
 
-# Leave empty, if you wish that the user will be asked about this.
-SSL_CERT_PATH=""
-# Leave empty, if you wish that the user will be asked about this.
-SSL_CERT_KEY_PATH=""
+# Only modify if you know what you're doing.
+#SSL_CERT_PATH=""
+#SSL_CERT_KEY_PATH=""
 
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
@@ -46,3 +46,6 @@ SECRETS_FILE_PATH=""
 # You can specify multiple addresses by stringing them together with a comma.
 # Leave empty, if you wish that the user will be asked about this.
 EMAIL_ADDRESS=""
+
+# Should the ssh service be disabled?
+#DISABLE_SSH_SERVER=false
