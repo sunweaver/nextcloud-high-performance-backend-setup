@@ -56,6 +56,11 @@ function nginx_step2() {
 function nginx_step3() {
 	log "Deploying config files…"
 	deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
+
+	is_dry_run || mkdir -p /var/www/html || true
+	is_dry_run || rm /var/www/html/index.nginx-debian.html || true
+	deploy_file "$TMP_DIR_PATH"/nginx/index.html /var/www/html/index.html || true
+	deploy_file "$TMP_DIR_PATH"/nginx/robots.txt /var/www/html/robots.txt || true
 }
 
 # arg: $1 is secret file path
