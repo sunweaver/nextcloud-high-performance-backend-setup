@@ -159,13 +159,15 @@ function show_dialogs() {
 	log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
 
 	CERTBOT_AGREE_TOS=""
+	LETSENCRYPT_TOS_URL="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
 	if [ "$UNATTENTED_INSTALL" != true ]; then
 		if whiptail --title "Letsencrypt - Terms of Service" --defaultno \
-			--yesno "When Certbot starts for the first time, it asks if you want $(
-			)to accept the Letsencrypt Terms of Service. Do you wish to skip this? $(
-			)To read it you can either select 'no' here or read it online at:\n$(
-			)https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf" \
-			10 70 3>&1 1>&2 2>&3; then
+			--yesno "Do you want to silently accept Letsencrypt's Terms of $(
+			)Service here? If you select 'no' here, the Terms of Service $(
+			)will be displayed during SSL certificate retrieval during the $(
+			)installation process.\n\nYou can always read Letsencrypt's $(
+			)Terms of Service here:\n$LETSENCRYPT_TOS_URL" \
+			13 75 3>&1 1>&2 2>&3; then
 			CERTBOT_AGREE_TOS="--agree-tos"
 		fi
 	fi
@@ -317,6 +319,12 @@ function main() {
 	fi
 
 	show_dialogs
+
+	# Transform Nextcloud server URLs into array.
+	# Change comma (,) to whitespace
+	NEXTCLOUD_SERVER_FQDNS=($(echo "$NEXTCLOUD_SERVER_FQDNS" | tr ',' ' '))
+	log "Splitting Nextcloud server domains into:"
+	log "$(printf '\t↳ %s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")"
 
 	if [ -s "$LOGFILE_PATH" ]; then
 		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
