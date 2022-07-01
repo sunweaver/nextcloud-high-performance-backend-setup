@@ -224,14 +224,14 @@ function signaling_print_info() {
 		"$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
 
 	# Don't actually *log* passwords!
-	echo -e "STUN server = $SERVER_FQDN:1271"
-	echo -e "TURN server:"
-	echo -e " ↳ 'turn and turns'"
-	echo -e " ↳ turnserver+port: $SERVER_FQDN:1271"
+	log "STUN server = $SERVER_FQDN:1271"
+	log "TURN server:"
+	log " ↳ 'turn and turns'"
+	log " ↳ turnserver+port: $SERVER_FQDN:1271"
 	echo -e " ↳ secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
-	echo -e " ↳ 'udp & tcp'"
-	echo -e "High-performance backend:"
-	echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling"
+	log " ↳ 'udp & tcp'"
+	log "High-performance backend:"
+	log " ↳ wss://$SERVER_FQDN/standalone-signaling"
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
