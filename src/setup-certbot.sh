@@ -32,7 +32,7 @@ function install_certbot() {
 	log "\nStep 1: Installing Certbot packages"
 	if ! is_dry_run; then
 		if [ "$UNATTENTED_INSTALL" == true ]; then
-			log "Trying unattented install for Certbot."
+			log "Trying unattended install for Certbot."
 			export DEBIAN_FRONTEND=noninteractive
 			apt-get install -qqy python3-certbot-nginx certbot 2>&1 | tee -a $LOGFILE_PATH
 		else

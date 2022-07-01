@@ -57,7 +57,7 @@ function collabora_step3() {
 	#   - Microsoft fonts.
 	if ! is_dry_run; then
 		if [ "$UNATTENTED_INSTALL" == true ]; then
-			log "Trying unattented install for Collabora."
+			log "Trying unattended install for Collabora."
 			export DEBIAN_FRONTEND=noninteractive
 			args_apt="-qqy"
 		else
