@@ -320,6 +320,12 @@ function main() {
 
 	show_dialogs
 
+	# Transform Nextcloud server URLs into array.
+	# Change comma (,) to whitespace
+	NEXTCLOUD_SERVER_FQDNS=($(echo "$NEXTCLOUD_SERVER_FQDNS" | tr ',' ' '))
+	log "Splitting Nextcloud server domains into:"
+	log "$(printf '\t↳ %s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")"
+
 	if [ -s "$LOGFILE_PATH" ]; then
 		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
 	fi

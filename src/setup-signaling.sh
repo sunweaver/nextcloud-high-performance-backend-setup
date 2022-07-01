@@ -9,12 +9,17 @@ SIGNALING_TURN_STATIC_AUTH_SECRET="$(openssl rand -hex 32)"
 SIGNALING_JANUS_API_KEY="$(openssl rand -base64 16)"
 SIGNALING_HASH_KEY="$(openssl rand -hex 16)"
 SIGNALING_BLOCK_KEY="$(openssl rand -hex 16)"
-SIGNALING_NEXTCLOUD_SECRET_KEY="$(openssl rand -hex 16)"
 
-SIGNALING_NEXTCLOUD_URL="https://$NEXTCLOUD_SERVER_FQDNS"
 SIGNALING_COTURN_URL="$SERVER_FQDN"
 
 COTURN_DIR="/etc/coturn"
+
+declare -a SIGNALING_BACKENDS                   # Normal array
+declare -a SIGNALING_BACKEND_DEFINITIONS        # Normal Array
+declare -A SIGNALING_NC_SERVER_SECRETS          # Associative array
+declare -A SIGNALING_NC_SERVER_SESSIONLIMIT     # Associative array
+declare -A SIGNALING_NC_SERVER_MAXSTREAMBITRATE # Associative array
+declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 
 function install_signaling() {
 	log "Installing Signaling…"
@@ -86,6 +91,32 @@ function signaling_step4() {
 	is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
 	is_dry_run || chmod -R 740 "$COTURN_DIR"
 
+	i=0
+	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
+		SIGNALING_NC_SERVER_SECRETS[$NC_SERVER_UNDERSCORE]="$(openssl rand -hex 16)"
+		SIGNALING_NC_SERVER_SESSIONLIMIT[$NC_SERVER_UNDERSCORE]=0
+		SIGNALING_NC_SERVER_MAXSTREAMBITRATE[$NC_SERVER_UNDERSCORE]=0
+		SIGNALING_NC_SERVER_MAXSCREENBITRATE[$NC_SERVER_UNDERSCORE]=0
+
+		SIGNALING_BACKENDS+=("nextcloud-backend-$i")
+
+		IFS= read -r -d '' SIGNALING_BACKEND_DEFINITION <<-EOF || true
+			[nextcloud-backend-$i]
+			url = $NC_SERVER
+			secret = ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}
+			#sessionlimit = ${SIGNALING_NC_SERVER_SESSIONLIMIT["$NC_SERVER_UNDERSCORE"]}
+			#maxstreambitrate = ${SIGNALING_NC_SERVER_MAXSTREAMBITRATE["$NC_SERVER_UNDERSCORE"]}
+			#maxscreenbitrate = ${SIGNALING_NC_SERVER_MAXSCREENBITRATE["$NC_SERVER_UNDERSCORE"]}
+		EOF
+
+		# Escape newlines for sed later on.
+		SIGNALING_BACKEND_DEFINITION=$(echo "$SIGNALING_BACKEND_DEFINITION" | sed -z 's|\n|\\n|g')
+		SIGNALING_BACKEND_DEFINITIONS+=("$SIGNALING_BACKEND_DEFINITION")
+
+		i=$(($i + 1))
+	done
+
 	# Don't actually *log* passwords! (Or do for debugging…)
 
 	# log "Replacing '<SIGNALING_TURN_STATIC_AUTH_SECRET>' with '$SIGNALING_TURN_STATIC_AUTH_SECRET'…"
@@ -104,12 +135,13 @@ function signaling_step4() {
 	log "Replacing '<SIGNALING_BLOCK_KEY>…'"
 	sed -i "s|<SIGNALING_BLOCK_KEY>|$SIGNALING_BLOCK_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
-	# log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>' with '$SIGNALING_NEXTCLOUD_SECRET_KEY'…"
-	log "Replacing '<SIGNALING_NEXTCLOUD_SECRET_KEY>…'"
-	sed -i "s|<SIGNALING_NEXTCLOUD_SECRET_KEY>|$SIGNALING_NEXTCLOUD_SECRET_KEY|g" "$TMP_DIR_PATH"/signaling/*
+	log "Replacing '<SIGNALING_BACKENDS>' with '"${SIGNALING_BACKENDS[*]}"'…"
+	sed -i "s|<SIGNALING_BACKENDS>|${SIGNALING_BACKENDS[*]}|g" "$TMP_DIR_PATH"/signaling/*
 
-	log "Replacing '<SIGNALING_NEXTCLOUD_URL>' with '$SIGNALING_NEXTCLOUD_URL'…"
-	sed -i "s|<SIGNALING_NEXTCLOUD_URL>|$SIGNALING_NEXTCLOUD_URL|g" "$TMP_DIR_PATH"/signaling/*
+	IFS= # Avoid whitespace between definitions.
+	log "Replacing '<SIGNALING_BACKEND_DEFINITIONS>' with:\n${SIGNALING_BACKEND_DEFINITIONS[*]}"
+	sed -ri "s|<SIGNALING_BACKEND_DEFINITIONS>|${SIGNALING_BACKEND_DEFINITIONS[*]}|g" "$TMP_DIR_PATH"/signaling/*
+	unset IFS
 
 	log "Replacing '<SIGNALING_COTURN_URL>' with '$SIGNALING_COTURN_URL'…"
 	sed -i "s|<SIGNALING_COTURN_URL>|$SIGNALING_COTURN_URL|g" "$TMP_DIR_PATH"/signaling/*
@@ -166,7 +198,8 @@ function signaling_write_secrets_to_file() {
 	echo -e "Hash key:      $SIGNALING_HASH_KEY" >>$1
 	echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
 	echo -e "" >>$1
-	echo -e "Allowed Nextcloud Server: $NEXTCLOUD_SERVER_FQDNS" >>$1
+	echo -e "Allowed Nextcloud Servers:" >>$1
+	echo -e "$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" >>$1
 	echo -e "STUN server = $SERVER_FQDN:1271" >>$1
 	echo -e "TURN server:" >>$1
 	echo -e " ↳ 'turn and turns'" >>$1
@@ -175,15 +208,20 @@ function signaling_write_secrets_to_file() {
 	echo -e " ↳ 'udp & tcp'" >>$1
 	echo -e "High-performance backend:" >>$1
 	echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling" >>$1
-	echo -e " ↳ $SIGNALING_NEXTCLOUD_SECRET_KEY" >>$1
+
+	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
+		echo -e " ↳ $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}" >>$1
+	done
 }
 
 function signaling_print_info() {
-	log "The services coturn janus nats-server and nextcloud-signaling-spreed got installed. " \
-		"\nTo set it up, log into your Nextcloud instance" \
-		"\n(https://$NEXTCLOUD_SERVER_FQDNS) with an adminstrator account" \
-		"\nand install the Talk app. Then navigate to" \
-		"\nSettings -> Administration -> Talk and put in the following:"
+	log "The services coturn janus nats-server and nextcloud-signaling-spreed" \
+		"\ngot installed. To set it up, log into all of your Nextcloud" \
+		"\ninstances with an adminstrator account and install the Talk app." \
+		"\nThen navigate to Settings -> Administration -> Talk and put in the" \
+		"\nsettings down below.\n" \
+		"$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
 
 	# Don't actually *log* passwords!
 	echo -e "STUN server = $SERVER_FQDN:1271"
@@ -194,5 +232,9 @@ function signaling_print_info() {
 	echo -e " ↳ 'udp & tcp'"
 	echo -e "High-performance backend:"
 	echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling"
-	echo -e " ↳ $SIGNALING_NEXTCLOUD_SECRET_KEY"
+
+	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
+		echo -e " ↳ $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
+	done
 }

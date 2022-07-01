@@ -100,9 +100,10 @@ function collabora_print_info() {
 	collabora_address="https://$SERVER_FQDN/collabora"
 
 	log "The Collabora Online service got installed. To set it up," \
-		"\nlog into your Nextcloud instance with an adminstrator account" \
-		"\n(https://$NEXTCLOUD_SERVER_FQDNS), install the Nextcloud Office app" \
-		"\nand navigate to Settings -> Administration -> Nextcloud Office." \
+		"\nlog into all of your Nextcloud instances with an adminstrator" \
+		"account.\n$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" \
+		"\nThen install the Nextcloud Office app and navigate to" \
+		"\nSettings -> Administration -> Nextcloud Office." \
 		"\nNow select 'Use your own server' and type in '$collabora_address'." \
 		"\nPlease note that you need to have a working HTTPS setup on your" \
 		"\nNextcloud server in order to get Nextcloud Office working."
