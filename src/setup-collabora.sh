@@ -65,8 +65,11 @@ function collabora_step3() {
 		fi
 
 		apt-get install "$args_apt" \
-			coolwsd code-brand ttf-mscorefonts-installer \
-			collaboraoffice-dict-en \
+			ttf-mscorefonts-installer \
+			2>&1 | tee -a $LOGFILE_PATH
+
+		apt-get install "$args_apt" \
+			coolwsd code-brand collaboraoffice-dict-en \
 			collaboraofficebasis-de collaboraoffice-dict-de \
 			collaboraofficebasis-fr collaboraoffice-dict-fr \
 			collaboraofficebasis-nl collaboraoffice-dict-nl \
