@@ -135,8 +135,10 @@ function signaling_step4() {
 	log "Replacing '<SIGNALING_BLOCK_KEY>…'"
 	sed -i "s|<SIGNALING_BLOCK_KEY>|$SIGNALING_BLOCK_KEY|g" "$TMP_DIR_PATH"/signaling/*
 
-	log "Replacing '<SIGNALING_BACKENDS>' with '"${SIGNALING_BACKENDS[*]}"'…"
-	sed -i "s|<SIGNALING_BACKENDS>|${SIGNALING_BACKENDS[*]}|g" "$TMP_DIR_PATH"/signaling/*
+	IFS=,
+	log "Replacing '<SIGNALING_BACKENDS>' with '""${SIGNALING_BACKENDS[*]}""'…"
+	sed -i "s|<SIGNALING_BACKENDS>|""${SIGNALING_BACKENDS[*]}""|g" "$TMP_DIR_PATH"/signaling/*
+	unset IFS
 
 	IFS= # Avoid whitespace between definitions.
 	log "Replacing '<SIGNALING_BACKEND_DEFINITIONS>' with:\n${SIGNALING_BACKEND_DEFINITIONS[*]}"
