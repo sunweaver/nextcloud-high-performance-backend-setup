@@ -28,6 +28,7 @@ SHOULD_INSTALL_SIGNALING=true
 SHOULD_INSTALL_UFW=true
 SHOULD_INSTALL_NGINX=true
 SHOULD_INSTALL_CERTBOT=true
+SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 
 # Logfile get created if UNATTENTED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.

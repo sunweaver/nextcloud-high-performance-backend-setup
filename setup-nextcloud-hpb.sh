@@ -283,11 +283,13 @@ function main() {
 		SHOULD_INSTALL_SIGNALING=false
 		SHOULD_INSTALL_CERTBOT=false
 		SHOULD_INSTALL_NGINX=false
+		SHOULD_INSTALL_UNATTENDEDUPGRADES=false
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
 			--checklist "Please select/deselect the services you want to $(
 			)install with the space key.\nThe following services/packages will$(
-			) also be installed: Certbot Nginx ssl-cert ufw" 15 90 2 \
+			) also be installed: Certbot Nginx ssl-cert ufw $(
+			)unattended-upgrades" 15 90 2 \
 			"1" "Install Collabora (coolwsd, code-brand)" ON \
 			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
 			3>&1 1>&2 2>&3 || true)
@@ -304,6 +306,7 @@ function main() {
 					SHOULD_INSTALL_COLLABORA=true
 					SHOULD_INSTALL_NGINX=true
 					SHOULD_INSTALL_CERTBOT=true
+					SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 					;;
 				"2")
 					log "Signaling (certbot, nginx, ufw) will be installed."
@@ -311,6 +314,7 @@ function main() {
 					SHOULD_INSTALL_SIGNALING=true
 					SHOULD_INSTALL_NGINX=true
 					SHOULD_INSTALL_CERTBOT=true
+					SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 					;;
 				*)
 					log "Unsupported service $CHOICE!" >&2
@@ -370,9 +374,9 @@ function main() {
 	log "Deploying '$entry' in /etc/hosts."
 	is_dry_run || echo "$entry" >>/etc/hosts
 
-	scripts=('src/setup-ufw.sh'
-		'src/setup-collabora.sh' 'src/setup-signaling.sh'
-		'src/setup-nginx.sh' 'src/setup-certbot.sh')
+	scripts=('src/setup-ufw.sh' 'src/setup-collabora.sh'
+		'src/setup-signaling.sh' 'src/setup-nginx.sh' 'src/setup-certbot.sh'
+		'src/setup-unattendedupgrades.sh')
 	for script in "${scripts[@]}"; do
 		log "Sourcing '$script'."
 		source "$script"
@@ -392,6 +396,9 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then install_nginx; else
 		log "Won't install Nginx."
+	fi
+	if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then install_unattendedupgrades; else
+		log "Won't install unattended upgrades."
 	fi
 
 	log "Every installation completed."
@@ -416,6 +423,7 @@ function main() {
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
 		SERVICES_TO_ENABLE+=("nginx")
 	fi
+	#if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then fi
 
 	if ! is_dry_run; then
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
@@ -451,6 +459,9 @@ function main() {
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
 		nginx_print_info
 	fi
+	# if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then
+	# 	unattendedupgrades_print_info
+	# fi
 	log "======================================================================"
 
 	is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
@@ -475,6 +486,9 @@ function main() {
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
 		nginx_write_secrets_to_file "$SECRETS_FILE_PATH"
 	fi
+	# if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then
+	# 	unattendedupgrades_write_secrets_to_file "$SECRETS_FILE_PATH"
+	# fi
 
 	log "\nThank you for using this script.\n"
 }
