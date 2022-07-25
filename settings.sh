@@ -25,6 +25,7 @@ SHOULD_INSTALL_COLLABORA=true
 # Signaling (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_SIGNALING=true
 
+SHOULD_INSTALL_UFW=true
 SHOULD_INSTALL_NGINX=true
 SHOULD_INSTALL_CERTBOT=true
 
