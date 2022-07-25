@@ -103,7 +103,7 @@ function signaling_step4() {
 
 		IFS= read -r -d '' SIGNALING_BACKEND_DEFINITION <<-EOF || true
 			[nextcloud-backend-$i]
-			url = $NC_SERVER
+			url = https://$NC_SERVER
 			secret = ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}
 			#sessionlimit = ${SIGNALING_NC_SERVER_SESSIONLIMIT["$NC_SERVER_UNDERSCORE"]}
 			#maxstreambitrate = ${SIGNALING_NC_SERVER_MAXSTREAMBITRATE["$NC_SERVER_UNDERSCORE"]}
