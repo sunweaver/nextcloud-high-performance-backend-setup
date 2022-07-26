@@ -38,17 +38,23 @@ function ufw_step2() {
 	local _cmdprefix=""
 	is_dry_run && _cmdprefix="log " || true
 
-	${_cmdprefix}ufw default deny incoming
-	${_cmdprefix}ufw default allow outgoing
+	${_cmdprefix}ufw default deny incoming | tee -a $LOGFILE_PATH
+	${_cmdprefix}ufw default allow outgoing | tee -a $LOGFILE_PATH
 
 	if [ -e "/etc/ufw/applications.d/openssh-server" ]; then
-		${_cmdprefix}ufw allow "OpenSSH"
+		${_cmdprefix}ufw allow "OpenSSH" | tee -a $LOGFILE_PATH
 	fi
-	${_cmdprefix}ufw allow "WWW Full"
+
+	# Nginx
+	${_cmdprefix}ufw allow "WWW Full" comment "Nextcloud HPB Nginx" | tee -a $LOGFILE_PATH
+
+	# Coturn
+	${_cmdprefix}ufw allow 1271 comment "Nextcloud HPB Coturn" | tee -a $LOGFILE_PATH
+	${_cmdprefix}ufw allow 49151:65535/udp comment "Nextcloud HPB Coturn" | tee -a $LOGFILE_PATH
 
 	_ufwargs=""
 	is_dry_run || _ufwargs="--force"
-	${_cmdprefix}ufw "$_ufwargs" enable
+	${_cmdprefix}ufw "$_ufwargs" enable | tee -a $LOGFILE_PATH
 }
 
 # arg: $1 is secret file path
