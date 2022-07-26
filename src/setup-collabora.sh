@@ -53,7 +53,7 @@ function collabora_step3() {
 	# Installing:
 	#   - coolwsd
 	#   - code-brand
-	#   - some dictionaries, German, English, France, Spanish, Dutch
+	#   - some dictionaries, German, English, French, Spanish, Dutch
 	#   - Microsoft fonts.
 	if ! is_dry_run; then
 		if [ "$UNATTENTED_INSTALL" == true ]; then
@@ -81,6 +81,23 @@ function collabora_step3() {
 function collabora_step4() {
 	# 4. Prepare configuration
 	log "\nStep 4: Prepare configuration"
+
+	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+		IFS= read -r -d '' COLLABORA_HOST_DEFINITION <<EOF || true
+				<group>
+					<host desc="hostname to allow or deny." allow="true">https://$NC_SERVER:443</host>
+				</group>
+EOF
+
+		# Escape newlines for sed later on.
+		COLLABORA_HOST_DEFINITION=$(echo "$COLLABORA_HOST_DEFINITION" | sed -z 's|\n|\\n|g')
+		COLLABORA_HOST_DEFINITIONS+=("$COLLABORA_HOST_DEFINITION")
+	done
+
+	IFS= # Avoid whitespace between definitions.
+	log "Replacing '<COLLABORA_HOST_DEFINITIONS>' with:\n${COLLABORA_HOST_DEFINITIONS[*]}"
+	sed -ri "s|<COLLABORA_HOST_DEFINITIONS>|${COLLABORA_HOST_DEFINITIONS[*]}|g" "$TMP_DIR_PATH"/collabora/*
+	unset IFS
 }
 
 function collabora_step5() {

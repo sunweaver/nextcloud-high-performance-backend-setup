@@ -141,7 +141,8 @@ function signaling_step4() {
 	unset IFS
 
 	IFS= # Avoid whitespace between definitions.
-	log "Replacing '<SIGNALING_BACKEND_DEFINITIONS>' with:\n${SIGNALING_BACKEND_DEFINITIONS[*]}"
+	#log "Replacing '<SIGNALING_BACKEND_DEFINITIONS>' with:\n${SIGNALING_BACKEND_DEFINITIONS[*]}"
+	log "Replacing '<SIGNALING_BACKEND_DEFINITIONS>'…"
 	sed -ri "s|<SIGNALING_BACKEND_DEFINITIONS>|${SIGNALING_BACKEND_DEFINITIONS[*]}|g" "$TMP_DIR_PATH"/signaling/*
 	unset IFS
 
