@@ -53,7 +53,7 @@ function collabora_step3() {
 	# Installing:
 	#   - coolwsd
 	#   - code-brand
-	#   - some dictionaries, German, English, France, Spanish, Dutch
+	#   - some dictionaries, German, English, French, Spanish, Dutch
 	#   - Microsoft fonts.
 	if ! is_dry_run; then
 		if [ "$UNATTENTED_INSTALL" == true ]; then
