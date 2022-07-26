@@ -41,16 +41,22 @@ function ufw_step2() {
 	${_cmdprefix}ufw default deny incoming | tee -a $LOGFILE_PATH
 	${_cmdprefix}ufw default allow outgoing | tee -a $LOGFILE_PATH
 
-	if [ -e "/etc/ufw/applications.d/openssh-server" ]; then
-		${_cmdprefix}ufw allow "OpenSSH" | tee -a $LOGFILE_PATH
+	if [ "$DISABLE_SSH_SERVER" != true ]; then
+		if [ -e "/etc/ufw/applications.d/openssh-server" ]; then
+			${_cmdprefix}ufw allow "OpenSSH" | tee -a $LOGFILE_PATH
+		fi
 	fi
 
 	# Nginx
-	${_cmdprefix}ufw allow "WWW Full" comment "Nextcloud HPB Nginx" | tee -a $LOGFILE_PATH
+	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
+		${_cmdprefix}ufw allow "WWW Full" comment "Nextcloud HPB Nginx" | tee -a $LOGFILE_PATH
+	fi
 
 	# Coturn
-	${_cmdprefix}ufw allow 1271 comment "Nextcloud HPB Coturn" | tee -a $LOGFILE_PATH
-	${_cmdprefix}ufw allow 49151:65535/udp comment "Nextcloud HPB Coturn" | tee -a $LOGFILE_PATH
+	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+		${_cmdprefix}ufw allow 1271 comment "Nextcloud HPB Coturn" | tee -a $LOGFILE_PATH
+		${_cmdprefix}ufw allow 49151:65535/udp comment "Nextcloud HPB Coturn" | tee -a $LOGFILE_PATH
+	fi
 
 	_ufwargs=""
 	is_dry_run || _ufwargs="--force"
