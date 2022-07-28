@@ -428,11 +428,11 @@ function main() {
 	if ! is_dry_run; then
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
 			log "Enabling and restarting service '$i'…"
-			if ! service "$i" stop; then
+			if ! service "$i" stop | tee -a $LOGFILE_PATH; then
 				log "Something went wrong while stopping service '$i'…"
 			fi
 
-			if ! systemctl enable --now "$i"; then
+			if ! systemctl enable --now "$i" | tee -a $LOGFILE_PATH; then
 				log "Something went wrong while enabling/starting service '$i'…"
 			fi
 			sleep 0.25s
