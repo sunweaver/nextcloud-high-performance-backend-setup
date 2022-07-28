@@ -1,2 +1,1 @@
-# Automatic Collabora & Signaling - High performance backend installer.
-Test
+# Easy setup for Nextcloud High performance backend, Signaling & Collabora Office
