@@ -13,6 +13,8 @@ Dieses Skript installiert vollautomatisch das Nextcloud High Performance Backend
 
 Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktuellen Sourcen (für Debian Stable) installiert werden. Das Collabora-Paket wird immer als aktuellstes Paket aus dem Stable-Zweig installiert. Bitte beachten Sie, dass Collabora Office in dieser Version auf 20 gleichzeitig arbeitende Benutzer beschränkt ist. Dies können Sie natürlich durch eine Lizenz-Key auch jederzeit erweitern.
 
+[**Hier im Wiki finden Sie eine detaillierte Installationsanleitung!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script)
+
 **Voraussetzungen für den Betrieb:**
 
 * Einen virtuellen oder physikalischen Server mit Debian
@@ -42,10 +44,6 @@ Hier kann das Skript helfen, da wir damit die fehlenden leistungsfressenden Anwe
 Das Skript eignet sich aber auch für größere Installationen, bei denen der Admin einfach nicht die ganze Installation per Hand machen möchte. Wir halten uns hier streng an die Debian-Vorgaben, damit spätere Updates reibungslos funktionieren. Das Skript sichert den Server mit der UfW Firewall ab. Zusätzlich können Sie aber auch noch den SSH-Zugriff deaktivieren. Dann kommen Sie nur noch über die Server-Konsole an die Maschine ran.
 
 Wenn der Server einmal konfiguriert ist, braucht man im Idealfall auch kein Admin-Zugriff auf die Maschine übers Netz, es ist ein reines Arbeitstier. Der Server ist so konfiguriert, dass er selbstständig Updates einspielt und neustartet. Falls dann doch mal etwas schief geht, können Sie entweder selbst eingreifen oder einfach schnell eine neue Maschine erstellen, das ist ja in fünf Minuten erledigt.
-
-**Beispiel-Anwendungs-Szenario:**
-
-Nextcloud mit Videokonferenz (Talk) und Anbindung an das Schulportal Hessen finanziert von Förderverein der Schule
 
  
 
