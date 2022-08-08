@@ -16,6 +16,7 @@ TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
 EMAIL_ADDRESS=""     # Ask user
 DISABLE_SSH_SERVER=false
+SIGNALING_BUILD_FROM_SOURCES="" # Ask user
 
 function show_dialogs() {
 	if [ "$LOGFILE_PATH" = "" ]; then
@@ -183,6 +184,21 @@ function show_dialogs() {
 		fi
 	fi
 	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
+
+	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+		if [ "$SIGNALING_BUILD_FROM_SOURCES" != true ]; then
+			if whiptail --title "Build from sources?" $PRESELECT_SIGNALING_BUILD_FROM_SOURCES \
+				--yesno "The packages 'nextcloud-spreed-signaling' and $(
+				)'nats-server' are relatively new in Debian and therefore $(
+				)currently only available in Debian testing. Also the current $(
+				)version of 'coturn' does have some crashing issues. Do you $(
+				)wish to build and install the packages from sources?" \
+				13 65 3>&1 1>&2 2>&3; then
+				SIGNALING_BUILD_FROM_SOURCES=true
+			fi
+		fi
+	fi
+	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
 }
 
 function log() {
@@ -253,6 +269,31 @@ function check_debian_system() {
 	fi
 }
 
+function check_available_signaling_packages() {
+	log "Checking for packages availability…"
+
+	if apt-cache show nextcloud-spreed-signaling >/dev/null; then
+		log "Package 'nextcloud-spreed-signaling' is available."
+	else
+		log "Package 'nextcloud-spreed-signaling' is NOT available."
+		return 1
+	fi
+
+	if apt-cache show nats-server >/dev/null; then
+		log "Package 'nats-server' is available."
+	else
+		log "Package 'nats-server' is NOT available."
+		return 1
+	fi
+
+	if apt-cache show coturn >/dev/null; then
+		log "Package 'coturn' is available."
+	else
+		log "Package 'coturn' is NOT available."
+		return 1
+	fi
+}
+
 function is_dry_run() {
 	if [ "$DRY_RUN" == true ]; then
 		return 0
@@ -265,6 +306,15 @@ function main() {
 	check_root_perm
 
 	check_debian_system
+
+	# We need to test if nextcloud-signaling-spreed, coturn, nats-server and
+	# janus are available in the apt sources configured on this system in order
+	# to pre-select the right answer in the dialog later on.
+	if check_available_signaling_packages; then
+		PRESELECT_SIGNALING_BUILD_FROM_SOURCES="--defaultno"
+	else
+		PRESELECT_SIGNALING_BUILD_FROM_SOURCES=""
+	fi
 
 	# Load Settings (hopefully vars above get overwritten!)
 	SETTINGS_FILE="$1"
