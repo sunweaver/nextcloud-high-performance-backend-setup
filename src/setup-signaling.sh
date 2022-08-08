@@ -51,7 +51,7 @@ function install_signaling() {
 		fi
 
 		signaling_build_nextcloud-spreed-signaling
-		#signaling_build_coturn
+		signaling_build_coturn
 		#signaling_build_nats-server
 
 		log "Reloading systemd."
@@ -66,6 +66,49 @@ function install_signaling() {
 	signaling_step5
 
 	log "Signaling install completed."
+}
+
+function signaling_build_coturn() {
+	log "Building coturn…"
+
+	log "Installing necessary packages…"
+	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
+
+	# Installing: golang-go make build-essential
+	if ! is_dry_run; then
+		if [ "$UNATTENTED_INSTALL" == true ]; then
+			log "Trying unattended install for Signaling."
+			export DEBIAN_FRONTEND=noninteractive
+			apt-get install -qqy cmake libssl-dev libevent-dev git 2>&1 | tee -a $LOGFILE_PATH
+		else
+			apt-get install -y cmake libssl-dev libevent-dev git 2>&1 | tee -a $LOGFILE_PATH
+		fi
+	fi
+
+	log "Downloading sources…"
+	rm coturn-master.tar.gz | tee -a $LOGFILE_PATH || true
+	wget https://github.com/coturn/coturn/archive/refs/heads/master.tar.gz -O coturn-master.tar.gz | tee -a $LOGFILE_PATH
+
+	log "Extracting sources…"
+	tar -xvf coturn-master.tar.gz | tee -a $LOGFILE_PATH
+
+	# FIXME: Use here-doc rather than base64 strings…
+	log "Creating patch files…"
+	echo "RnJvbTogTmljaG9sYXMgR3VyaWV2IDxndXJpZXYtbnNAeWEucnU+CkRhdGU6IFRodSwgMDIgSnVuIDIwMjIgMTI6MzQ6MTcgKzAzMDAKU3ViamVjdDogRG8gbm90IGNoZWNrIEZJUFMgMTQwIG1vZGUKIEl0IGlzIG5vdCBhdmFpbGFibGUgaW4gT3BlblNTTCBhcyBwYWNrYWdlZCBpbiBEZWJpYW4uIFRoZSBPUEVOU1NMX0ZJUFMgbWFjcm8KIGFwcGVhcmVkIGluIGFuY2llbnQgT3BlblNTTCBzb3VyY2VzIGJ1dCB3YXMgbmV2ZXIgZGVmaW5lZC4KIGh0dHBzOi8vc291cmNlcy5kZWJpYW4ub3JnL3NyYy9vcGVuc3NsLzEuMS4xbi0wJTJCZGViMTF1Mi9jcnlwdG8vb19maXBzLmMvCgotLS0KIHNyYy9jbGllbnQvbnNfdHVybl9tc2cuYyB8ICAgIDQgKystLQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCi0tLSBhL3NyYy9jbGllbnQvbnNfdHVybl9tc2cuYworKysgYi9zcmMvY2xpZW50L25zX3R1cm5fbXNnLmMKQEAgLTI0NCw3ICsyNDQsNyBAQCBpbnQgc3R1bl9wcm9kdWNlX2ludGVncml0eV9rZXlfc3RyKGNvbnN0CiAJCXVuc2lnbmVkIGludCBrZXlsZW4gPSAwOwogCQlFVlBfTURfQ1RYIGN0eDsKIAkJRVZQX01EX0NUWF9pbml0KCZjdHgpOwotI2lmIGRlZmluZWQgRVZQX01EX0NUWF9GTEFHX05PTl9GSVBTX0FMTE9XICYmICFkZWZpbmVkKExJQlJFU1NMX1ZFUlNJT05fTlVNQkVSKQorI2lmZGVmIE9QRU5TU0xfRklQUwogCQlpZiAoRklQU19tb2RlKCkpIHsKIAkJCUVWUF9NRF9DVFhfc2V0X2ZsYWdzKCZjdHgsRVZQX01EX0NUWF9GTEFHX05PTl9GSVBTX0FMTE9XKTsKIAkJfQpAQCAtMjU2LDcgKzI1Niw3IEBAIGludCBzdHVuX3Byb2R1Y2VfaW50ZWdyaXR5X2tleV9zdHIoY29uc3QKICNlbHNlCiAJCXVuc2lnbmVkIGludCBrZXlsZW4gPSAwOwogCQlFVlBfTURfQ1RYICpjdHggPSBFVlBfTURfQ1RYX25ldygpOwotI2lmIGRlZmluZWQgRVZQX01EX0NUWF9GTEFHX05PTl9GSVBTX0FMTE9XICYmICEgZGVmaW5lZChMSUJSRVNTTF9WRVJTSU9OX05VTUJFUikKKyNpZmRlZiBPUEVOU1NMX0ZJUFMKIAkJaWYgKEZJUFNfbW9kZSgpKSB7CiAJCQlFVlBfTURfQ1RYX3NldF9mbGFncyhjdHgsIEVWUF9NRF9DVFhfRkxBR19OT05fRklQU19BTExPVyk7CiAJCX0K" | base64 -d - >No-FIPS-140-mode.patch
+
+	log "Applying patches…"
+	git apply --directory=coturn-master No-FIPS-140-mode.patch | tee -a $LOGFILE_PATH
+
+	log "Creating build directory…"
+	mkdir coturn-master/build | tee -a $LOGFILE_PATH || true
+
+	log "Run configure script which will make a Makefile for this system…"
+	cmake -S coturn-master -B coturn-master/build | tee -a $LOGFILE_PATH
+
+	log "Build & install coturn."
+	cmake --build coturn-master/build --target install | tee -a $LOGFILE_PATH
+
+	deploy_file "$TMP_DIR_PATH"/signaling/coturn.service /lib/systemd/system/coturn.service || true
 }
 
 function signaling_build_nextcloud-spreed-signaling() {
