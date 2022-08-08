@@ -24,13 +24,72 @@ declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 function install_signaling() {
 	log "Installing Signaling…"
 
-	signaling_step1
-	signaling_step2
-	signaling_step3
+	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
+		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
+
+		# Installing: golang-go make build-essential
+		if ! is_dry_run; then
+			if [ "$UNATTENTED_INSTALL" == true ]; then
+				log "Trying unattended install for Signaling."
+				export DEBIAN_FRONTEND=noninteractive
+				apt-get install -qqy golang-go build-essential make 2>&1 | tee -a $LOGFILE_PATH
+			else
+				apt-get install -y golang-go build-essential make 2>&1 | tee -a $LOGFILE_PATH
+			fi
+		fi
+
+		if ! is_dry_run; then
+			log "Removing old packages…"
+			if [ "$UNATTENTED_INSTALL" == true ]; then
+				export DEBIAN_FRONTEND=noninteractive
+				apt-get remove -qqy coturn nats-server \
+					nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+			else
+				apt-get remove -y coturn nats-server \
+					nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+			fi
+		fi
+
+		signaling_build_nextcloud-spreed-signaling
+		#signaling_build_coturn
+		#signaling_build_nats-server
+
+		log "Reloading systemd."
+		systemctl daemon-reload | tee -a $LOGFILE_PATH
+	else
+		signaling_step1
+		signaling_step2
+		signaling_step3
+	fi
+
 	signaling_step4
 	signaling_step5
 
 	log "Signaling install completed."
+}
+
+function signaling_build_nextcloud-spreed-signaling() {
+	log "Building nextcloud-spreed-signaling…"
+
+	log "Downloading sources…"
+	rm n-s-s-master.tar.gz | tee -a $LOGFILE_PATH || true
+	wget https://github.com/strukturag/nextcloud-spreed-signaling/archive/refs/heads/master.tar.gz -O n-s-s-master.tar.gz | tee -a $LOGFILE_PATH
+
+	log "Extracting sources…"
+	tar -xvf n-s-s-master.tar.gz | tee -a $LOGFILE_PATH
+
+	log "Building sources…"
+	make -C nextcloud-spreed-signaling-master | tee -a $LOGFILE_PATH
+
+	log "Stopping potential running service…"
+	systemctl stop nextcloud-spreed-signaling | tee -a $LOGFILE_PATH || true
+
+	log "Copying built binary into /usr/local/bin/nextcloud-spreed-signaling-server…"
+	cp -v nextcloud-spreed-signaling-master/bin/signaling \
+		/usr/local/bin/nextcloud-spreed-signaling-server | tee -a $LOGFILE_PATH
+
+	deploy_file "$TMP_DIR_PATH"/signaling/nextcloud-spreed-signaling.service \
+		/lib/systemd/system/nextcloud-spreed-signaling.service || true
 }
 
 function signaling_step1() {

@@ -1,0 +1,11 @@
+[Unit]
+Description=Nextcloud Talk signaling server
+
+[Service]
+ExecStart=/usr/local/bin/nextcloud-spreed-signaling-server --config /etc/nextcloud-spreed-signaling/server.conf
+User=_signaling
+Group=_signaling
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
