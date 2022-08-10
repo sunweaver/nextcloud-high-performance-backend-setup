@@ -52,7 +52,7 @@ function install_signaling() {
 
 		signaling_build_nextcloud-spreed-signaling
 		signaling_build_coturn
-		#signaling_build_nats-server
+		signaling_build_nats-server
 
 		log "Reloading systemd."
 		systemctl daemon-reload | tee -a $LOGFILE_PATH
@@ -66,6 +66,24 @@ function install_signaling() {
 	signaling_step5
 
 	log "Signaling install completed."
+}
+
+function signaling_build_nats-server() {
+	log "Building nats-server…"
+
+	log "Downloading sources…"
+	rm nats-server-v*-linux-amd64.tar.gz | tee -a $LOGFILE_PATH || true
+	wget $(curl -s https://api.github.com/repos/nats-io/nats-server/releases/latest |
+		grep 'linux-amd64.tar.gz' | grep 'browser_download_url' | cut -d\" -f4) |
+		tee -a $LOGFILE_PATH
+
+	log "Extracting sources…"
+	tar -xvf nats-server-v*-linux-amd64.tar.gz | tee -a $LOGFILE_PATH
+
+	log "Copying built binary into /usr/local/bin/nats-server…"
+	cp nats-server-v*-linux-amd64/nats-server /usr/local/bin | tee -a $LOGFILE_PATH
+
+	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
 }
 
 function signaling_build_coturn() {
