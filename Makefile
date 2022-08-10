@@ -10,6 +10,7 @@ check_root:
 clean: check_root
 	-rm *.log
 	-rm -r tmp/
+	-rm -r nats-server-v*-linux-amd64/ *.patch coturn-master/ nextcloud-spreed-signaling-master/ *.tar.gz*
 	@echo "Clean done"
 
 install: check_root clean
