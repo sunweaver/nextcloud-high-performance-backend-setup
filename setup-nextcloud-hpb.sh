@@ -478,6 +478,10 @@ function main() {
 	if ! is_dry_run; then
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
 			log "Enabling and restarting service '$i'…"
+			if ! systemctl unmask "$i" | tee -a $LOGFILE_PATH; then
+				log "Something went wrong while unmasking service '$i'…"
+			fi
+
 			if ! service "$i" stop | tee -a $LOGFILE_PATH; then
 				log "Something went wrong while stopping service '$i'…"
 			fi
