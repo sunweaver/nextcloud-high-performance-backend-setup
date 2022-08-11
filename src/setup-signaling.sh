@@ -54,6 +54,18 @@ function install_signaling() {
 		signaling_build_coturn
 		signaling_build_nats-server
 
+		# Installing:
+		# - janus
+		# - ssl-cert
+		if ! is_dry_run; then
+			if [ "$UNATTENTED_INSTALL" == true ]; then
+				export DEBIAN_FRONTEND=noninteractive
+				apt-get install -qqy janus ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+			else
+				apt-get install -y janus ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+			fi
+		fi
+
 		log "Reloading systemd."
 		systemctl daemon-reload | tee -a $LOGFILE_PATH
 	else
