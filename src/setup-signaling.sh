@@ -127,6 +127,9 @@ function signaling_build_coturn() {
 	cmake --build coturn-master/build --target install | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/coturn.service /lib/systemd/system/coturn.service || true
+
+	log "Creating 'turnserver' account"
+	adduser --system --group --home /var/lib/turnserver turnserver || true
 }
 
 function signaling_build_nextcloud-spreed-signaling() {
@@ -151,6 +154,14 @@ function signaling_build_nextcloud-spreed-signaling() {
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nextcloud-spreed-signaling.service \
 		/lib/systemd/system/nextcloud-spreed-signaling.service || true
+
+	log "Creating '_signaling' account"
+	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
+		--force-badname _signaling || true
+
+	# In some mysterious update they changed --allow-badname to --force-badname…
+	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
+		--allow-badname _signaling || true
 }
 
 function signaling_step1() {
