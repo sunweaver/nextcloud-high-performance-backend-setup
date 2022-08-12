@@ -401,15 +401,6 @@ function main() {
 		log "Creating '$TMP_DIR_PATH'."
 		mkdir -p "$TMP_DIR_PATH" 2>&1 | tee -a $LOGFILE_PATH
 	else
-		REPLY=""
-		while ! [[ $REPLY =~ ^[YyJj]$ ]]; do
-			if [ "$UNATTENTED_INSTALL" = false ]; then
-				read -p "Delete * in '$TMP_DIR_PATH'? [Yy/CTRL-C] " -n 1 -r && echo
-			else
-				break
-			fi
-		done
-
 		log "Deleted contents of '$TMP_DIR_PATH'."
 		rm -vr "$TMP_DIR_PATH"/* 2>&1 | tee -a $LOGFILE_PATH || true
 	fi
