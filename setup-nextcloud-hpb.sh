@@ -206,7 +206,7 @@ function log() {
 }
 
 # Deploys target_file_path to source_file_path while respecting
-# potential custom user config. The user will be asked before overwriting files.
+# potential custom user config.
 # param 1: source_file_path
 # param 2: target_file_path
 # returns: 1 if already deployed and 0 if not.
@@ -224,13 +224,8 @@ function deploy_file() {
 			if [ "$UNATTENTED_INSTALL" = true ]; then
 				cp "$source_file_path" "$target_file_path"
 			else
-				read -p "Overwrite file '$target_file_path'? [YyNn] " -n 1 -r && echo
-				if [[ $REPLY =~ ^[YyJj]$ ]]; then
-					log "$target_file_path to be updated deployed."
-					is_dry_run || cp "$source_file_path" "$target_file_path"
-				else
-					log "$target_file_path won't be updated."
-				fi
+				log "file '$target_file_path' exists and will be updated deployed."
+				is_dry_run || cp "$source_file_path" "$target_file_path"
 			fi
 		fi
 	else
