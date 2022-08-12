@@ -185,9 +185,9 @@ function show_dialogs() {
 	fi
 	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
 
-	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
-		if [ "$SIGNALING_BUILD_FROM_SOURCES" != true ]; then
-			if whiptail --title "Build from sources?" $PRESELECT_SIGNALING_BUILD_FROM_SOURCES \
+	if [ "$UNATTENTED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
+			if whiptail --title "Build from sources?" --defaultno \
 				--yesno "The packages 'nextcloud-spreed-signaling' and $(
 				)'nats-server' are relatively new in Debian and therefore $(
 				)currently only available in Debian testing. Also the current $(
@@ -196,6 +196,11 @@ function show_dialogs() {
 				13 65 3>&1 1>&2 2>&3; then
 				SIGNALING_BUILD_FROM_SOURCES=true
 			fi
+		else
+			whiptail --title "Build from sources?" \
+				--msgbox "The packages 'nextcloud-spreed-signaling' and $(
+				)'nats-server' are not available in the package archive. The $(
+				)packages will get build and installed from sources." 13 65
 		fi
 	fi
 	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
@@ -306,9 +311,9 @@ function main() {
 	# janus are available in the apt sources configured on this system in order
 	# to pre-select the right answer in the dialog later on.
 	if check_available_signaling_packages; then
-		PRESELECT_SIGNALING_BUILD_FROM_SOURCES="--defaultno"
+		SIGNALING_PACKAGES_AVAILABLE=true
 	else
-		PRESELECT_SIGNALING_BUILD_FROM_SOURCES=""
+		SIGNALING_PACKAGES_AVAILABLE=false
 	fi
 
 	# Load Settings (hopefully vars above get overwritten!)
