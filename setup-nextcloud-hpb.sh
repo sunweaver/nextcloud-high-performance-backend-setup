@@ -201,6 +201,7 @@ function show_dialogs() {
 				--msgbox "The packages 'nextcloud-spreed-signaling' and $(
 				)'nats-server' are not available in the package archive. The $(
 				)packages will get build and installed from sources." 13 65
+			SIGNALING_BUILD_FROM_SOURCES=true
 		fi
 	fi
 	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
