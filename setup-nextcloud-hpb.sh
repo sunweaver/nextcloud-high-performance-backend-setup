@@ -83,7 +83,7 @@ function show_dialogs() {
 		SERVER_FQDN=$(
 			whiptail --title "High-Performance Backend Server Domain" \
 				--inputbox "Please enter your high performance backend $(
-				)server's domain name here. (Omit http(s)://!).\n\ņ$(
+				)server's domain name here. (Omit http(s)://!).\n\n$(
 				)Also please note that this domain should already exist in DNS $(
 				)or else SSL certificate creation will fail!" \
 				10 65 "nc-workhorse.example.org" 3>&1 1>&2 2>&3
