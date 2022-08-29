@@ -20,6 +20,16 @@ function run_certbot_command() {
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
 	if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+		:
+	else
+		return 1
+	fi
+
+	certbot_args=(renew --force-renewal $arg_dry_run)
+
+	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+
+	if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
 		return 0
 	else
 		return 1
