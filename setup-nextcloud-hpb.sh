@@ -152,7 +152,7 @@ function show_dialogs() {
 			whiptail --title "E-Mail Address" \
 				--inputbox "Enter a mail address (to be used for security notifications $(
 				)and for informing about SSL certificate issues).\n\nMultiple $(
-				)mail addresses can be separated using commas."
+				)mail addresses can be separated using commas." \
 				10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
 		)
 	fi
