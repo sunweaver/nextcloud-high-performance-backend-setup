@@ -63,13 +63,6 @@ function collabora_step3() {
 		else
 			args_apt="-y"
 		fi
-		
-		apt-get install "$args_apt" \
-			software-properties-common \
-			2>&1 | tee -a $LOGFILE_PATH
-		
-		apt-add-repository contrib \
-			2>&1 | tee -a $LOGFILE_PATH
 
 		apt-get install "$args_apt" \
 			ttf-mscorefonts-installer \
