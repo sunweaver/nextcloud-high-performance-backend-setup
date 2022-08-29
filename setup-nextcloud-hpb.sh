@@ -337,7 +337,7 @@ function main() {
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
 			--checklist "Use the space bar key to select/deselect the services $(
-			)you want to install.\nThe following services/packages will also be $(
+			)you want to install.\n\nThe following services/packages will also be $(
 			)installed: Certbot Nginx ssl-cert ufw unattended-upgrades" 15 90 2 \
 			"1" "Install Collabora (coolwsd, code-brand)" ON \
 			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
