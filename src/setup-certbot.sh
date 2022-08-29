@@ -15,7 +15,8 @@ function run_certbot_command() {
 
 	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH" --email "$EMAIL_ADDRESS")
+		--fullchain-path "$SSL_CERT_PATH" --email "$EMAIL_ADDRESS"
+		--force-renewal)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
