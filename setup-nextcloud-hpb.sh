@@ -21,16 +21,16 @@ SIGNALING_BUILD_FROM_SOURCES="" # Ask user
 function show_dialogs() {
 	if [ "$LOGFILE_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
+			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing LOGFILE_PATH!"
 			exit 1
 		fi
 
 		LOGFILE_PATH=$(
 			whiptail --title "Logfile path" \
-				--inputbox "Please input a path to which this script can put $(
-				)a logging file. The directory, it's parents and the file get $(
-				)created automatically." 10 65 \
+				--inputbox "Please enter a path to which this script can write $(
+				)a log file.\n\nThe log directory and its parent directories will get $(
+				)created automatically if they don't yet exist." 10 65 \
 				"setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log" \
 				3>&1 1>&2 2>&3
 		)
@@ -39,12 +39,12 @@ function show_dialogs() {
 
 	if [ "$DRY_RUN" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and  I'm missing DRY_RUN!"
+			log "Can't continue since this is a non-interactive installation and I'm missing DRY_RUN!"
 			exit 1
 		fi
 
 		if whiptail --title "Dry-Run Mode" --yesno "Do you want to run in dry $(
-		)mode? This will ensure that no serious changes get done to your $(
+		)mode? This will ensure that no serious changes will get applied to your $(
 		)system." 10 65 --defaultno; then
 			DRY_RUN=true
 		else
@@ -55,16 +55,15 @@ function show_dialogs() {
 
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
+			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing NEXTCLOUD_SERVER_FQDNS!"
 			exit 1
 		fi
 
 		NEXTCLOUD_SERVER_FQDNS=$(
 			whiptail --title "Nextcloud Server Domain" \
-				--inputbox "Please input your Nextcloud Server domain. $(
-				)No http(s) or similar! And don't input the domain for $(
-				)the High-Performance backend yet!\n$(
+				--inputbox "Please enter your Nextcloud server's domain name here. $(
+				)(Omit http(s)://, just put in the plain domain name!).\n\n$(
 				)You can also specify multiple Nextcloud servers by separating$(
 				)them using a comma." 10 65 \
 				"nextcloud.example.org" 3>&1 1>&2 2>&3
@@ -76,16 +75,16 @@ function show_dialogs() {
 
 	if [ "$SERVER_FQDN" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
+			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing SERVER_FQDN!"
 			exit 1
 		fi
 
 		SERVER_FQDN=$(
 			whiptail --title "High-Performance Backend Server Domain" \
-				--inputbox "Please input your High-Performance backend $(
-				)server domain. (No http(s) or similar!)\n$(
-				)Also please note that this domain should already exist $(
+				--inputbox "Please enter your high performance backend $(
+				)server's domain name here. (Omit http(s)://!).\n\ņ$(
+				)Also please note that this domain should already exist in DNS $(
 				)or else SSL certificate creation will fail!" \
 				10 65 "nc-workhorse.example.org" 3>&1 1>&2 2>&3
 		)
@@ -110,16 +109,16 @@ function show_dialogs() {
 
 	if [ "$TMP_DIR_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
+			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing TMP_DIR_PATH!"
 			exit 1
 		fi
 
 		TMP_DIR_PATH=$(
 			whiptail --title "Temporary directory for configuration" \
-				--inputbox "Please input a directory path in which this "$(
-				)"script can put temporary configuration files. "$(
-				)"The directory and it's parents get created automatically." \
+				--inputbox "Please enter a directory path in which this "$(
+				)"script can put temporary configuration files.\n\n"$(
+				)"The directory and its parents will get created automatically." \
 				10 65 "./tmp" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -127,16 +126,16 @@ function show_dialogs() {
 
 	if [ "$SECRETS_FILE_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
+			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing SECRETS_FILE_PATH!"
 			exit 1
 		fi
 
 		SECRETS_FILE_PATH=$(
 			whiptail --title "Secrets, passwords and configuration file" \
-				--inputbox "Please input a path to a file in which all "$(
-				)"secrets, passwords and configuration should be stored.\n"$(
-				)"The directory and it's parents get created automatically." \
+				--inputbox "Please enter a path to a file where all "$(
+				)"secrets, passwords and configuration shall be stored.\n\n"$(
+				)"The directory and its parents get created automatically." \
 				10 65 "./nextcloud-hpb.secrets" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -144,17 +143,17 @@ function show_dialogs() {
 
 	if [ "$EMAIL_ADDRESS" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
-			log "Can't go on since this is an unattended install and I'm" \
+			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing EMAIL_ADDRESS!"
 			exit 1
 		fi
 
 		EMAIL_ADDRESS=$(
 			whiptail --title "E-Mail Address" \
-				--inputbox "Enter email address (used for urgent renewal $(
-				)and security notices regarding SSL certificates)\nYou can $(
-				)specify multiple addresses by stringing them together with $(
-				)a comma." 10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
+				--inputbox "Enter a mail address (to be used for security notifications $(
+				)and for informing about SSL certificate issues).\n\nMultiple $(
+				)mail addresses can be separated using commas."
+				10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
 		)
 	fi
 	log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
@@ -337,10 +336,9 @@ function main() {
 		SHOULD_INSTALL_UNATTENDEDUPGRADES=false
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
-			--checklist "Please select/deselect the services you want to $(
-			)install with the space key.\nThe following services/packages will$(
-			) also be installed: Certbot Nginx ssl-cert ufw $(
-			)unattended-upgrades" 15 90 2 \
+			--checklist "Use the space bar key to select/deselect the services $(
+			)you want to install.\nThe following services/packages will also be $(
+			)installed: Certbot Nginx ssl-cert ufw unattended-upgrades" 15 90 2 \
 			"1" "Install Collabora (coolwsd, code-brand)" ON \
 			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
 			3>&1 1>&2 2>&3 || true)
