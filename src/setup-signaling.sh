@@ -167,8 +167,11 @@ function signaling_build_nextcloud-spreed-signaling() {
 	deploy_file "$TMP_DIR_PATH"/signaling/nextcloud-spreed-signaling.service \
 		/lib/systemd/system/nextcloud-spreed-signaling.service || true
 		
-	log "Create '/etc/nextcloud-spreed-signaling' directory"
-	mkdir /etc/nextcloud-spreed-signaling | tee -a $LOGFILE_PATH
+	if [ ! -d /etc/nextcloud-spreed-signaling ];
+	then
+		log "Create '/etc/nextcloud-spreed-signaling' directory"
+		mkdir /etc/nextcloud-spreed-signaling | tee -a $LOGFILE_PATH
+	fi
 
 	log "Creating '_signaling' account"
 	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
