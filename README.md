@@ -7,7 +7,7 @@
 
 
 
-**Vorsicht: Beschreibung gilt erst ab Version 1.0! Zurzeit nur für Debian Unstable**
+
 
 Dieses Skript installiert vollautomatisch das Nextcloud High Performance Backend mit eigenem Coturn- und Signaling-Server, sowie Collabora Office als Debian-Paket. Die Installation ist extra einfach gehalten und ermöglicht dadurch auch Anwendern mit wenig Unix-/Linux-Kenntnissen eine Installation in ca. 5 Minuten.
 
