@@ -26,12 +26,14 @@ declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 function install_signaling() {
 	log "Installing Signaling…"
 	
-	log "Enable bullseye-backports"
-	is_dry_run || cat <<EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
+	if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+		log "Enable bullseye-backports"
+		is_dry_run || cat <<EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
 #Added by nextcloud-high-performance-backend setup-script.
 deb http://deb.debian.org/debian bullseye-backports main
 EOL
-	is_dry_run || apt-get update 2>&1 | tee -a $LOGFILE_PATH
+		is_dry_run || apt-get update 2>&1 | tee -a $LOGFILE_PATH
+	fi
 
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
