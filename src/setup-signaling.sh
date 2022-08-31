@@ -3,7 +3,7 @@
 # Signaling server
 # https://github.com/strukturag/nextcloud-spreed-signaling
 
-SIGNALING_SUNWEAVER_SOURCE_FILE="/etc/apt/sources.list.d/sunweaver.list"
+#SIGNALING_SUNWEAVER_SOURCE_FILE="/etc/apt/sources.list.d/sunweaver.list"
 
 SIGNALING_TURN_STATIC_AUTH_SECRET="$(openssl rand -hex 32)"
 SIGNALING_JANUS_API_KEY="$(openssl rand -base64 16)"
@@ -57,8 +57,8 @@ function install_signaling() {
 		log "Reloading systemd."
 		systemctl daemon-reload | tee -a $LOGFILE_PATH
 	else
-		signaling_step1
-		signaling_step2
+		#signaling_step1
+		#signaling_step2
 		signaling_step3
 	fi
 
@@ -170,20 +170,20 @@ function signaling_build_nextcloud-spreed-signaling() {
 		--allow-badname _signaling || true
 }
 
-function signaling_step1() {
-	log "\nStep 1: Import sunweaver's gpg key."
-	is_dry_run || wget http://packages.sunweavers.net/archive.key \
-		-O /etc/apt/trusted.gpg.d/sunweaver-archive-keyring.asc
-}
+#function signaling_step1() {
+#	log "\nStep 1: Import sunweaver's gpg key."
+#	is_dry_run || wget http://packages.sunweavers.net/archive.key \
+#		-O /etc/apt/trusted.gpg.d/sunweaver-archive-keyring.asc
+#}
 
-function signaling_step2() {
-	log "\nStep 2: Add sunweaver package repository"
-
-	is_dry_run || cat <<EOF >$SIGNALING_SUNWEAVER_SOURCE_FILE
-# Added by nextcloud-high-performance-backend setup-script.
-deb http://packages.sunweavers.net/debian bookworm main
-EOF
-}
+#function signaling_step2() {
+#	log "\nStep 2: Add sunweaver package repository"
+#
+#	is_dry_run || cat <<EOF >$SIGNALING_SUNWEAVER_SOURCE_FILE
+## Added by nextcloud-high-performance-backend setup-script.
+#deb http://packages.sunweavers.net/debian bookworm main
+#EOF
+#}
 
 function signaling_step3() {
 	log "\nStep 3: Install packages"
