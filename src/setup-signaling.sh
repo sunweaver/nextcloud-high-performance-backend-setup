@@ -214,11 +214,11 @@ function signaling_step3() {
 		if [ "$UNATTENTED_INSTALL" == true ]; then
 			log "Trying unattended install for Signaling."
 			export DEBIAN_FRONTEND=noninteractive
-			apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
+			apt-get install -qqy nats-server nextcloud-spreed-signaling \
 				coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 			apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 		else
-			apt-get install -y janus nats-server nextcloud-spreed-signaling \
+			apt-get install -y nats-server nextcloud-spreed-signaling \
 				coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 			apt-get install -y -t bullseye-backports janus  2>&1 | tee -a $LOGFILE_PATH
 		fi
