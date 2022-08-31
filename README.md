@@ -5,10 +5,6 @@
 
 # Einfaches Setup für Nextcloud Hochleistungsbackend, Signaling & Collabora Office
 
-
-## Vorsicht!!!! -> Zurzeit läuft es leider nicht durch
-
-
 Dieses Skript installiert vollautomatisch das Nextcloud High Performance Backend mit eigenem Coturn- und Signaling-Server, sowie Collabora Office als Debian-Paket. Die Installation ist extra einfach gehalten und ermöglicht dadurch auch Anwendern mit wenig Unix-/Linux-Kenntnissen eine Installation in ca. 5 Minuten.
 
 Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktuellen Sourcen (für Debian Stable) installiert werden. Das Collabora-Paket wird immer als aktuellstes Paket aus dem Stable-Zweig installiert. Bitte beachten Sie, dass Collabora Office in dieser Version auf 20 gleichzeitig arbeitende Benutzer beschränkt ist. Dies können Sie natürlich durch eine Lizenz-Key auch jederzeit erweitern.
@@ -18,7 +14,7 @@ Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktue
 
 **Voraussetzungen für den Betrieb:**
 
-* Einen virtuellen oder physikalischen Server mit Debian
+* Einen virtuellen oder physikalischen Server mit Debian 11 (Bullseye)
 * Eine Subdomain für den Server, auf dem das Skript installiert wird
 
 Sie werden bei der Installation durch 8 Dialoge geführt und danach werden die Pakete voll automatisch installiert, konfiguriert und Sie erhalten eine Übersicht mit allen einzutragenden Schlüsseln für die Nextcloud-Instanz. Das Skript kann auch mehrere Nextcloud-URLs auf dem Server verwalten. Diese geben Sie in dem Script einfach mit Kommata separiert ein (Multidomain).
