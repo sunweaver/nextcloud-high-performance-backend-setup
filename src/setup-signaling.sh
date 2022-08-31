@@ -25,7 +25,7 @@ declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 
 function install_signaling() {
 	log "Installing Signaling…"
-	
+
 	if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 		log "Enable bullseye-backports"
 		is_dry_run || cat <<EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
@@ -185,7 +185,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nextcloud-spreed-signaling.service \
 		/lib/systemd/system/nextcloud-spreed-signaling.service || true
-		
+
 	if [ ! -d /etc/nextcloud-spreed-signaling ];
 	then
 		log "Create '/etc/nextcloud-spreed-signaling' directory"
