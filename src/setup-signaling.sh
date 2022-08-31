@@ -42,9 +42,11 @@ EOL
 			if [ "$UNATTENTED_INSTALL" == true ]; then
 				log "Trying unattended install for Signaling."
 				export DEBIAN_FRONTEND=noninteractive
-				apt-get install -qqy golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -qqy protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -qqy -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 			else
-				apt-get install -y golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -y rotobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -y -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 			fi
 		fi
 
@@ -58,9 +60,11 @@ EOL
 		if ! is_dry_run; then
 			if [ "$UNATTENTED_INSTALL" == true ]; then
 				export DEBIAN_FRONTEND=noninteractive
-				apt-get install -qqy janus ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -qqy ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -qqy -t bullseye-backports janus  2>&1 | tee -a $LOGFILE_PATH
 			else
-				apt-get install -y janus ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -y ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -y -t bullseye-backports janus  2>&1 | tee -a $LOGFILE_PATH
 			fi
 		fi
 
