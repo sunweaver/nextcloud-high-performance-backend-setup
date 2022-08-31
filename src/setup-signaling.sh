@@ -32,6 +32,7 @@ function install_signaling() {
 #Added by nextcloud-high-performance-backend setup-script.
 deb http://deb.debian.org/debian bullseye-backports main
 EOL
+		apt-get update
 	fi
 
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
@@ -215,9 +216,11 @@ function signaling_step3() {
 			export DEBIAN_FRONTEND=noninteractive
 			apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
 				coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 		else
 			apt-get install -y janus nats-server nextcloud-spreed-signaling \
 				coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install -y -t bullseye-backports janus  2>&1 | tee -a $LOGFILE_PATH
 		fi
 	fi
 }
