@@ -38,18 +38,6 @@ function install_signaling() {
 			fi
 		fi
 
-		if ! is_dry_run; then
-			log "Removing old packages…"
-			if [ "$UNATTENTED_INSTALL" == true ]; then
-				export DEBIAN_FRONTEND=noninteractive
-				apt-get remove -qqy coturn nats-server \
-					nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
-			else
-				apt-get remove -y coturn nats-server \
-					nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
-			fi
-		fi
-
 		signaling_build_nextcloud-spreed-signaling
 		signaling_build_coturn
 		signaling_build_nats-server
