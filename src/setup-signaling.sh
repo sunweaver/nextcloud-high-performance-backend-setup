@@ -5,7 +5,7 @@
 
 #SIGNALING_SUNWEAVER_SOURCE_FILE="/etc/apt/sources.list.d/sunweaver.list"
 
-SIGNALING_BACKPORTS_SOURCE_FILE="/etc/apt/sources.list.d/bullseye-backports.lit"
+SIGNALING_BACKPORTS_SOURCE_FILE="/etc/apt/sources.list.d/bullseye-backports.list"
 
 SIGNALING_TURN_STATIC_AUTH_SECRET="$(openssl rand -hex 32)"
 SIGNALING_JANUS_API_KEY="$(openssl rand -base64 16)"
