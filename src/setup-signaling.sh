@@ -47,7 +47,7 @@ EOL
 				apt-get install -qqy protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 			else
 				apt-get install -y -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-				apt-get install -y rotobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -y protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 			fi
 		fi
 
