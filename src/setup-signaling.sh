@@ -47,14 +47,14 @@ EOL
 					apt-get install -qqy -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -qqy protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				else
-					apt-get install -qqy janus protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -qqy golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 					apt-get install -y -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -y protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				else
-					apt-get install -y janus protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -y golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			fi
 		fi
