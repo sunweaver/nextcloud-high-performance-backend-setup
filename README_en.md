@@ -16,7 +16,7 @@ The Nextcloud HPB can be installed as a Debian package (only Debian Unstable) or
 
 **Requirements**
 
-* A virtual or physical server with Debian
+* A virtual or physical server with Debian 11 (Bullseye)
 * A subdomain for the server on which the script is installed
 
 You are guided by 8 dialogues during the installation and then the packages are fully installed, configured and you will receive an overview with all the keys for the Nextcloud instance. The script can also manage several Nextcloud URLs on the server. In the script, simply enter these with commas sepparized(multidomain).
