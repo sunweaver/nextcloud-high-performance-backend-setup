@@ -11,6 +11,7 @@ Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktue
 
 [**Hier im Wiki finden Sie eine detaillierte Installationsanleitung!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script)
 
+[**Die neueste Version des Skriptes können Sie hier herunterladen**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/releases)
 
 **Voraussetzungen für den Betrieb:**
 
