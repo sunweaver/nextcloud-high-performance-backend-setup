@@ -269,7 +269,7 @@ media: {
 # internal libnice debugging, if needed.
 nat: {
 	stun_server = "<SIGNALING_COTURN_URL>" # HAND-EDIT
-	stun_port = 1271 # HAND-EDIT PORT-EDIT (443)
+	stun_port = 5349 # HAND-EDIT PORT-EDIT (443)
 	nice_debug = false
 	full_trickle = true # HAND-EDIT
 	#ice_nomination = "regular"
