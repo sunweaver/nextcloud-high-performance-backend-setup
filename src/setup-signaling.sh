@@ -364,10 +364,10 @@ function signaling_write_secrets_to_file() {
 	echo -e "" >>$1
 	echo -e "Allowed Nextcloud Servers:" >>$1
 	echo -e "$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" >>$1
-	echo -e "STUN server = $SERVER_FQDN:1271" >>$1
+	echo -e "STUN server = $SERVER_FQDN:5349" >>$1
 	echo -e "TURN server:" >>$1
 	echo -e " ↳ 'turn and turns'" >>$1
-	echo -e " ↳ $SERVER_FQDN:1271" >>$1
+	echo -e " ↳ $SERVER_FQDN:5349" >>$1
 	echo -e " ↳ $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
 	echo -e " ↳ 'udp & tcp'" >>$1
 	echo -e "High-performance backend:" >>$1
@@ -388,10 +388,10 @@ function signaling_print_info() {
 		"$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
 
 	# Don't actually *log* passwords!
-	log "STUN server = $SERVER_FQDN:1271"
+	log "STUN server = $SERVER_FQDN:5349"
 	log "TURN server:"
 	log " ↳ 'turn and turns'"
-	log " ↳ turnserver+port: $SERVER_FQDN:1271"
+	log " ↳ turnserver+port: $SERVER_FQDN:5349"
 	echo -e " ↳ secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
 	log " ↳ 'udp & tcp'"
 	log "High-performance backend:"
