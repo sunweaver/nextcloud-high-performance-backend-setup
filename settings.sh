@@ -16,8 +16,10 @@ UNATTENTED_INSTALL=true
 #SERVER_FQDN="nc-workhorse.example.org"
 
 # Only modify if you know what you're doing.
-#SSL_CERT_PATH=""
-#SSL_CERT_KEY_PATH=""
+#SSL_CERT_PATH_RSA=""
+#SSL_CERT_KEY_PATH_RSA=""
+#SSL_CERT_PATH_ECDSA=""
+#SSL_CERT_KEY_PATH_ECDSA=""
 
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
