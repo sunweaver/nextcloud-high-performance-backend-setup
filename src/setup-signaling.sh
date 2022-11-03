@@ -96,6 +96,10 @@ EOL
 	signaling_step4
 	signaling_step5
 
+	# Make sure janus is restartet 15 sec after system reboot, wo that coturn service is already up
+	# Otherwise, janus will silently crash if coturn is not available.
+	(crontab -l ; echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1") | crontab -
+
 	log "Signaling install completed."
 }
 
