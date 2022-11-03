@@ -57,6 +57,9 @@ function nginx_step3() {
 	log "Deploying config files…"
 	deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
 
+	is_dry_run || mkdir -p /etc/nginx/snippets || true
+	deploy_file "$TMP_DIR_PATH"/nginx/headers.conf /etc/nginx/snippets/headers.conf || true
+
 	is_dry_run || mkdir -p /var/www/html || true
 	is_dry_run || rm /var/www/html/index.nginx-debian.html || true
 	deploy_file "$TMP_DIR_PATH"/nginx/index.html /var/www/html/index.html || true
