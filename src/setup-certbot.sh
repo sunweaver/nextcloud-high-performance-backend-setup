@@ -13,18 +13,31 @@ function run_certbot_command() {
 		arg_interactive="--force-interactive $CERTBOT_AGREE_TOS"
 	fi
 
+	# RSA certificate
 	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH" --email "$EMAIL_ADDRESS" --rsa-key-size 4096)
+		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
+		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_ADDRESS"
+		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
-		:
-	else
+	if ! certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
 		return 1
 	fi
 
+	# ECDSA certificate
+	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
+		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
+		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_ADDRESS"
+		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa)
+
+	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+
+	if ! certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+		return 1
+	fi
+
+	# Force renewal of certificates
 	certbot_args=(renew --force-renewal $arg_dry_run)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"

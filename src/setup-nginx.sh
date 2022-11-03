@@ -46,11 +46,17 @@ function nginx_step2() {
 	log "Replacing '<SERVER_FQDN>' with '$SERVER_FQDN'…"
 	sed -i "s|<SERVER_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
 
-	log "Replacing '<SSL_CERT_PATH>' with '$SSL_CERT_PATH'…"
-	sed -i "s|<SSL_CERT_PATH>|$SSL_CERT_PATH|g" "$TMP_DIR_PATH"/nginx/*
+	log "Replacing '<SSL_CERT_PATH_RSA>' with '$SSL_CERT_PATH_RSA'…"
+	sed -i "s|<SSL_CERT_PATH_RSA>|$SSL_CERT_PATH_RSA|g" "$TMP_DIR_PATH"/nginx/*
 
-	log "Replacing '<SSL_CERT_KEY_PATH>' with '$SSL_CERT_KEY_PATH'…"
-	sed -i "s|<SSL_CERT_KEY_PATH>|$SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/nginx/*
+	log "Replacing '<SSL_CERT_KEY_PATH_RSA>' with '$SSL_CERT_KEY_PATH_RSA'…"
+	sed -i "s|<SSL_CERT_KEY_PATH_RSA>|$SSL_CERT_KEY_PATH_RSA|g" "$TMP_DIR_PATH"/nginx/*
+
+	log "Replacing '<SSL_CERT_PATH_ECDSA>' with '$SSL_CERT_PATH_ECDSA'…"
+	sed -i "s|<SSL_CERT_PATH_ECDSA>|$SSL_CERT_PATH_ECDSA|g" "$TMP_DIR_PATH"/nginx/*
+
+	log "Replacing '<SSL_CERT_KEY_PATH_ECDSA>' with '$SSL_CERT_KEY_PATH_ECDSA'…"
+	sed -i "s|<SSL_CERT_KEY_PATH_ECDSA>|$SSL_CERT_KEY_PATH_ECDSA|g" "$TMP_DIR_PATH"/nginx/*
 }
 
 function nginx_step3() {
@@ -82,6 +88,7 @@ function nginx_print_info() {
 		log "\nExcept one thing. Since you choose to not install an automatic" \
 			"\nSSL-Certificate renewer (certbot for example), you need to make" \
 			"\nsure that at all time a valid SSL-Cert is located at: " \
-			"\n'$SSL_CERT_PATH' and '$SSL_CERT_KEY_PATH'."
+			"\n'$SSL_CERT_PATH_RSA' and '$SSL_CERT_KEY_PATH_RSA' (for RSA certificates)" \
+			"\n'$SSL_CERT_PATH_ECDSA' and '$SSL_CERT_KEY_PATH_ECDSA' (for ECDSA certificates)."
 	fi
 }
