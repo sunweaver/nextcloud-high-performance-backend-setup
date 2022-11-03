@@ -16,7 +16,7 @@ function run_certbot_command() {
 	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_ADDRESS"
-		--cert-name "$SERVER_FQDN"-rsa)
+		--chain-path "$SSL_CHAIN_PATH_RSA" --cert-name "$SERVER_FQDN"-rsa)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
@@ -29,7 +29,7 @@ function run_certbot_command() {
 	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_ADDRESS"
-		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa)
+		--chain-path "$SSL_CHAIN_PATH_ECDSA" --key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
