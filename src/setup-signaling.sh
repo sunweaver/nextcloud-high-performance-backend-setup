@@ -380,7 +380,7 @@ function signaling_write_secrets_to_file() {
 	echo -e " ↳ $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
 	echo -e " ↳ 'udp & tcp'" >>$1
 	echo -e "High-performance backend:" >>$1
-	echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling" >>$1
+	echo -e " ↳ https://$SERVER_FQDN/standalone-signaling" >>$1
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
