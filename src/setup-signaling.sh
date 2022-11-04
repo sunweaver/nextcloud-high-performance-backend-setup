@@ -404,7 +404,7 @@ function signaling_print_info() {
 	echo -e " - secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
 	log " - 'udp & tcp'"
 	log "High-performance backend:"
-	log " - wss://$SERVER_FQDN/standalone-signaling"
+	log " - https://$SERVER_FQDN/standalone-signaling"
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
