@@ -375,16 +375,16 @@ function signaling_write_secrets_to_file() {
 	echo -e "$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" >>$1
 	echo -e "STUN server = $SERVER_FQDN:5349" >>$1
 	echo -e "TURN server:" >>$1
-	echo -e " ↳ 'turn and turns'" >>$1
-	echo -e " ↳ $SERVER_FQDN:5349" >>$1
-	echo -e " ↳ $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
-	echo -e " ↳ 'udp & tcp'" >>$1
+	echo -e " - 'turn and turns'" >>$1
+	echo -e " - $SERVER_FQDN:5349" >>$1
+	echo -e " - $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
+	echo -e " - 'udp & tcp'" >>$1
 	echo -e "High-performance backend:" >>$1
-	echo -e " ↳ https://$SERVER_FQDN/standalone-signaling" >>$1
+	echo -e " - https://$SERVER_FQDN/standalone-signaling" >>$1
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
-		echo -e " ↳ $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}" >>$1
+		echo -e " - $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}" >>$1
 	done
 }
 
@@ -394,20 +394,20 @@ function signaling_print_info() {
 		"\ninstances with an adminstrator account and install the Talk app." \
 		"\nThen navigate to Settings -> Administration -> Talk and put in the" \
 		"\nsettings down below.\n" \
-		"$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
+		"$(printf '\t- https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
 
 	# Don't actually *log* passwords!
 	log "STUN server = $SERVER_FQDN:5349"
 	log "TURN server:"
-	log " ↳ 'turn and turns'"
-	log " ↳ turnserver+port: $SERVER_FQDN:5349"
-	echo -e " ↳ secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
-	log " ↳ 'udp & tcp'"
+	log " - 'turn and turns'"
+	log " - turnserver+port: $SERVER_FQDN:5349"
+	echo -e " - secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
+	log " - 'udp & tcp'"
 	log "High-performance backend:"
-	log " ↳ wss://$SERVER_FQDN/standalone-signaling"
+	log " - wss://$SERVER_FQDN/standalone-signaling"
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
-		echo -e " ↳ $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
+		echo -e " - $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
 	done
 }
