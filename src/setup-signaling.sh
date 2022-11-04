@@ -98,7 +98,12 @@ EOL
 
 	# Make sure janus is restartet 15 sec after system reboot, wo that coturn service is already up
 	# Otherwise, janus will silently crash if coturn is not available.
-	(crontab -l ; echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1") | crontab -
+	set +eo pipefail
+	crontab -l > cron_backup
+	echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1" >> cron_backup
+	crontab cron_backup
+	rm cron_backup
+	set -eo pipefail
 
 	log "Signaling install completed."
 }
