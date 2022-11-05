@@ -5,7 +5,7 @@ After=network.target ntp.service
 [Service]
 PrivateTmp=true
 Type=simple
-ExecStart=/usr/local/nats-server -c /etc/nats-server.conf
+ExecStart=/usr/local/bin/nats-server -c /etc/nats-server.conf
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s SIGINT $MAINPID
 User=nats
