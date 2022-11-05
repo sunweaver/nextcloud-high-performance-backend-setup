@@ -124,6 +124,10 @@ function signaling_build_nats-server() {
 	cp nats-server-v*-linux-amd64/nats-server /usr/local/bin | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
+	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.conf /etc/nats-server.conf || true
+
+	log "Creating 'nats' account"
+	adduser --system --group nats || true
 }
 
 function signaling_build_coturn() {
@@ -160,6 +164,8 @@ function signaling_build_coturn() {
 	cmake --build coturn-master/build --target install | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/coturn.service /lib/systemd/system/coturn.service || true
+
+	chmod 755 /usr/local/bin/turnserver
 
 	log "Creating 'turnserver' account"
 	adduser --system --group --home /var/lib/turnserver turnserver || true
