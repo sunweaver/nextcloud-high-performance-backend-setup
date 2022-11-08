@@ -98,42 +98,42 @@ function show_dialogs() {
 	log "Using '$SERVER_FQDN' for SERVER_FQDN".
 
 	if [ "$SSL_CERT_PATH_RSA" = "" ]; then
-		SSL_CERT_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN/rsa/fullchain.pem"
+		SSL_CERT_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/fullchain.pem"
 		log "Using default path '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA".
 	else
 		log "Using '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA".
 	fi
 
 	if [ "$SSL_CERT_PATH_ECDSA" = "" ]; then
-		SSL_CERT_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN/ecdsa/fullchain.pem"
+		SSL_CERT_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/fullchain.pem"
 		log "Using default path '$SSL_CERT_PATH_ECDSA' for SSL_CERT_PATH_ECDSA".
 	else
 		log "Using '$SSL_CERT_PATH_ECDSA' for SSL_CERT_PATH_ECDSA".
 	fi
 
 	if [ "$SSL_CERT_KEY_PATH_RSA" = "" ]; then
-		SSL_CERT_KEY_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN/rsa/privkey.pem"
+		SSL_CERT_KEY_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/privkey.pem"
 		log "Using default path '$SSL_CERT_KEY_PATH_RSA' for SSL_CERT_KEY_PATH_RSA".
 	else
 		log "Using '$SSL_CERT_KEY_PATH_RSA' for SSL_CERT_KEY_PATH_RSA".
 	fi
 
 	if [ "$SSL_CERT_KEY_PATH_ECDSA" = "" ]; then
-		SSL_CERT_KEY_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN/ecdsa/privkey.pem"
+		SSL_CERT_KEY_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/privkey.pem"
 		log "Using default path '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA".
 	else
 		log "Using '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA".
 	fi
 
 	if [ "$SSL_CHAIN_PATH_RSA" = "" ]; then
-		SSL_CHAIN_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN/rsa/chain.pem"
+		SSL_CHAIN_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/chain.pem"
 		log "Using default path '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA".
 	else
 		log "Using '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA".
 	fi
 
 	if [ "$SSL_CHAIN_PATH_ECDSA" = "" ]; then
-		SSL_CHAIN_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN/ecdsa/chain.pem"
+		SSL_CHAIN_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/chain.pem"
 		log "Using default path '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA".
 	else
 		log "Using '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA".
