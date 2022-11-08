@@ -96,6 +96,15 @@ EOL
 	signaling_step4
 	signaling_step5
 
+	# Make sure janus is restartet 15 sec after system reboot, wo that coturn service is already up
+	# Otherwise, janus will silently crash if coturn is not available.
+	set +eo pipefail
+	crontab -l > cron_backup
+	echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1" >> cron_backup
+	crontab cron_backup
+	rm cron_backup
+	set -eo pipefail
+
 	log "Signaling install completed."
 }
 
@@ -115,6 +124,10 @@ function signaling_build_nats-server() {
 	cp nats-server-v*-linux-amd64/nats-server /usr/local/bin | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
+	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.conf /etc/nats-server.conf || true
+
+	log "Creating 'nats' account"
+	adduser --system --group nats || true
 }
 
 function signaling_build_coturn() {
@@ -151,6 +164,8 @@ function signaling_build_coturn() {
 	cmake --build coturn-master/build --target install | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/coturn.service /lib/systemd/system/coturn.service || true
+
+	chmod 755 /usr/local/bin/turnserver
 
 	log "Creating 'turnserver' account"
 	adduser --system --group --home /var/lib/turnserver turnserver || true
@@ -378,16 +393,16 @@ function signaling_write_secrets_to_file() {
 	echo -e "$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" >>$1
 	echo -e "STUN server = $SERVER_FQDN:5349" >>$1
 	echo -e "TURN server:" >>$1
-	echo -e " ↳ 'turn and turns'" >>$1
-	echo -e " ↳ $SERVER_FQDN:5349" >>$1
-	echo -e " ↳ $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
-	echo -e " ↳ 'udp & tcp'" >>$1
+	echo -e " - 'turn and turns'" >>$1
+	echo -e " - $SERVER_FQDN:5349" >>$1
+	echo -e " - $SIGNALING_TURN_STATIC_AUTH_SECRET" >>$1
+	echo -e " - 'udp & tcp'" >>$1
 	echo -e "High-performance backend:" >>$1
-	echo -e " ↳ wss://$SERVER_FQDN/standalone-signaling" >>$1
+	echo -e " - https://$SERVER_FQDN/standalone-signaling" >>$1
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
-		echo -e " ↳ $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}" >>$1
+		echo -e " - $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}" >>$1
 	done
 }
 
@@ -397,20 +412,20 @@ function signaling_print_info() {
 		"\ninstances with an adminstrator account and install the Talk app." \
 		"\nThen navigate to Settings -> Administration -> Talk and put in the" \
 		"\nsettings down below.\n" \
-		"$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
+		"$(printf '\t- https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
 
 	# Don't actually *log* passwords!
 	log "STUN server = $SERVER_FQDN:5349"
 	log "TURN server:"
-	log " ↳ 'turn and turns'"
-	log " ↳ turnserver+port: $SERVER_FQDN:5349"
-	echo -e " ↳ secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
-	log " ↳ 'udp & tcp'"
+	log " - 'turn and turns'"
+	log " - turnserver+port: $SERVER_FQDN:5349"
+	echo -e " - secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
+	log " - 'udp & tcp'"
 	log "High-performance backend:"
-	log " ↳ wss://$SERVER_FQDN/standalone-signaling"
+	log " - https://$SERVER_FQDN/standalone-signaling"
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
-		echo -e " ↳ $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
+		echo -e " - $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
 	done
 }
