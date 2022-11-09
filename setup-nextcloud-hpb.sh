@@ -15,6 +15,7 @@ SSL_CHAIN_PATH_RSA=""      # Will be auto filled, if not overriden by settings f
 SSL_CERT_PATH_ECDSA=""     # Will be auto filled, if not overriden by settings file.
 SSL_CERT_KEY_PATH_ECDSA="" # Will be auto filled, if not overriden by settings file.
 SSL_CHAIN_PATH_ECDSA=""    # Will be auto filled, if not overriden by settings file.
+DHPARAM_PATH=""    		   # Will be auto filled, if not overriden by settings file.
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
@@ -98,6 +99,13 @@ function show_dialogs() {
 	log "Using '$SERVER_FQDN' for SERVER_FQDN".
 
 	# - SSL Cert stuff below -
+	if [ "$DHPARAM_PATH" = "" ]; then
+		DHPARAM_PATH="/etc/certs/dhp/dhp.pem"
+		log "Using default path '$DHPARAM_PATH' for DHPARAM_PATH".
+	else
+		log "Using '$DHPARAM_PATH' for DHPARAM_PATH".
+	fi
+
 	if [ "$SSL_CERT_PATH_RSA" = "" ]; then
 		SSL_CERT_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/fullchain.pem"
 		log "Using default path '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA".

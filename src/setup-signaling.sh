@@ -262,8 +262,9 @@ function signaling_step4() {
 		is_dry_run || mkdir -p "$COTURN_DIR"
 	fi
 
-	is_dry_run || touch "$COTURN_DIR/dhp.pem"
-	is_dry_run || openssl dhparam -dsaparam -out "$COTURN_DIR/dhp.pem" 4096
+	is_dry_run || touch "$DHPARAM_PATH"
+	is_dry_run || openssl dhparam -dsaparam -out "$DHPARAM_PATH" 4096
+
 	is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
 	is_dry_run || chmod -R 740 "$COTURN_DIR"
 
@@ -348,6 +349,9 @@ function signaling_step4() {
 
 	log "Replacing '<COTURN_SSL_CERT_KEY_PATH>' with '$COTURN_SSL_CERT_KEY_PATH'…"
 	sed -i "s|<COTURN_SSL_CERT_KEY_PATH>|$COTURN_SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
+
+	log "Replacing '<DHPARAM_PATH>' with '$DHPARAM_PATH'…"
+	sed -i "s|<DHPARAM_PATH>|$DHPARAM_PATH|g" "$TMP_DIR_PATH"/signaling/*
 
 	EXTERN_IPv4=$(wget -4 ident.me -O - -o /dev/null || true)
 	log "Replacing '<SIGNALING_COTURN_EXTERN_IPV4>' with '$EXTERN_IPv4'…"
