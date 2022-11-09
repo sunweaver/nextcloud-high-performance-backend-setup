@@ -250,15 +250,11 @@ function signaling_step3() {
 function signaling_step4() {
 	log "\nStep 4: Prepare configuration"
 
-	# Jump through extra hoops for coturn.
-	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
-		COTURN_SSL_CERT_PATH="$COTURN_DIR/certs/$SERVER_FQDN.crt"
-		COTURN_SSL_CERT_KEY_PATH="$COTURN_DIR/certs/$SERVER_FQDN.key"
-		is_dry_run || mkdir -p "$COTURN_DIR/certs"
-		is_dry_run || mkdir -p "/etc/letsencrypt/renewal-hooks/deploy/"
+	# Make SSL certificates available for coturn
+	if [ "$SHOULD_INSTALL_CERTBOT" = true ] && ! is_dry_run; then
+		mkdir -p "$COTURN_DIR/certs"
+		adduser turnserver ssl-cert
 	else
-		COTURN_SSL_CERT_PATH="$SSL_CERT_PATH_RSA"
-		COTURN_SSL_CERT_KEY_PATH="$SSL_CERT_KEY_PATH_RSA"
 		is_dry_run || mkdir -p "$COTURN_DIR"
 	fi
 
@@ -344,12 +340,6 @@ function signaling_step4() {
 
 	log "Replacing '<SSL_CHAIN_PATH_ECDSA>' with '$SSL_CHAIN_PATH_ECDSA'…"
 	sed -i "s|<SSL_CHAIN_PATH_ECDSA>|$SSL_CHAIN_PATH_ECDSA|g" "$TMP_DIR_PATH"/signaling/*
-
-	log "Replacing '<COTURN_SSL_CERT_PATH>' with '$COTURN_SSL_CERT_PATH'…"
-	sed -i "s|<COTURN_SSL_CERT_PATH>|$COTURN_SSL_CERT_PATH|g" "$TMP_DIR_PATH"/signaling/*
-
-	log "Replacing '<COTURN_SSL_CERT_KEY_PATH>' with '$COTURN_SSL_CERT_KEY_PATH'…"
-	sed -i "s|<COTURN_SSL_CERT_KEY_PATH>|$COTURN_SSL_CERT_KEY_PATH|g" "$TMP_DIR_PATH"/signaling/*
 
 	log "Replacing '<DHPARAM_PATH>' with '$DHPARAM_PATH'…"
 	sed -i "s|<DHPARAM_PATH>|$DHPARAM_PATH|g" "$TMP_DIR_PATH"/signaling/*
