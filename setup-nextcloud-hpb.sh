@@ -68,8 +68,8 @@ function show_dialogs() {
 			whiptail --title "Nextcloud Server Domain" \
 				--inputbox "Please enter your Nextcloud server's domain name here. $(
 				)(Omit http(s)://, just put in the plain domain name!).\n\n$(
-				)You can also specify multiple Nextcloud servers by separating$(
-				)them using a comma." 10 65 \
+				)You can also specify multiple Nextcloud servers by separating $(
+				)them using a comma." 12 65 \
 				"nextcloud.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -90,7 +90,7 @@ function show_dialogs() {
 				)server's domain name here. (Omit http(s)://!).\n\n$(
 				)Also please note that this domain should already exist in DNS $(
 				)or else SSL certificate creation will fail!" \
-				10 65 "nc-workhorse.example.org" 3>&1 1>&2 2>&3
+				12 65 "nc-workhorse.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
 	# Filter out HTTPS:// or HTTP://
