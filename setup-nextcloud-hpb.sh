@@ -11,8 +11,10 @@ NEXTCLOUD_SERVER_FQDNS="" # Ask user
 SERVER_FQDN=""            # Ask user
 SSL_CERT_PATH_RSA=""       # Will be auto filled, if not overriden by settings file.
 SSL_CERT_KEY_PATH_RSA=""   # Will be auto filled, if not overriden by settings file.
+SSL_CHAIN_PATH_RSA=""      # Will be auto filled, if not overriden by settings file.
 SSL_CERT_PATH_ECDSA=""     # Will be auto filled, if not overriden by settings file.
 SSL_CERT_KEY_PATH_ECDSA="" # Will be auto filled, if not overriden by settings file.
+SSL_CHAIN_PATH_ECDSA=""    # Will be auto filled, if not overriden by settings file.
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH="" # Ask user
@@ -124,6 +126,20 @@ function show_dialogs() {
 		log "Using '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA".
 	fi
 	# -----
+
+	if [ "$SSL_CHAIN_PATH_RSA" = "" ]; then
+		SSL_CHAIN_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/chain.pem"
+		log "Using default path '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA".
+	else
+		log "Using '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA".
+	fi
+
+	if [ "$SSL_CHAIN_PATH_ECDSA" = "" ]; then
+		SSL_CHAIN_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/chain.pem"
+		log "Using default path '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA".
+	else
+		log "Using '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA".
+	fi
 
 	if [ "$TMP_DIR_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then

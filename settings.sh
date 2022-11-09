@@ -18,8 +18,10 @@ UNATTENTED_INSTALL=true
 # Only modify if you know what you're doing.
 #SSL_CERT_PATH_RSA=""
 #SSL_CERT_KEY_PATH_RSA=""
+#SSL_CHAIN_PATH_RSA=""
 #SSL_CERT_PATH_ECDSA=""
 #SSL_CERT_KEY_PATH_ECDSA=""
+#SSL_CHAIN_PATH_ECDSA=""
 
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
