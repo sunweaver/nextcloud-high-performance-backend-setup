@@ -84,6 +84,13 @@ function install_certbot() {
 		exit 1
 	fi
 
+	log "Making SSL certificates available for 'ssl-cert' group."
+	chmod 0750 /etc/letsencrypt/archive
+	chmod 0750 /etc/letsencrypt/live
+	chown -R :ssl-cert /etc/letsencrypt/archive
+	chown -R :ssl-cert /etc/letsencrypt/live
+	find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
+
 	log "Certbot install completed."
 }
 
