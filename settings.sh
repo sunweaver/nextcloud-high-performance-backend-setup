@@ -22,6 +22,7 @@ UNATTENTED_INSTALL=true
 #SSL_CERT_PATH_ECDSA=""
 #SSL_CERT_KEY_PATH_ECDSA=""
 #SSL_CHAIN_PATH_ECDSA=""
+#DHPARAM_PATH=""
 
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
@@ -59,3 +60,7 @@ EMAIL_ADDRESS=""
 # Should nextcloud-spreed-signaling, nats-server and coturn be built and
 # installed from sources?
 SIGNALING_BUILD_FROM_SOURCES=""
+
+# DNS Resolver. Here a custom DNS server can be specified, 
+# otherwise the one configured in resolv.conf is used
+DNS_RESOLVER=""

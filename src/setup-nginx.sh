@@ -43,6 +43,13 @@ function nginx_step2() {
 	fi
 	sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
+	if [ "$DNS_RESOLVER" = "" ]; then
+		DNS_RESOLVER=$(cat /etc/resolv.conf | grep "nameserver" | awk '{ print $2 }')
+		log "Using default path '$DNS_RESOLVER' for DNS_RESOLVER".
+	else
+		log "Using '$DNS_RESOLVER' for DNS_RESOLVER".
+	fi
+
 	log "Replacing '<SERVER_FQDN>' with '$SERVER_FQDN'…"
 	sed -i "s|<SERVER_FQDN>|$SERVER_FQDN|g" "$TMP_DIR_PATH"/nginx/*
 
@@ -63,6 +70,12 @@ function nginx_step2() {
 
 	log "Replacing '<SSL_CHAIN_PATH_ECDSA>' with '$SSL_CHAIN_PATH_ECDSA'…"
 	sed -i "s|<SSL_CHAIN_PATH_ECDSA>|$SSL_CHAIN_PATH_ECDSA|g" "$TMP_DIR_PATH"/nginx/*
+
+	log "Replacing '<DHPARAM_PATH>' with '$DHPARAM_PATH'…"
+	sed -i "s|<DHPARAM_PATH>|$DHPARAM_PATH|g" "$TMP_DIR_PATH"/nginx/*
+
+	log "Replacing '<DNS_RESOLVER>' with '$DNS_RESOLVER'…"
+	sed -i "s|<DNS_RESOLVER>|$DNS_RESOLVER|g" "$TMP_DIR_PATH"/nginx/*
 }
 
 function nginx_step3() {
