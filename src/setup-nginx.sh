@@ -44,7 +44,7 @@ function nginx_step2() {
 	sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
 	if [ "$DNS_RESOLVER" = "" ]; then
-		DNS_RESOLVER=$(cat /etc/resolv.conf | grep "nameserver" | awk '{ print $2 }')
+		DNS_RESOLVER="9.9.9.9"
 		log "Using default path '$DNS_RESOLVER' for DNS_RESOLVER".
 	else
 		log "Using '$DNS_RESOLVER' for DNS_RESOLVER".
