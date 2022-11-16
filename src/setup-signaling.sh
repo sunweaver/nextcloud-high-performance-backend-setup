@@ -379,7 +379,7 @@ function signaling_write_secrets_to_file() {
 	echo -e "Block key:     $SIGNALING_BLOCK_KEY" >>$1
 	echo -e "" >>$1
 	echo -e "Allowed Nextcloud Servers:" >>$1
-	echo -e "$(printf '\t↳ https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" >>$1
+	echo -e "$(printf '\t- https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")" >>$1
 	echo -e "STUN server = $SERVER_FQDN:5349" >>$1
 	echo -e "TURN server:" >>$1
 	echo -e " - 'turn and turns'" >>$1
