@@ -79,6 +79,9 @@ function msmtp_step3() {
 
     log "Replacing '<EMAIL_SERVER_HOST>' with '$EMAIL_SERVER_HOST'…"
     sed -i "s|<EMAIL_SERVER_HOST>|$EMAIL_SERVER_HOST|g" "$TMP_DIR_PATH"/msmtp/*
+
+    log "Replacing '<EMAIL_SERVER_PORT>' with '$EMAIL_SERVER_PORT'…"
+    sed -i "s|<EMAIL_SERVER_PORT>|$EMAIL_SERVER_PORT|g" "$TMP_DIR_PATH"/msmtp/*
 }
 
 function msmtp_step4() {
