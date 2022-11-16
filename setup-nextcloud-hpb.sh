@@ -18,8 +18,11 @@ SSL_CHAIN_PATH_ECDSA=""    # Will be auto filled, if not overriden by settings f
 DHPARAM_PATH=""            # Will be auto filled, if not overriden by settings file.
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
-SECRETS_FILE_PATH=""  # Ask user
-EMAIL_USER_ADDRESS="" # Ask user
+SECRETS_FILE_PATH=""   # Ask user
+EMAIL_USER_ADDRESS=""  # Ask user
+EMAIL_USER_PASSWORD="" # Ask user
+EMAIL_USER_USERNAME="" # Ask user
+EMAIL_SERVER_HOST=""   # Ask user
 DISABLE_SSH_SERVER=false
 SIGNALING_BUILD_FROM_SOURCES="" # Ask user
 
@@ -185,6 +188,7 @@ function show_dialogs() {
 	fi
 	log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH".
 
+	# - E-Mail stuff below -
 	if [ "$EMAIL_USER_ADDRESS" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
@@ -194,13 +198,57 @@ function show_dialogs() {
 
 		EMAIL_USER_ADDRESS=$(
 			whiptail --title "E-Mail Address" \
-				--inputbox "Enter a mail address (to be used for security notifications $(
-				)and for informing about SSL certificate issues).\n\nMultiple $(
-				)mail addresses can be separated using commas." \
+				--inputbox "email address" \
 				10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
 		)
 	fi
 	log "Using '$EMAIL_USER_ADDRESS' for EMAIL_USER_ADDRESS".
+
+	if [ "$EMAIL_USER_PASSWORD" = "" ]; then
+		if [ "$UNATTENTED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm" \
+				"missing EMAIL_USER_PASSWORD!"
+			exit 1
+		fi
+
+		EMAIL_USER_PASSWORD=$(
+			whiptail --title "E-Mail Password" \
+				--inputbox "Enter a password" \
+				10 65 "" 3>&1 1>&2 2>&3
+		)
+	fi
+	log "Using '$EMAIL_USER_PASSWORD' for EMAIL_USER_PASSWORD".
+
+	if [ "$EMAIL_USER_USERNAME" = "" ]; then
+		if [ "$UNATTENTED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm" \
+				"missing EMAIL_USER_USERNAME!"
+			exit 1
+		fi
+
+		EMAIL_USER_USERNAME=$(
+			whiptail --title "E-Mail SMTP username" \
+				--inputbox "Enter a username" \
+				10 65 "$EMAIL_USER_ADDRESS" 3>&1 1>&2 2>&3
+		)
+	fi
+	log "Using '$EMAIL_USER_USERNAME' for EMAIL_USER_USERNAME".
+
+	if [ "$EMAIL_SERVER_HOST" = "" ]; then
+		if [ "$UNATTENTED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm" \
+				"missing EMAIL_SERVER_HOST!"
+			exit 1
+		fi
+
+		EMAIL_SERVER_HOST=$(
+			whiptail --title "E-Mail SMTP host" \
+				--inputbox "Enter a SMTP host" \
+				10 65 "mail.example.org" 3>&1 1>&2 2>&3
+		)
+	fi
+	log "Using '$EMAIL_SERVER_HOST' for EMAIL_SERVER_HOST".
+	# -----
 
 	CERTBOT_AGREE_TOS=""
 	LETSENCRYPT_TOS_URL="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
@@ -380,6 +428,7 @@ function main() {
 		SHOULD_INSTALL_CERTBOT=false
 		SHOULD_INSTALL_NGINX=false
 		SHOULD_INSTALL_UNATTENDEDUPGRADES=false
+		SHOULD_INSTALL_MSMTP=false
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
 			--checklist "Use the space bar key to select/deselect the services $(
@@ -402,6 +451,7 @@ function main() {
 					SHOULD_INSTALL_NGINX=true
 					SHOULD_INSTALL_CERTBOT=true
 					SHOULD_INSTALL_UNATTENDEDUPGRADES=true
+					SHOULD_INSTALL_MSMTP=true
 					;;
 				"2")
 					log "Signaling (certbot, nginx, ufw) will be installed."
@@ -410,6 +460,7 @@ function main() {
 					SHOULD_INSTALL_NGINX=true
 					SHOULD_INSTALL_CERTBOT=true
 					SHOULD_INSTALL_UNATTENDEDUPGRADES=true
+					SHOULD_INSTALL_MSMTP=true
 					;;
 				*)
 					log "Unsupported service $CHOICE!" >&2
@@ -462,7 +513,7 @@ function main() {
 
 	scripts=('src/setup-ufw.sh' 'src/setup-collabora.sh'
 		'src/setup-signaling.sh' 'src/setup-nginx.sh' 'src/setup-certbot.sh'
-		'src/setup-unattendedupgrades.sh')
+		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh')
 	for script in "${scripts[@]}"; do
 		log "Sourcing '$script'."
 		source "$script"
@@ -485,6 +536,9 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then install_unattendedupgrades; else
 		log "Won't install unattended upgrades."
+	fi
+	if [ "$SHOULD_INSTALL_MSMTP" = true ]; then install_msmtp; else
+		log "Won't install msmtp email setup."
 	fi
 
 	log "Every installation completed."
@@ -510,6 +564,7 @@ function main() {
 		SERVICES_TO_ENABLE+=("nginx")
 	fi
 	#if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then fi
+	#if [ "$SHOULD_INSTALL_MSMTP" = true ]; then fi
 
 	if ! is_dry_run; then
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
@@ -552,6 +607,9 @@ function main() {
 	# if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then
 	# 	unattendedupgrades_print_info
 	# fi
+	if [ "$SHOULD_INSTALL_MSMTP" = true ]; then
+		msmtp_print_info
+	fi
 	log "======================================================================"
 
 	is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
@@ -579,6 +637,9 @@ function main() {
 	# if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then
 	# 	unattendedupgrades_write_secrets_to_file "$SECRETS_FILE_PATH"
 	# fi
+	if [ "$SHOULD_INSTALL_MSMTP" = true ]; then
+		msmtp_write_secrets_to_file "$SECRETS_FILE_PATH"
+	fi
 
 	log "\nThank you for using this script.\n"
 }
