@@ -619,14 +619,16 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
 		nginx_print_info
+		log "======================================================================"
 	fi
 	# if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then
 	# 	unattendedupgrades_print_info
+	#	log "======================================================================"
 	# fi
 	if [ "$SHOULD_INSTALL_MSMTP" = true ]; then
 		msmtp_print_info
+		log "======================================================================"
 	fi
-	log "======================================================================"
 
 	is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
 	is_dry_run || touch "$SECRETS_FILE_PATH"
