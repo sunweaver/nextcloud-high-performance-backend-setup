@@ -52,7 +52,7 @@ SECRETS_FILE_PATH=""
 # if a certificate is about to run out.
 # You can specify multiple addresses by stringing them together with a comma.
 # Leave empty, if you wish that the user will be asked about this.
-EMAIL_ADDRESS=""
+EMAIL_USER_ADDRESS=""
 
 # Should the ssh service be disabled?
 #DISABLE_SSH_SERVER=false

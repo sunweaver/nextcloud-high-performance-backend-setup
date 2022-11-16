@@ -7,19 +7,19 @@ set -eo pipefail
 # See settings.sh
 DRY_RUN=false
 UNATTENTED_INSTALL=false
-NEXTCLOUD_SERVER_FQDNS="" # Ask user
-SERVER_FQDN=""            # Ask user
+NEXTCLOUD_SERVER_FQDNS=""  # Ask user
+SERVER_FQDN=""             # Ask user
 SSL_CERT_PATH_RSA=""       # Will be auto filled, if not overriden by settings file.
 SSL_CERT_KEY_PATH_RSA=""   # Will be auto filled, if not overriden by settings file.
 SSL_CHAIN_PATH_RSA=""      # Will be auto filled, if not overriden by settings file.
 SSL_CERT_PATH_ECDSA=""     # Will be auto filled, if not overriden by settings file.
 SSL_CERT_KEY_PATH_ECDSA="" # Will be auto filled, if not overriden by settings file.
 SSL_CHAIN_PATH_ECDSA=""    # Will be auto filled, if not overriden by settings file.
-DHPARAM_PATH=""    		   # Will be auto filled, if not overriden by settings file.
+DHPARAM_PATH=""            # Will be auto filled, if not overriden by settings file.
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
-SECRETS_FILE_PATH="" # Ask user
-EMAIL_ADDRESS=""     # Ask user
+SECRETS_FILE_PATH=""  # Ask user
+EMAIL_USER_ADDRESS="" # Ask user
 DISABLE_SSH_SERVER=false
 SIGNALING_BUILD_FROM_SOURCES="" # Ask user
 
@@ -183,14 +183,14 @@ function show_dialogs() {
 	fi
 	log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH".
 
-	if [ "$EMAIL_ADDRESS" = "" ]; then
+	if [ "$EMAIL_USER_ADDRESS" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing EMAIL_ADDRESS!"
+				"missing EMAIL_USER_ADDRESS!"
 			exit 1
 		fi
 
-		EMAIL_ADDRESS=$(
+		EMAIL_USER_ADDRESS=$(
 			whiptail --title "E-Mail Address" \
 				--inputbox "Enter a mail address (to be used for security notifications $(
 				)and for informing about SSL certificate issues).\n\nMultiple $(
@@ -198,7 +198,7 @@ function show_dialogs() {
 				10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$EMAIL_ADDRESS' for EMAIL_ADDRESS".
+	log "Using '$EMAIL_USER_ADDRESS' for EMAIL_USER_ADDRESS".
 
 	CERTBOT_AGREE_TOS=""
 	LETSENCRYPT_TOS_URL="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
