@@ -108,12 +108,27 @@ END
 
 # arg: $1 is secret file path
 function msmtp_write_secrets_to_file() {
-    # No secrets, passwords, keys or something to worry about.
     if is_dry_run; then
         return 0
     fi
+
+    echo -e "=== MSMTP Setup ===" >>$1
+    echo -e "E-Mails get sent to: $EMAIL_USER_ADDRESS" >>$1
+    echo -e "E-Mail account username: $EMAIL_USER_USERNAME" >>$1
+    echo -e "E-Mail account password: $EMAIL_USER_PASSWORD" >>$1
+    echo -e "E-Mail server host: $EMAIL_SERVER_HOST" >>$1
+    echo -e "E-Mail server port: $EMAIL_SERVER_PORT" >>$1
 }
 
 function msmtp_print_info() {
-    log ""
+    log "The msmtp package got successfully configured. So this system can" \
+        "\nsend emails to you now. You should have got a test email. Please" \
+        "\nhave a look and make sure you also look into your spam folder.\n"
+
+    log "=== MSMTP Setup ==="
+    log "E-Mails get sent to: $EMAIL_USER_ADDRESS"
+    log "E-Mail account username: $EMAIL_USER_USERNAME"
+    log "E-Mail account password: *****"
+    log "E-Mail server host: $EMAIL_SERVER_HOST"
+    log "E-Mail server port: $EMAIL_SERVER_PORT"
 }

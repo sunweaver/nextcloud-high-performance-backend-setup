@@ -70,6 +70,6 @@ EMAIL_SERVER_HOST=""
 # installed from sources?
 SIGNALING_BUILD_FROM_SOURCES=""
 
-# DNS Resolver. Here a custom DNS server can be specified, 
+# DNS Resolver. Here a custom DNS server can be specified,
 # otherwise the one configured in resolv.conf is used
 DNS_RESOLVER=""
