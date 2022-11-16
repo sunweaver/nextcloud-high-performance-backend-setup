@@ -23,6 +23,7 @@ EMAIL_USER_ADDRESS=""  # Ask user
 EMAIL_USER_PASSWORD="" # Ask user
 EMAIL_USER_USERNAME="" # Ask user
 EMAIL_SERVER_HOST=""   # Ask user
+EMAIL_SERVER_PORT=""   # Ask user
 DISABLE_SSH_SERVER=false
 SIGNALING_BUILD_FROM_SOURCES="" # Ask user
 
@@ -246,6 +247,21 @@ function show_dialogs() {
 		)
 	fi
 	log "Using '$EMAIL_SERVER_HOST' for EMAIL_SERVER_HOST".
+
+	if [ "$EMAIL_SERVER_PORT" = "" ]; then
+		if [ "$UNATTENTED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm" \
+				"missing EMAIL_SERVER_PORT!"
+			exit 1
+		fi
+
+		EMAIL_SERVER_PORT=$(
+			whiptail --title "E-Mail SMTP port" \
+				--inputbox "Enter a SMTP port" \
+				10 65 "587" 3>&1 1>&2 2>&3
+		)
+	fi
+	log "Using '$EMAIL_SERVER_PORT' for EMAIL_SERVER_PORT".
 	# -----
 
 	CERTBOT_AGREE_TOS=""
