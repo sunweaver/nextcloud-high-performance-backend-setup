@@ -1,0 +1,5 @@
+mailer-daemon: <EMAIL_USER_ADDRESS>
+postmaster: <EMAIL_USER_ADDRESS>
+webmaster: <EMAIL_USER_ADDRESS>
+root: <EMAIL_USER_ADDRESS>
+default: <EMAIL_USER_ADDRESS>
