@@ -45,7 +45,7 @@ function nginx_step2() {
 
 	if [ "$DNS_RESOLVER" = "" ]; then
 		DNS_RESOLVER="9.9.9.9"
-		log "Using default path '$DNS_RESOLVER' for DNS_RESOLVER".
+		log "Using default value '$DNS_RESOLVER' for DNS_RESOLVER".
 	else
 		log "Using '$DNS_RESOLVER' for DNS_RESOLVER".
 	fi
