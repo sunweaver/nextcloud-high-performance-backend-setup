@@ -94,7 +94,16 @@ function msmtp_step4() {
 }
 
 function msmtp_step5() {
-    cat "$TMP_DIR_PATH"/msmtp/test-email.html | msmtp root
+    log "\nStep 5: Test msmtp configuration"
+
+    from_address="Nextcloud HPB Setup <noreply.nextcloud-hpb.setup>"
+    is_dry_run || msmtp root -f "$from_address" -X "$LOGFILE_PATH" <<END
+Subject: Test email sent by Nextcloud high-performance-backend setup.
+Mime-Version: 1.0
+Content-Type: text/html
+
+$(cat "$TMP_DIR_PATH"/msmtp/test-email.html)
+END
 }
 
 # arg: $1 is secret file path
