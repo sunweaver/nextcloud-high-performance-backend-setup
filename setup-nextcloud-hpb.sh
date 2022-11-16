@@ -196,8 +196,12 @@ function show_dialogs() {
 		fi
 
 		EMAIL_USER_ADDRESS=$(
-			whiptail --title "E-Mail Address" \
-				--inputbox "email address" \
+			whiptail --title "E-Mail address" \
+				--inputbox "Enter a valid email address which will be used for $(
+				)notifications.$(
+				)Please note that this email must be yours and you can send $(
+				)emails with it using a SMTP server. If in doubt ask your $(
+				)email provider for SMTP server settings and credentials." \
 				10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -211,8 +215,9 @@ function show_dialogs() {
 		fi
 
 		EMAIL_USER_PASSWORD=$(
-			whiptail --title "E-Mail Password" \
-				--inputbox "Enter a password" \
+			whiptail --title "E-Mail SMTP password" \
+				--inputbox "Enter the password which msmtp will use to $(
+				)authenticate against the SMTP server." \
 				10 65 "" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -227,7 +232,9 @@ function show_dialogs() {
 
 		EMAIL_USER_USERNAME=$(
 			whiptail --title "E-Mail SMTP username" \
-				--inputbox "Enter a username" \
+				--inputbox "Enter the username which msmtp will use to $(
+				)authenticate against the SMTP server.$(
+				)Often the username is equal to the email address." \
 				10 65 "$EMAIL_USER_ADDRESS" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -242,7 +249,7 @@ function show_dialogs() {
 
 		EMAIL_SERVER_HOST=$(
 			whiptail --title "E-Mail SMTP host" \
-				--inputbox "Enter a SMTP host" \
+				--inputbox "Enter the host address on which the SMTP server is reachable." \
 				10 65 "mail.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
@@ -257,7 +264,7 @@ function show_dialogs() {
 
 		EMAIL_SERVER_PORT=$(
 			whiptail --title "E-Mail SMTP port" \
-				--inputbox "Enter a SMTP port" \
+				--inputbox "Enter the port on which the SMTP server is reachable." \
 				10 65 "587" 3>&1 1>&2 2>&3
 		)
 	fi
