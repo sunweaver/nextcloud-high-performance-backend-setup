@@ -34,6 +34,7 @@ SHOULD_INSTALL_UFW=true
 SHOULD_INSTALL_NGINX=true
 SHOULD_INSTALL_CERTBOT=true
 SHOULD_INSTALL_UNATTENDEDUPGRADES=true
+SHOULD_INSTALL_MSMTP=true
 
 # Logfile get created if UNATTENTED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
@@ -48,11 +49,17 @@ TMP_DIR_PATH="./tmp"
 # Leave empty, if you wish that the user will be asked about this.
 SECRETS_FILE_PATH=""
 
-# This email address gets passed on to Certbot which will send notifications
-# if a certificate is about to run out.
-# You can specify multiple addresses by stringing them together with a comma.
+# This email address gets passed on to the services the user whiches to install.
+# The services (like Certbot) can send email notification for important info.
 # Leave empty, if you wish that the user will be asked about this.
 EMAIL_USER_ADDRESS=""
+# The password for the address above. Used to authenticate to the SMTP server.
+EMAIL_USER_PASSWORD=""
+# The username to authencicate with. Most likely it will be just the full email
+# address. But there are email hoster which require a different username.
+EMAIL_USER_USERNAME=""
+# The SMTP server to send the emails to.
+EMAIL_SERVER_HOST=""
 
 # Should the ssh service be disabled?
 #DISABLE_SSH_SERVER=false
