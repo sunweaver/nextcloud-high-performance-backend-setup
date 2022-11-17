@@ -70,6 +70,15 @@ function unattendedupgrades_step2() {
 
 function unattendedupgrades_step3() {
 	log "\nStep 3: Prepare unattended-upgrades configuration"
+
+	UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES=""
+	if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
+		UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES="\
+Unattended-Upgrade::Origins-Pattern {\"site=www.collaboraoffice.com\";}"
+	fi
+
+	log "Replacing '<UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES>' with '$UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES'…"
+	sed -i "s|<UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES>|$UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES|g" "$TMP_DIR_PATH"/unattended-upgrades/*
 }
 
 function unattendedupgrades_step4() {
