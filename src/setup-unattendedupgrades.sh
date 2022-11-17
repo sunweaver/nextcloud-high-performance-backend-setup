@@ -25,13 +25,13 @@ function install_unattendedupgrades() {
 	unattendedupgrades_step1
 	unattendedupgrades_step2
 	unattendedupgrades_step3
+	unattendedupgrades_step4
 
 	log "unattended-upgrades install completed."
 }
 
 function unattendedupgrades_step1() {
-	# 1. Install package
-	log "\nStep 1: Install package"
+	log "\nStep 1: Install unattended-upgrades package"
 
 	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
@@ -53,8 +53,7 @@ function unattendedupgrades_step1() {
 }
 
 function unattendedupgrades_step2() {
-	# 2. Preseed and reconfigure package
-	log "\nStep 2: Preseed and reconfigure package"
+	log "\nStep 2: Preseed and reconfigure unattended-upgrades package"
 
 	if ! is_dry_run; then
 		# preseed and reconfigure
@@ -70,32 +69,13 @@ function unattendedupgrades_step2() {
 }
 
 function unattendedupgrades_step3() {
-	# 3. Adjust unattended-upgrades configuration
-	log "\nStep 3: Adjust unattended-upgrades configuration"
+	log "\nStep 3: Prepare unattended-upgrades configuration"
+}
 
-	uau_cfg="/etc/apt/apt.conf.d/50unattended-upgrades"
-	if ! is_dry_run; then
-		# Unattended-Upgrade::AutoFixInterruptedDpkg -> true
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::AutoFixInterruptedDpkg\s+)[^ ]+@\2\"true\";@g'
-		# Unattended-Upgrade::MinimalSteps -> true
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::MinimalSteps\s+)[^ ]+@\2\"true\";@g'
-		# Unattended-Upgrade::Mail -> root
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Mail\s+)[^ ]+@\2\"root\";@g'
-		# Unattended-Upgrade::MailReport -> on-change
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::MailReport\s+)[^ ]+@\2\"on-change\";@g'
-		# Unattended-Upgrade::Remove-Unused-Kernel-Packages -> true
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Remove-Unused-Kernel-Packages\s+)[^ ]+@\2\"true\";@g'
-		# Unattended-Upgrade::Remove-New-Unused-Dependencies -> true
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Remove-New-Unused-Dependencies\s+)[^ ]+@\2\"true\";@g'
-		# Unattended-Upgrade::Remove-Unused-Dependencies -> true
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Remove-Unused-Dependencies\s+)[^ ]+@\2\"true\";@g'
-		# Unattended-Upgrade::Automatic-Reboot -> true
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Automatic-Reboot\s+)[^ ]+@\2\"true\";@g'
-		# Unattended-Upgrade::Automatic-Reboot-WithUsers -> false
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Automatic-Reboot-WithUsers\s+)[^ ]+@\2\"false\";@g'
-		# Unattended-Upgrade::Automatic-Reboot-Time -> 05:00
-		sed -E -i "${uau_cfg}" -e 's@(//|)(Unattended-Upgrade::Automatic-Reboot-Time\s+)[^ ]+@\2\"05:00\";@g'
-	fi
+function unattendedupgrades_step4() {
+	log "\nStep 4: Deploy unattended-upgrades configuration"
+
+	deploy_file "$TMP_DIR_PATH"/unattended-upgrades/60unattended-upgrades-nextcloud-hpb-setup /etc/apt/apt.conf.d/60unattended-upgrades-nextcloud-hpb-setup || true
 }
 
 # arg: $1 is secret file path
