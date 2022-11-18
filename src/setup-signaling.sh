@@ -59,9 +59,9 @@ EOL
 			fi
 		fi
 
-		signaling_build_nextcloud-spreed-signaling
-		signaling_build_coturn
-		signaling_build_nats-server
+		is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
+		is_dry_run || signaling_build_coturn && log "Would have built coturn now…"
+		is_dry_run || signaling_build_nats-server && log "Would have built nats-server now…"
 
 		# Installing:
 		# - janus
