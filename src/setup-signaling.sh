@@ -71,14 +71,14 @@ EOL
 				export DEBIAN_FRONTEND=noninteractive
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 					apt-get install -qqy ssl-cert 2>&1 | tee -a $LOGFILE_PATH
-					apt-get install -qqy -t bullseye-backports janus  2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 				else
 					apt-get install -qqy janus ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 					apt-get install -y ssl-cert 2>&1 | tee -a $LOGFILE_PATH
-					apt-get install -y -t bullseye-backports janus  2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -y -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 				else
 					apt-get install -y janus ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 				fi
@@ -99,8 +99,8 @@ EOL
 	# Make sure janus is restartet 15 sec after system reboot, wo that coturn service is already up
 	# Otherwise, janus will silently crash if coturn is not available.
 	set +eo pipefail
-	crontab -l > cron_backup
-	echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1" >> cron_backup
+	crontab -l >cron_backup
+	echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1" >>cron_backup
 	crontab cron_backup
 	rm cron_backup
 	set -eo pipefail
@@ -194,8 +194,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 	deploy_file "$TMP_DIR_PATH"/signaling/nextcloud-spreed-signaling.service \
 		/lib/systemd/system/nextcloud-spreed-signaling.service || true
 
-	if [ ! -d /etc/nextcloud-spreed-signaling ];
-	then
+	if [ ! -d /etc/nextcloud-spreed-signaling ]; then
 		log "Create '/etc/nextcloud-spreed-signaling' directory"
 		mkdir /etc/nextcloud-spreed-signaling | tee -a $LOGFILE_PATH
 	fi
