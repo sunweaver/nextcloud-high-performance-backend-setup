@@ -301,7 +301,7 @@ function check_debian_system() {
 
 		# Quick hack for debian testing (currently bookworm)
 		if [[ "$DEBIAN_VERSION" = "bookworm/sid" ]]; then
-			DEBIAN_VERSION="11.3"
+			DEBIAN_VERSION="12"
 		fi
 
 		if ! [[ $DEBIAN_VERSION =~ [0-9] ]]; then
