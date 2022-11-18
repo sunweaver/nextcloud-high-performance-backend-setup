@@ -111,22 +111,30 @@ EOL
 function signaling_build_nats-server() {
 	log "Building nats-server…"
 
+	LATEST_RELEASE="https://api.github.com/repos/nats-io/nats-server/releases/latest"
+	log "Latest nats-server release URL: '$LATEST_RELEASE'"
+
+	LATEST_RELEASE_TAG="$(curl -s "$LATEST_RELEASE" | grep 'tag_name' | cut -d\" -f4)"
+	log "Latest nats-server version is: '$LATEST_RELEASE_TAG'"
+
+	log "Removing old sources…"
+	rm -v nats-server-v*-linux-amd64.tar.gz | tee -a $LOGFILE_PATH || true
+
 	log "Downloading sources…"
-	rm nats-server-v*-linux-amd64.tar.gz | tee -a $LOGFILE_PATH || true
-	wget $(curl -s https://api.github.com/repos/nats-io/nats-server/releases/latest |
-		grep 'linux-amd64.tar.gz' | grep 'browser_download_url' | cut -d\" -f4) |
+	wget $(curl -s "$LATEST_RELEASE" | grep 'linux-amd64.tar.gz' |
+		grep 'browser_download_url' | cut -d\" -f4) |
 		tee -a $LOGFILE_PATH
 
 	log "Extracting sources…"
-	tar -xvf nats-server-v*-linux-amd64.tar.gz | tee -a $LOGFILE_PATH
+	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-amd64.tar.gz" | tee -a $LOGFILE_PATH
 
-	log "Copying built binary into /usr/local/bin/nats-server…"
-	cp nats-server-v*-linux-amd64/nats-server /usr/local/bin | tee -a $LOGFILE_PATH
+	log "Copying binary into /usr/local/bin/nats-server…"
+	cp --backup=numbered -v "nats-server-$LATEST_RELEASE_TAG-linux-amd64/nats-server" /usr/local/bin/nats-server | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.conf /etc/nats-server.conf || true
 
-	log "Creating 'nats' account"
+	log "Creating 'nats' system account…"
 	adduser --system --group nats || true
 }
 
@@ -194,8 +202,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 	deploy_file "$TMP_DIR_PATH"/signaling/nextcloud-spreed-signaling.service \
 		/lib/systemd/system/nextcloud-spreed-signaling.service || true
 
-	if [ ! -d /etc/nextcloud-spreed-signaling ];
-	then
+	if [ ! -d /etc/nextcloud-spreed-signaling ]; then
 		log "Create '/etc/nextcloud-spreed-signaling' directory"
 		mkdir /etc/nextcloud-spreed-signaling | tee -a $LOGFILE_PATH
 	fi
