@@ -56,8 +56,6 @@ function collabora_step3() {
 	# 3. Install packages
 	log "\nStep 3: Install packages"
 
-	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
-
 	# Installing:
 	#   - coolwsd
 	#   - code-brand
@@ -78,6 +76,8 @@ function collabora_step3() {
 
 		apt-add-repository contrib \
 			2>&1 | tee -a $LOGFILE_PATH
+
+		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
 		apt-get install "$args_apt" \
 			ttf-mscorefonts-installer \
