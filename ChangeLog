@@ -1,0 +1,608 @@
+2022-11-22 Mike Gabriel
+
+        * release 1.1.1 (HEAD -> main, tag: 1.1.1)
+
+2022-11-22 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Log VERSION number at startup. (44e4c0c)
+        * VERSION: Bump version number to 1.1.1 (7865a70)
+
+2022-11-09 Daniel Teichmann
+
+        * Make certbot certs available to ssl-cert group + Add turnserver
+          user to ssl-cert group. (09a90a6) (tag: 1.1)
+          Fixes: #22
+
+        * data/signaling/coturn-certbot-deploy.sh, src/setup-signaling.sh:
+          Remove old certbot deploy file. (2a9dda3)
+        * setup-nextcloud-hpb.sh: Change size of dialogs to fit text.
+          (2523cd7)
+          Fixes: #45
+
+2022-11-11 DecaTec
+
+        * Set static resolver (a426e00)
+
+2022-11-10 DecaTec
+
+        * Create DHP dir (8ef9efc)
+
+2022-11-09 DecaTec
+
+        * DHParams for nginx; SSL optimizations (2de1a32)
+
+2022-11-09 Daniel Teichmann
+
+        * Introduce SSL_CHAIN_PATH_ECDSA & SSL_CHAIN_PATH_RSA.
+          (952dd1a)
+          Fixes: #32
+
+2022-11-03 DecaTec
+
+        * src/setup-certbot.sh: Replace SSL_CERT_* with
+          SSL_CERT_*_{RSA,ECDSA} variants. (a1675e1)
+
+2022-11-05 DecaTec
+
+        * Fix errors while starting coturn; added missing NATs user and
+          config (a615e53)
+
+2022-11-04 Mirco
+
+        * setup-signaling: Change wss to https (part2) (9c3d9e8)
+        * setup-signaling: Change ↳ to - (7a343bc)
+        * setup-signaling: Change wss to https (f7593bc)
+
+2022-11-04 DecaTec
+
+        * Fix installing crontab (8666017)
+
+2022-11-03 Mike Gabriel
+
+        * data/nginx/headers.conf: Add new-line at EOF. (a937a71)
+
+2022-11-03 DecaTec
+
+        * webserver headers (3e1f1ee)
+        * ufw ports; 4096 bit RSA; restart janus at system reboot (ea69160)
+        * ufw ports; 4096 bit RSA; restart janus after system reboot
+          (1d62a6a)
+        * Signaling backend port 8080 (807b948)
+
+2022-10-17 Mike Gabriel
+
+        * release 1.0.1 (01c482b) (tag: 1.0.1)
+
+2022-09-21 Mike Gabriel
+
+        * signaling setup: Use port 5349 instead of 1271, as 5349 is sort-of
+          the well-known port for TURNS/STUNS. (b07d39a)
+        * signaling setup: Use port 3478 instead of 1270, as 3478 is sort-of
+          the well-known port for TURN/STUN. (f3d2127)
+
+2022-10-17 Mike Gabriel
+
+        * src/setup-signaling.sh: Drop already commented out base64 patching
+          of coturn server with No-FIPS-140-mode.patch. The patch
+          has been applied upstream. (8f934ce)
+
+2022-10-10 Mirco
+
+        * Update setup-signaling.sh (8d53ef1)
+
+2022-09-21 Mike Gabriel
+
+        * src/setup-unattended-upgrades.sh: Drop duplicate file. (c00666b)
+
+2022-09-02 PhilProg
+
+        * README_en: Add Debian 11 as requirement (d9fb7da)
+        * README_en: Add link to releases page (ab515b1)
+        * README: Add link to releases page (8bc88b5)
+
+2022-09-02 Mike Gabriel
+
+        * release 1.0 (c2e3f0a) (tag: 1.0)
+
+2022-08-31 Mike Gabriel
+
+        * src/setup-unattended-upgrades.sh: Tab'ify script. (aad5e96)
+        * Some minor white-space fixes. (beea0ad)
+
+2022-08-31 PhilProg
+
+        * README: Rearrange languages (a6932f7)
+        * README_en: Rearrange languages (6b5d6d7)
+        * Update README.md (e4fadd6)
+        * setup-signaling: Wrong package: janus -> golang-go (898dd93)
+        * setup-signaling: Only install janus from bullseye-backports if the
+          system is running Debian 11 (ce493f4)
+        * setup-signaling: Only enable bullseye-backports if Debian version
+          is 11 (390ceaf)
+        * setup-signaling: Install janus from normal repo if signaling
+          installation way is via packages (836f9b8)
+        * setup-signaling: Remove Debian version if clause (188f548)
+        * setup-signaling: Fix typo (8bf9094)
+        * setup-signaling: Remove janus from the wrong apt command (c969a65)
+        * setup-signaling: Rearrange apt commands (f162846)
+        * setup-signaling: Typo fix (9fff35c)
+        * setup-signaling: Install janus from bullseye-backports when not
+          building from sources (7421875)
+        * setup-signaling: Install golang-go&janus from bullseye-backports
+          (a8eea1a)
+        * setup-signaling: Enable bullseye-backports (114f636)
+        * setup-signaling: Disable sunweaver repository (38e1e6f)
+        * setup-signaling:Remove unnecessary removal of pkgs (f29bb09)
+        * Revert "Revert "src/setup-collabora.sh: Enable contrib."" (0132493)
+
+2022-08-31 Mirco
+
+        * Update README.md (333bce4)
+
+2022-08-30 PhilProg
+
+        * setup-signaling: Check if /etc/nextcloud-spreed-signaling exists
+          before creating it (6156e44)
+
+2022-08-30 Mirco
+
+        * Update README_en.md (a6c0daa)
+        * Update README.md (dc0fd67)
+
+2022-08-29 Mike Gabriel
+
+        * setup-nextcloud-hpb.sh: Typo fix (newline character) in a message
+          dialog. (30fa5f2)
+        * src/setup-certbot.sh: Issue 'certbot renew --force-renewal' after
+          'certbot certonly', so that the deploy hook gets executed
+          properly.~ (4894c87)
+        * Revert "src/setup-certbot.sh: Add --force-renewal to certbot call
+          to assure our deploy hook gets called on certonly action."
+          (d4911c1)
+        * src/setup-certbot.sh: Add --force-renewal to certbot call to assure
+          our deploy hook gets called on certonly action. (bdee335)
+        * Revert "src/setup-collabora.sh: Enable contrib." (8e0c661)
+        * Regression fix for 73cb6336. Missing backslash at EOL. (20ada23)
+        * setup-nextcloud-hpb.sh: Fine-tune dialog message. (0f342fe)
+        * setup-nextcloud-hpb.sh: Rework English wording of dialog messages.
+          (73cb633)
+
+2022-08-27 Mirco
+
+        * setup-signaling: build_nextcloud-spreed-signaling: Create
+          /etc/nextcloud-spreed-signaling (c54bf42)
+        * setup-nextcloud-hpb: Add missing build from sources=true variable
+          (d76a2ed)
+
+2022-08-12 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Remove disrupting 'delete;  in /tmp'
+          question. (d5bab41)
+        * setup-nextcloud-hpb.sh: Make signaling's build-from-sources dialog
+          smarter. (6491fae)
+        * setup-nextcloud-hpb.sh: Remove disruptive file-overwrite question.
+          (8c7d5c9)
+
+2022-08-11 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Make sure all services are unmasked before
+          trying to start them. (179ab8b)
+        * src/setup-signaling.sh: Make sure janus and ssl-cert get installed
+          even if we build from sources. (f4daa7a)
+        * src/setup-signaling.sh: Install 'protobuf-compiler' package for
+          build-signaling-from-sources. (a5504db)
+        * src/setup-signaling.sh: Create 'turnserver' and '_signaling' system
+          users after building. (1b3cf53)
+
+2022-08-10 Daniel Teichmann
+
+        * Makefile: add new files to clean target. (0f18193)
+        * data/signaling/nats-server.service, src/setup-signaling.sh: Add
+          nats-server 'build' logic. (ae70619)
+
+2022-08-08 Daniel Teichmann
+
+        * data/signaling/coturn.service, src/setup-signaling.sh: Add coturn
+          build logic. (37306a8)
+        * data/signaling/nextcloud-spreed-signaling.service,
+          src/setup-signaling.sh: Add nextcloud-spreed-signaling
+          build logic. (69f7c03)
+        * setup-nextcloud-hpb.sh, settings.sh: Add
+          SIGNALING_BUILD_FROM_SOURCES dialog. (dc087d7)
+        * data/collabora/coolwsd.xml: Update coolwsd.xml template. (14bac79)
+
+2022-07-28 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Log systemctl command into LOGFILE.
+          (b0579bf)
+
+2022-08-27 PhilProg
+
+        * Merge pull request #14 from
+          sunweaver/pr/tweak-50unattended-upgrades-config (42a3302)
+
+2022-08-25 Mike Gabriel
+
+        * src/setup-unattendedupgrades.sh: Add step3. Tweak
+          /etc/apt/apt.conf.d/50unattended-upgrades. (bb2c311)
+
+2022-08-23 PhilDevProg
+
+        * README_en: Fix Hetzner links (cdd6593)
+        * README_en: Complete english translation (a2d0f9b)
+
+2022-08-11 Daniel
+
+        * Merge pull request #11 from sunweaver/enable-contrib (c6a60dd)
+
+2022-08-11 PhilProg
+
+        * src/setup-collabora.sh: Enable contrib. (a7be602)
+
+2022-08-07 Mirco
+
+        * Update README.md (dd9be9c)
+        * README: Add link to Wiki (d7f7f0f)
+        * README: Add warning because the README is only for version 1.0 and
+          newer (5c40376)
+        * README: Add full README content (6f9dea1)
+
+2022-07-31 Mirco
+
+        * README_en: Update link to german README (8f032b8)
+        * README: Update link to english README (3056a5e)
+        * Make german README the default (de4c4e0)
+        * Rename README.md to README_en.md (f949ad5)
+        * README: Add language chooser (dd8befb)
+        * Create README_de.md (3c2d093)
+
+2022-07-28 PhilDevProg
+
+        * README: Change name (58cd26b)
+
+2022-07-28 Mirco
+
+        * Update README.md (391a162)
+
+2022-07-26 Daniel Teichmann
+
+        * Merge branch 'dev' into 'main' (278f4d0)
+        * setup-nextcloud-hpb.sh: Make Letsencrypt ToS question a default-yes
+          question. (f9b961f)
+        * src/setup-collabora.sh, data/collabora/coolwsd.xml: Implement
+          Collabora MultiHost feature. (7c6954f)
+        * src/setup-collabora.sh: Fix typo. (a3fb64e)
+          Fixes: #16
+
+        * data/collabora/coolwsd.xml: Update config template.
+          Fixes: #17.
+          (8922f29)
+        * src/setup-ufw.sh: Don't open ports if the software doesn't get
+          installed. (4fcea56)
+        * src/setup-ufw.sh: Add ports for Coturn, add comments for ufw rules
+          and log command output into logfile. (dac537a)
+
+2022-07-01 Daniel Teichmann
+
+        * src/setup-signaling.sh: Don't actually log secrets or passwords
+          (d107008)
+
+2022-07-25 Daniel Teichmann
+
+        * Merge branch 'mr/unattendedupgrades' into 'main' (d82da06)
+
+2022-07-21 Mike Gabriel
+
+        * settings.sh, setup-nextcloud-hpb.sh,
+          src/setup-unattendedupgrades.sh: Implement
+          unattended-upgrades. (24fe3a6)
+
+2022-07-25 Daniel Teichmann
+
+        * Merge branch 'mr/setup-ufw' into 'main' (1134850)
+
+2022-07-21 Mike Gabriel
+
+        * setup-nextcloud-hpb.sh, src/setup-ufw.sh: Setting up ufw firewall.
+          (a9bc8e5)
+
+2022-07-25 Daniel Teichmann
+
+        * src/setup-signaling.sh: Add missing https:// prefix to backend
+          definition. (cc73b64)
+        * src/setup-signaling.sh: Fix bug: Actually list backends
+          comma-seperated. (7ef8ecb)
+        * Merge branch
+          'mr/assure-mscorefonts-installation-before-collabora-installation'
+          into 'main' (08378b5)
+
+2022-07-21 Mike Gabriel
+
+        * src/setup-collabora.sh: Assure that mscorefonts are installed
+          before collabora gets installed. (a8cd3a4)
+
+2022-07-01 Daniel Teichmann
+
+        * Merge branch 'dev' into 'main' (990a448)
+        * src/setup-signaling.sh: Don't log passwords but other information
+          can be usefull. (b54cbc8)
+        * src/setup-{signaling, collabora}.sh, setup-nextcloud-hpb.sh,
+          data/signaling/signaling-server.conf: Implement
+          Multi-Nextcloud domain feature. (fe51e74)
+        * src/setup-*.sh: Fix typo 'unattented' -> 'unattended'. (19f78c0)
+        * setup-nextcloud-hpb.sh: Reword CERTBOT_AGREE_TOS text. (ae2682a)
+
+2022-06-30 Daniel Teichmann
+
+        * Merge branch 'dev' into 'main' (d8b34b8)
+        * src/setup-signaling.sh: Fixup of previous commit. (09fe68d)
+        * src/setup-signaling.sh, data/signaling/turnserver.conf,
+          data/signaling/coturn-certbot-deploy.sh: Fix coturn SSL
+          certificates. (a7b1164)
+        * src/setup-{collabora, nginx}.sh, data/{nginx,
+          collabora}/{index.html, robots.txt}: Move website related
+          stuff from Collabora to Nginx setup. (ab69d19)
+        * Merge branch 'dev' into 'main' (9c4bb8e)
+        * setup-nextcloud-hpb.sh: Process LOGFILE_PATH first and fix bug
+          where program would just exit if user pressed ESC in first
+          dialog. (7755b94)
+        * src/setup-collabora.sh: Install some dictionaries and (Microsoft)
+          fonts for Collabora. (1b2bf06)
+          Fixes: #4
+
+        * setup-nextcloud-hpb.sh, settings.sh: Ask if ssh server should be
+          disabled & Don't ask Letsencrypt ToS question in
+          unattended mode. (1fa88eb)
+          Fixes: #10
+
+        * setup-nextcloud-hpb.sh: Filter out http(s):// for input FQDN's.
+
+          Fixes: #13. (13afd28)
+        * src/setup-certbot.sh, setup-nextcloud-hpb.sh: Ask user if we should
+          skip letsencrypt terms of service. (20f81a5)
+          Fixes: #8
+
+        * settings.sh, setup-nextcloud-hpb.sh: Don't annoy user with
+          unnecessary dialog questions. (a8cee28)
+          Fixes: #9
+
+2022-06-29 Daniel Teichmann
+
+        * src/setup-nginx.sh, setup-nextcloud-hpb.sh: Be more precise about
+          extra packages. (cd9a1ea)
+        * src/setup-signaling.sh: Don't run chmod in dry-run mode. (83dc9ee)
+        * src/setup-{collabora, signaling}.sh, settings.sh,
+          setup-nextcloud-hpb.sh: Rename NEXTCLOUD_SERVER_FQDN to
+          NEXTCLOUD_SERVER_FQDNS. (f9cd5b9)
+        * src/*, setup-nextcloud-hpb.sh: Convert files to tab indented
+          instead of spaces. (e755fe5)
+
+2022-06-28 Daniel Teichmann
+
+        * Merge branch 'dev' into 'main' (6d6dca6)
+        * setup-nextcloud-hpb.sh: Check SHOULD_INSTALL_* before writing
+          arbitrary data into secrets file. (50e67a9)
+        * src/setup-certbot.sh: print_info & write_secrets_to_file: Output
+          email address(es). (85cfc6b)
+        * src/setup-nginx.sh: Improve print_info() (1de1e4d)
+        * src/setup-signaling.sh: Improve print_info & write_secrets_to_file
+          texts. (c4cc78a)
+        * settings.sh, setup-nextcloud-hpb.sh: Hint that multi email
+          addresses are supported. (bbcca9f)
+        * src/setup-certbot.sh: Fix incorrect bash syntax & move certbot
+          command into own function. (c7114e9)
+        * src/setup-certbot.sh: Use correct quoting for CERTBOT_COMMAND.
+          (a438ca6)
+        * {src/setup-certbot.sh, setup-nextcloud-hpb.sh, settings.sh}: Ask
+          email address of user. (4435512)
+        * src/setup-certbot.sh: Log Certbot arguments. (c9b82e4)
+
+2022-06-27 Daniel Teichmann
+
+        * src/setup-signaling.sh: Fix copy&paste accident. (af1c996)
+        * src/setup-signaling.sh: Create directory bevor trying to write in
+          it. (12135f3)
+        * {setup-nextcloud-hpb.sh, src/setup-{collabora, signaling,
+          nginx}.sh}: Move service restarts into main file.
+          (3eed459)
+        * src/setup-signaling.sh: Fix is_dry_run checks. (8a9188d)
+        * {src/setup-signaling.sh, data/signaling/{turnserver.conf,
+          coturn-certbot-deploy.sh}}: Make SSL certs available for
+          coturn. (c2aefa7)
+
+2022-06-24 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Override settings file in non-unattended
+          mode. (fd72579)
+        * src/setup-nginx.sh: Rephrase print_info text. (30415f9)
+        * {setup-nextcloud-hpb.sh, src/setup*.sh}: Move SHOULD_INSTALL* check
+          into main function. (8faf689)
+        * {setup-nextcloud-hpb.sh, src/setup*.sh}: Improve print_info text.
+          (5cf6fe5)
+        * src/setup-certbot.sh: Handle a bug where Nginx is already
+          configured but Certbot not. (be54d21)
+        * settings.sh: Adjust default URL's to match dialogs. (9eef89a)
+        * src/setup-certbot.sh: Actually log Certbot output + Put small text
+          into print_info. (2c2b150)
+        * setup-nextcloud-hpb.sh: Swap Nginx and Certbot installation order.
+          (6b08b83)
+        * setup-nextcloud-hpb.sh: Rephrase dialog text. (aea58e8)
+        * setup-nextcloud-hpb.sh: Remove default SSL cert file paths + Adjust
+          dialog text. (7837465)
+        * data/nginx/nextcloud-hpb.conf: Fix Nginx config (including
+          non-existing acme-tiny config). (f3973ac)
+        * data/nginx/nextcloud-hpb.conf: Fix Nginx config (duplicate
+          server_tokens). (62d9b09)
+        * src/setup-signaling.sh: Make sure ssl-cert package is installed.
+          (a0080e0)
+        * data/nginx/nextcloud-hpb.conf: Harden Nginx server. (e544ffc)
+        * {src/setup-nginx.sh, data/nginx/nextcloud-hpb.conf}: Rename
+          HOST_FQDN to SERVER_FQDN. (4b16e30)
+        * src/setup-nginx.sh: Certbot specify domain in unattended mode.
+          (05172f2)
+        * src/setup-nginx.sh: Use certbot non-interactive mode if unattended
+          install. (b32ee9e)
+
+2022-06-23 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Add CTRL-C to answer possibilities +
+          actually tell that certbot&ngingx are getting installed
+          too. (bdac8b2)
+        * src/setup-certbot.sh: Remove debug set-x; {setup-nextcloud-hpb.sh,
+          settings.sh}: Adjust default SSL certificate paths.
+          (de4c369)
+        * src/setup-certbot.sh: Fix certbot command. (38fc2cb)
+        * {setup-nextcloud-hpb.sh, src/setup-certbot.sh}: Implement basic
+          certbot setup. (54c85a7)
+        * src/setup-signaling.sh: Fix print_info text. (8ff8d05)
+        * src/setup-{collabora, signaling}.sh: Improve print_info text & Fix
+          signaling_write_secrets_to_file(). (031175e)
+        * setup-nextcloud-hpb.sh: Improve secrets file texts & use -v option
+          for rm. (8785724)
+        * src/setup-nginx.sh: Detect faulty nginx restart. (17abf89)
+        * src/setup-{collabora, signaling}.sh: Fix info texts. (a36bdf6)
+        * setup-nextcloud-hpb.sh: Quote main() call's first param. (4b60707)
+        * setup-nextcloud-hpb.sh: Create secrets file before trying to alter
+          it's permissions. (3d862f7)
+        * setup-nextcloud-hpb.sh: Fix Overwrite (53bcaf2)
+        * setup-nextcloud-hpb.sh: s/can/should/g for SECRETS_FILE_PATH
+          dialog. (cbd5b85)
+        * src/setup-signaling.sh: Don't actually log passwords. (8418cbd)
+        * src/setup-signaling.sh: Don't 'touch' file while in dry_run mode.
+          (0291386)
+        * {src/setup-{collabora, signaling}, setup-nextcloud-hpb.sh}: Improve
+          dialogs and improve info texts. (f1835c6)
+        * {settings.sh, src/setup*, setup-nextcloud-hpb.sh}: Add secrets file
+          support. (9dbc822)
+        * settings.sh: Update SSL_CERT_PATH. (608e862)
+
+2022-06-22 Daniel Teichmann
+
+        * {settings.sh, setup-nextcloud-hpb.sh}: Implement preseeding and
+          dialogs. (487276c)
+        * setup-nextcloud-hpb.sh: Log into logfile even if it isn't a
+          unattended install. (eb25f91)
+        * src/setup-signaling.sh: Fix missing directory creation & Remove
+          'wss://' prefix from STUN-Server in signaling_print_info.
+          (d1ef8ea)
+
+2022-06-20 Daniel Teichmann
+
+        * src/setup-signaling.sh: Use wget instead of curl, since it's
+          already installed on most systems. (6b3661f)
+        * src/setup-{collabora, signaling}.sh: Make sure dry mode gets
+          respected + Make files non-executable. (8381779)
+        * {src/*, setup-nextcloud-hpb.sh}: Update post-setup info texts.
+          (e3e9333)
+        * data/signaling/turnserver.conf: Allow connections from localhos.
+          data/signaling/janus.jcfg: Configure log file. (f3af79c)
+
+2022-06-15 Daniel Teichmann
+
+        * data/signaling/signaling-server.conf: Fix invalid config syntax.
+          (c08a742)
+        * {src/setup-signaling.sh, data/signaling/turnserver.conf}: Add IPv4
+          and IPv6 addresses to coturn config. (ac8d7ed)
+        * src/setup-{collabora, nginx}.sh: Fix typo. (f5064bd)
+        * src/setup-*.sh: Add service restarting after setu.
+          setup-nextcloud-hpb.sh: Make Nginx the last install
+          target. (1e84969)
+        * data/signaling/janus.jcfg: Wrap stun_server param in quotes.
+          (ec63157)
+
+2022-06-14 Daniel Teichmann
+
+        * src/setup-signaling.sh: Add coturn installation. (0517033)
+        * {data/signaling/*, src/setup-{nginx, signaling}}: Split
+          upstream-server portion into own file; data/nginx/*:
+          Upgrade Nginx config to support Letsencrypt SSL certs.
+          (6279b1c)
+        * data/nginx/nextcloud-hpb.conf: Switch to self-signed SSL certs
+          until we have a working SSL config. (abe2c75)
+        * src/setup-signaling.sh: Add inital Signaling setup. (6708a08)
+        * data/signaling: Add initial Signaling configuration. (63068cf)
+
+2022-06-10 Daniel Teichmann
+
+        * {src/setup-collabora.sh, setup-nextcloud-hpb.sh}: Move /etc/hosts
+          stuff into main file. (d6bd416)
+        * src/setup-collabora.sh: Warn about potential HTTPS issue in info
+          text. (461d664)
+        * src/setup-collabora.sh: Remove janus and nats-server references.
+          (1e14ebf)
+        * Makefile (install): Remove 'sudo' dependency since we check for
+          root either way. (fde3d29)
+        * {setup-nextcloud-hpb.sh, src/setup-collabora.sh}: Append
+          'COLLABORA_' to constants to avoid conflicts. (fc0af47)
+
+2022-06-09 Daniel Teichmann
+
+        * src/setup_{collabora, nginx}.sh: Make enabling of services
+          non-essential (for chroots for example). (179f3dc)
+        * .gitignore: Ignore tmp/ dir. (6a948f2)
+        * src/setup_nginx.sh: Split nginx installation into steps. (8da9b67)
+        * src/setup-{collabora, nginx}.sh: Move sed-commands into nginx
+          setup. (bbc581d)
+        * {src/setup-nginx.sh, data/nginx/nextcloud-hpb.conf}: Only include
+          nginx snippets if necessary. (70e0c1d)
+        * src/setup-nginx.sh: Fix print_info function. (b933a44)
+        * src/signaling.sh: Fix copy&paste mistake. (7fcdba6)
+        * src/setup-{nginx, collabora}.sh, setup-nextcloud-hpb.sh: Improve
+          log messages; Include nginx setup to sourcing-list.
+          (ff47c56)
+        * Extract nginx setup; Move nginx+collabora URL's from /* into
+          /collabora/*. (b653fcb)
+        * {src/*, setup-nextcloud-hpb.sh}: Move $TMP_DIR_PATH into main
+          script. (bf35b48)
+        * Makefile: Fix target clean not checking for root. (63a84c4)
+        * src/setup-collabora.sh: Adding hostname to /etc/hosts entry.
+          (0762310)
+        * src/setup-collabora.sh: Fix asking for user input in
+          UNATTENTED_INSTALL mode. (2144a06)
+        * setup-nextcloud-hpb.sh: Enable newlines for logging; src/setup_*:
+          Add print_info function and prettify logging. (284b3aa)
+        * data/collabora/collabora-server.conf: Fix Collabora nginx config.
+          (b8ef88b)
+
+2022-06-08 Daniel Teichmann
+
+        * src/setup-sh.de: Deploy coolwsd config. (920d34c)
+        * data/collabora/collabora-server.conf: Actually use http instead of
+          https and display blank page for /. (55b4259)
+        * src/setup-collabora.sh: Deploy 127.0.1.1 <FQDN> entry in
+          /etc/hosts. (b96be2c)
+        * src/setup-collabora.sh: Prevent exiting script on already-deployed
+          configs. (de66cf8)
+        * setup-collabora.sh: Fix incorrect bash syntax. (99329e8)
+        * src/setup-collabora.sh,data/{robots.txt, index.html}: Deploy new
+          default page which is intentionally left blank. (fadbd5d)
+        * setup-nextcloud-hpb.sh: Implement quick hack for unreleased
+          bookworm. (cc42f62)
+        * setup-nextcloud-hpb.sh: Make file executable. (9cb2b32)
+        * data/collabora-server.conf: Add nginx reverse-proxy server confi.
+          src/setup-collabora.sh: Add step 5. (9f79205)
+        * setup-nextcloud-hpb.sh: Add 'deploy_file' function. (390d90a)
+        * Makefile: Check for root rights for all targets. (85c9b50)
+        * Makefile: add simple 'install' target. (4660d87)
+        * Makefile: add simple clean target. (af43ed1)
+
+2022-06-07 Daniel Teichmann
+
+        * {src/*, setup-nextcloud-hpb.sh}: Convert lowercase constants to
+          uppercase. (2396783)
+
+2022-06-02 Daniel Teichmann
+
+        * Add src/setup-{collabora,signaling}.sh; setup-nextcloud-hpb.sh:
+          Source src/* scripts. (ff8a882)
+        * setup-nextcloud-hpb.sh: Cosmetic changes. (7f82215)
+
+2022-05-24 Daniel Teichmann
+
+        * Initial script; Rename: setup.sh.in -> setup-nextcloud-hpb.sh.
+          (5830bd8)
+
+2022-05-10 Daniel Teichmann
+
+        * Add .gitignore: Exclude log files and the .vscode/ dir. (1df84a7)
+        * Initial commit. (a3e5de0)
