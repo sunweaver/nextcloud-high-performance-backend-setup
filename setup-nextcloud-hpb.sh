@@ -23,6 +23,8 @@ EMAIL_ADDRESS=""     # Ask user
 DISABLE_SSH_SERVER=false
 SIGNALING_BUILD_FROM_SOURCES="" # Ask user
 
+SETUP_VERSION=$(cat VERSION | head -n 1 | tr '\n' ' ')
+
 function show_dialogs() {
 	if [ "$LOGFILE_PATH" = "" ]; then
 		if [ "$UNATTENTED_INSTALL" = true ]; then
@@ -345,6 +347,8 @@ function is_dry_run() {
 }
 
 function main() {
+	log "Nextcloud HPB setup script version: $SETUP_VERSION"
+
 	check_root_perm
 
 	check_debian_system
