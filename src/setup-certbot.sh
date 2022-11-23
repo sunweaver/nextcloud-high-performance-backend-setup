@@ -106,6 +106,9 @@ function certbot_step2() {
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/archive
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/live
 	is_dry_run || find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
+
+	deploy_file "$TMP_DIR_PATH"/certbot/deploy-hook-certbot.sh /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh || true
+	is_dry_run || chmod 750 /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh
 }
 
 # arg: $1 is secret file path
