@@ -70,7 +70,7 @@ function install_certbot() {
 
 	log "\nStep 2: Configuring Certbot"
 
-	if ! run_certbot_command; then
+	if ! run_certbot_command && ! is_dry_run; then
 		log "Something wen't wrong while starting Certbot."
 
 		if [ "$UNATTENTED_INSTALL" != true ]; then
@@ -88,11 +88,11 @@ function install_certbot() {
 	fi
 
 	log "Making SSL certificates available for 'ssl-cert' group."
-	chmod 0750 /etc/letsencrypt/archive
-	chmod 0750 /etc/letsencrypt/live
-	chown -R :ssl-cert /etc/letsencrypt/archive
-	chown -R :ssl-cert /etc/letsencrypt/live
-	find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
+	is_dry_run || chmod 0750 /etc/letsencrypt/archive
+	is_dry_run || chmod 0750 /etc/letsencrypt/live
+	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/archive
+	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/live
+	is_dry_run || find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
 
 	log "Certbot install completed."
 }
