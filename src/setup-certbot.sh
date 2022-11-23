@@ -99,8 +99,10 @@ function certbot_step2() {
 	fi
 
 	log "Making SSL certificates available for 'ssl-cert' group."
-	is_dry_run || chmod 0750 /etc/letsencrypt/archive
-	is_dry_run || chmod 0750 /etc/letsencrypt/live
+	is_dry_run || chmod 2750 /etc/letsencrypt/archive
+	is_dry_run || chmod 2750 /etc/letsencrypt/live
+	is_dry_run || find /etc/letsencrypt/archive -type d -exec chmod 2750 {} +
+	is_dry_run || find /etc/letsencrypt/live -type d -exec chmod 2750 {} +
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/archive
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/live
 	is_dry_run || find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
