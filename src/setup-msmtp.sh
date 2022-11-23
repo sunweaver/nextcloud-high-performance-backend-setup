@@ -114,7 +114,7 @@ END
         set -e
 
         dialog_text=$(echo -e "We couldn't send an email to you successfully. $(
-        )So therefore is no working email setup on this system! \n$(
+        )So therefore there is no working email setup on this system! \n$(
         )Please check your email configuration and password. Also make sure $(
         )your SMTP server is online.\n$(
         )Please check any error messages printed by msmtp (email client).\n\n$(
