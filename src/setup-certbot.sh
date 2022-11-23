@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Warning: recursive function
+# $1 can enable staging certificates arguments for certbot if $1 = "true".
 function run_certbot_command() {
 	arg_dry_run=""
 	if is_dry_run; then
@@ -13,8 +15,24 @@ function run_certbot_command() {
 		arg_interactive="--force-interactive $CERTBOT_AGREE_TOS"
 	fi
 
+	arg_staging=""
+	if [ "$1" == "true" ]; then
+		arg_staging="--staging --break-my-certs"
+	fi
+
+	error_message_ratelimited=$(echo -e "You have issued too many certificates already $(
+	)in the last 168 hours. You have to wait before you can issue another certificate.\n$(
+	)Please see https://letsencrypt.org/docs/duplicate-certificate-limit/")
+
+	error_message_ratelimited_extra=$(echo -e "\nIf you are currently testing: $(
+	)Do you want to enable testing certificates?\n\n$(
+	)PROCEED WITH CAUTION! You will break your current SSL certificates if you $(
+	)choose to enable testing certificates.")
+
+	error_title_ratelimited="LetsEncrypt rate limit reached!"
+
 	# RSA certificate
-	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
+	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
 		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
@@ -23,11 +41,28 @@ function run_certbot_command() {
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
 	if ! certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+		# Checking if Certbot reported rate limit error
+		# Let the user decide if they want staging certificates (for testing
+		# purposes for example).
+		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+		if [ -n "$error_ratelimited" ]; then
+			if [ "$UNATTENTED_INSTALL" != true ]; then
+				if whiptail --title "$error_title_ratelimited" --defaultno \
+					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
+					# Recursively call this function
+					run_certbot_command "true"
+					return 0
+				fi
+			else
+				log "$error_message_ratelimited"
+			fi
+		fi
+
 		return 1
 	fi
 
 	# ECDSA certificate
-	certbot_args=(certonly --nginx $arg_interactive $arg_dry_run
+	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
 		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
@@ -36,18 +71,50 @@ function run_certbot_command() {
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
 	if ! certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+		# Checking if Certbot reported rate limit error
+		# Let the user decide if they want staging certificates (for testing
+		# purposes for example).
+		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+		if [ -n "$error_ratelimited" ]; then
+			if [ "$UNATTENTED_INSTALL" != true ]; then
+				if whiptail --title "$error_title_ratelimited" --defaultno \
+					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
+					# Recursively call this function
+					run_certbot_command "true"
+					return 0
+				fi
+			else
+				log "$error_message_ratelimited"
+			fi
+		fi
+
 		return 1
 	fi
 
 	# Force renewal of certificates
-	certbot_args=(renew --force-renewal $arg_dry_run)
+	certbot_args=(renew --force-renewal $arg_staging $arg_interactive $arg_dry_run)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
 	if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
 		return 0
 	else
-		return 1
+		# Checking if Certbot reported rate limit error
+		# Let the user decide if they want staging certificates (for testing
+		# purposes for example).
+		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+		if [ -n "$error_ratelimited" ]; then
+			if [ "$UNATTENTED_INSTALL" != true ]; then
+				if whiptail --title "$error_title_ratelimited" --defaultno \
+					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
+					# Recursively call this function
+					run_certbot_command "true"
+					return 0
+				fi
+			else
+				log "$error_message_ratelimited"
+			fi
+		fi
 	fi
 }
 
