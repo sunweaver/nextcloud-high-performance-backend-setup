@@ -55,17 +55,17 @@ function install_certbot() {
 	log "Installing Certbot…"
 
 	log "\nStep 1: Installing Certbot packages"
-	packages_to_install="python3-certbot-nginx certbot ssl-cert"
+	packages_to_install=(python3-certbot-nginx certbot ssl-cert)
 	if ! is_dry_run; then
 		if [ "$UNATTENTED_INSTALL" == true ]; then
 			log "Trying unattended install for Certbot."
 			export DEBIAN_FRONTEND=noninteractive
-			apt-get install -qqy "$packages_to_install" 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install -qqy "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
 		else
-			apt-get install -y "$packages_to_install" 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install -y "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
 		fi
 	else
-		log "Would have installed '$packages_to_install' via APT now."
+		log "Would have installed '${packages_to_install[@]}' via APT now."
 	fi
 
 	log "\nStep 2: Configuring Certbot"
