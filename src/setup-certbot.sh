@@ -54,6 +54,13 @@ function run_certbot_command() {
 function install_certbot() {
 	log "Installing Certbot…"
 
+	certbot_step1
+	certbot_step2
+
+	log "Certbot install completed."
+}
+
+function certbot_step1() {
 	log "\nStep 1: Installing Certbot packages"
 	packages_to_install=(python3-certbot-nginx certbot ssl-cert)
 	if ! is_dry_run; then
@@ -67,8 +74,12 @@ function install_certbot() {
 	else
 		log "Would have installed '${packages_to_install[@]}' via APT now."
 	fi
+}
 
+function certbot_step2() {
 	log "\nStep 2: Configuring Certbot"
+
+	generate_dhparam_file
 
 	if ! run_certbot_command && ! is_dry_run; then
 		log "Something wen't wrong while starting Certbot."
@@ -93,8 +104,6 @@ function install_certbot() {
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/archive
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/live
 	is_dry_run || find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
-
-	log "Certbot install completed."
 }
 
 # arg: $1 is secret file path
