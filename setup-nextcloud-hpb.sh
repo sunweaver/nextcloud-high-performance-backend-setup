@@ -325,6 +325,27 @@ function log() {
 	echo -e "$@" 2>&1 | tee -a $LOGFILE_PATH
 }
 
+function generate_dhparam_file() {
+	if [ "$BUILT_DHPARAM_FILE" == "true" ]; then
+		# Skip if we already generated dhparam file.
+		return 0
+	fi
+
+	if [ -s "$DHPARAM_PATH" ]; then
+		# Rebuilding dhparam file.
+		log "Removing old dhparam file at '$DHPARAM_PATH'."
+		rm -fv "$DHPARAM_PATH" 2>&1 | tee -a "$LOGFILE_PATH"
+	fi
+
+	log "Generating new dhparam file…"
+	is_dry_run || mkdir -p "$(dirname $DHPARAM_PATH)"
+	is_dry_run || touch "$DHPARAM_PATH"
+	is_dry_run || openssl dhparam -dsaparam -out "$DHPARAM_PATH" 4096
+	is_dry_run || chmod 644 "$DHPARAM_PATH"
+
+	BUILT_DHPARAM_FILE="true"
+}
+
 # Deploys target_file_path to source_file_path while respecting
 # potential custom user config.
 # param 1: source_file_path

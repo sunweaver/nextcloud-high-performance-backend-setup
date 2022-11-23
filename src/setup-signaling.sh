@@ -265,9 +265,7 @@ function signaling_step4() {
 		is_dry_run || mkdir -p "$COTURN_DIR"
 	fi
 
-	is_dry_run || mkdir -p "$(dirname $DHPARAM_PATH)"
-	is_dry_run || touch "$DHPARAM_PATH"
-	is_dry_run || openssl dhparam -dsaparam -out "$DHPARAM_PATH" 4096
+	generate_dhparam_file
 
 	is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
 	is_dry_run || chmod -R 740 "$COTURN_DIR"

@@ -25,6 +25,9 @@ function nginx_step1() {
 
 function nginx_step2() {
 	log "\nStep 2: Prepare configuration"
+
+	generate_dhparam_file
+
 	include_snippet_signaling_forwarding=""
 	include_snippet_signaling_upstream_servers=""
 	if [ "$SHOULD_INSTALL_SIGNALING" == true ]; then
