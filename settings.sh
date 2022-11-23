@@ -61,6 +61,7 @@ EMAIL_USER_USERNAME=""
 # The SMTP server to send the emails to.
 EMAIL_SERVER_HOST=""
 # The port on which we will try to connect to the SMTP server.
+#EMAIL_SERVER_PORT="25"
 #EMAIL_SERVER_PORT="587"
 
 # Should the ssh service be disabled?
