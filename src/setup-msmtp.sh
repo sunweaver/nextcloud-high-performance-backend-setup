@@ -96,9 +96,7 @@ function msmtp_step4() {
 function msmtp_step5() {
     log "\nStep 5: Test msmtp configuration"
 
-    from_address="$EMAIL_USER_ADDRESS"
-
-    msmtp_arguments=(root --from="$from_address" -X "$LOGFILE_PATH")
+    msmtp_arguments=(root -X "$LOGFILE_PATH")
     if is_dry_run; then
         msmtp_arguments+=(--pretend)
     fi
