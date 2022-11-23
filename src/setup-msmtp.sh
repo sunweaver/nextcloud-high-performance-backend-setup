@@ -97,13 +97,41 @@ function msmtp_step5() {
     log "\nStep 5: Test msmtp configuration"
 
     from_address="$EMAIL_USER_ADDRESS"
-    is_dry_run || msmtp root -f "$from_address" -X "$LOGFILE_PATH" <<END
+
+    msmtp_arguments=(root --from="$from_address" -X "$LOGFILE_PATH")
+    if is_dry_run; then
+        msmtp_arguments+=(--pretend)
+    fi
+
+    set +e
+    msmtp "${msmtp_arguments[@]}" <<END
 Subject: Test email sent by Nextcloud high-performance-backend setup.
 Mime-Version: 1.0
 Content-Type: text/html
 
 $(cat "$TMP_DIR_PATH"/msmtp/test-email.html)
 END
+
+    if [ ! "$?" -eq 0 ]; then
+        set -e
+
+        dialog_text=$(echo -e "We couldn't send an email to you successfully. $(
+        )So therefore is no working email setup on this system! \n$(
+        )Please check your email configuration and password. Also make sure $(
+        )your SMTP server is online.\n$(
+        )Please check any error messages printed by msmtp (email client).\n\n$(
+        )The configuration file for msmtp is located at: '/etc/msmtprc'.")
+
+        if [ "$UNATTENTED_INSTALL" != true ]; then
+            whiptail --title "MSMTP configuration fail\!" \
+                --msgbox "$dialog_text" \
+                15 65
+        else
+            log "$dialog_text"
+        fi
+    fi
+
+    set -e
 }
 
 # arg: $1 is secret file path
