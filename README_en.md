@@ -10,7 +10,7 @@ This script installs the Nextcloud High Performance Backend with its own coturn 
 
 The Nextcloud HPB can be installed as a Debian package (only Debian Unstable) or from the current source code (for Debian Stable). The Collabora package is always installed as the latest package from the stable branch. Please note that Collabora Office in this version is limited to 20 users working simultaneously. Of course, you can also expand this at any time with a license key.
 
-[**Here in the wiki you will find detailed installation instructions!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script)
+[**Here in the wiki you will find detailed installation instructions in German!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script)
 
 [**You can download the newest version of the script here**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/releases)
 
