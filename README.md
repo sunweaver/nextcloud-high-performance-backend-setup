@@ -48,7 +48,7 @@ Wenn der Server einmal konfiguriert ist, braucht man im Idealfall auch kein Admi
 
 **Beispiel-Anwendungs-Szenario:**
 
-[Nextcloud mit Videokonferenz (Talk) und Anbindung an das Schulportal Hessen finanziert von Förderverein der Schule!](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/04-Bsp-Anwendungen)
+[Nextcloud mit Videokonferenz (Talk) und Anbindung an das Schulportal Hessen finanziert von Förderverein der Schule!](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/05-Bsp-Anwendungen)
 
  
 **Spenden oder Beteiligen:**
