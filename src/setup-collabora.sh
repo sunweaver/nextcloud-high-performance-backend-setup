@@ -125,10 +125,13 @@ function collabora_step5() {
 
 # arg: $1 is secret file path
 function collabora_write_secrets_to_file() {
-	# No secrets, passwords, keys or something to worry about.
 	if is_dry_run; then
 		return 0
 	fi
+
+	conf_path="/etc/coolwsd/coolwsd.xml"
+	echo -e "=== Collabora ===" >>$1
+	echo -e "Coolwsd.xml configuration file: $conf_path" >>$1
 }
 
 function collabora_print_info() {
