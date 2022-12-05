@@ -8,5 +8,8 @@ Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::Automatic-Reboot "true";
 Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
 Unattended-Upgrade::Automatic-Reboot-Time "05:00";
+# Don't erase generated configuration files
+# if there is a new version available
+Dpkg::Options {"--force-confold"};
 
 <UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES>
