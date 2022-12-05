@@ -6,7 +6,7 @@ set -eo pipefail
 # Can be overridden by specifying a settings file as first parameter.
 # See settings.sh
 DRY_RUN=false
-UNATTENTED_INSTALL=false
+UNATTENDED_INSTALL=false
 NEXTCLOUD_SERVER_FQDNS=""  # Ask user
 SERVER_FQDN=""             # Ask user
 SSL_CERT_PATH_RSA=""       # Will be auto filled, if not overriden by settings file.
@@ -31,7 +31,7 @@ SETUP_VERSION=$(cat VERSION | head -n 1 | tr '\n' ' ')
 
 function show_dialogs() {
 	if [ "$LOGFILE_PATH" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing LOGFILE_PATH!"
 			exit 1
@@ -49,7 +49,7 @@ function show_dialogs() {
 	log "Using '$LOGFILE_PATH' for LOGFILE_PATH"
 
 	if [ "$DRY_RUN" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm missing DRY_RUN!"
 			exit 1
 		fi
@@ -65,7 +65,7 @@ function show_dialogs() {
 	log "Using '$DRY_RUN' for DRY_RUN".
 
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing NEXTCLOUD_SERVER_FQDNS!"
 			exit 1
@@ -85,7 +85,7 @@ function show_dialogs() {
 	log "Using '$NEXTCLOUD_SERVER_FQDNS' for NEXTCLOUD_SERVER_FQDNS".
 
 	if [ "$SERVER_FQDN" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing SERVER_FQDN!"
 			exit 1
@@ -156,7 +156,7 @@ function show_dialogs() {
 	fi
 
 	if [ "$TMP_DIR_PATH" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing TMP_DIR_PATH!"
 			exit 1
@@ -173,7 +173,7 @@ function show_dialogs() {
 	log "Using '$TMP_DIR_PATH' for TMP_DIR_PATH".
 
 	if [ "$SECRETS_FILE_PATH" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing SECRETS_FILE_PATH!"
 			exit 1
@@ -191,7 +191,7 @@ function show_dialogs() {
 
 	# - E-Mail stuff below -
 	if [ "$EMAIL_USER_ADDRESS" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing EMAIL_USER_ADDRESS!"
 			exit 1
@@ -210,7 +210,7 @@ function show_dialogs() {
 	log "Using '$EMAIL_USER_ADDRESS' for EMAIL_USER_ADDRESS".
 
 	if [ "$EMAIL_USER_PASSWORD" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing EMAIL_USER_PASSWORD!"
 			exit 1
@@ -226,7 +226,7 @@ function show_dialogs() {
 	log "Using '$EMAIL_USER_PASSWORD' for EMAIL_USER_PASSWORD".
 
 	if [ "$EMAIL_USER_USERNAME" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing EMAIL_USER_USERNAME!"
 			exit 1
@@ -243,7 +243,7 @@ function show_dialogs() {
 	log "Using '$EMAIL_USER_USERNAME' for EMAIL_USER_USERNAME".
 
 	if [ "$EMAIL_SERVER_HOST" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing EMAIL_SERVER_HOST!"
 			exit 1
@@ -258,7 +258,7 @@ function show_dialogs() {
 	log "Using '$EMAIL_SERVER_HOST' for EMAIL_SERVER_HOST".
 
 	if [ "$EMAIL_SERVER_PORT" = "" ]; then
-		if [ "$UNATTENTED_INSTALL" = true ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
 				"missing EMAIL_SERVER_PORT!"
 			exit 1
@@ -275,7 +275,7 @@ function show_dialogs() {
 
 	CERTBOT_AGREE_TOS=""
 	LETSENCRYPT_TOS_URL="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
-	if [ "$UNATTENTED_INSTALL" != true ]; then
+	if [ "$UNATTENDED_INSTALL" != true ]; then
 		if whiptail --title "Letsencrypt - Terms of Service" \
 			--yesno "Do you want to silently accept Letsencrypt's Terms of $(
 			)Service here? If you select 'no' here, the Terms of Service $(
@@ -289,7 +289,7 @@ function show_dialogs() {
 	log "Using '$CERTBOT_AGREE_TOS' for CERTBOT_AGREE_TOS."
 
 	if [ "$DISABLE_SSH_SERVER" != true ]; then
-		if [ "$UNATTENTED_INSTALL" != true ]; then
+		if [ "$UNATTENDED_INSTALL" != true ]; then
 			if whiptail --title "Deactivate SSH server?" --defaultno \
 				--yesno "Should the 'ssh' service be disabled?" \
 				10 70 3>&1 1>&2 2>&3; then
@@ -299,7 +299,7 @@ function show_dialogs() {
 	fi
 	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
 
-	if [ "$UNATTENTED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+	if [ "$UNATTENDED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
 			if whiptail --title "Build from sources?" --defaultno \
 				--yesno "The packages 'nextcloud-spreed-signaling' and $(
@@ -362,7 +362,7 @@ function deploy_file() {
 			log "$target_file_path was already deployed."
 			return 1
 		else
-			if [ "$UNATTENTED_INSTALL" = true ]; then
+			if [ "$UNATTENDED_INSTALL" = true ]; then
 				cp "$source_file_path" "$target_file_path"
 			else
 				log "file '$target_file_path' exists and will be updated deployed."
@@ -467,7 +467,7 @@ function main() {
 	if ! command -v whiptail &>/dev/null; then
 		log "whiptail could not be found! Trying to install it…"
 		if ! is_dry_run; then
-			if [ "$UNATTENTED_INSTALL" == true ]; then
+			if [ "$UNATTENDED_INSTALL" == true ]; then
 				log "Trying unattended install for 'whiptail'."
 				export DEBIAN_FRONTEND=noninteractive
 				args_apt="-qqy"
@@ -480,7 +480,7 @@ function main() {
 	fi
 
 	# Let's check if we should open dialogs.
-	if [ "$UNATTENTED_INSTALL" != true ]; then
+	if [ "$UNATTENDED_INSTALL" != true ]; then
 		# Override settings file!
 		SHOULD_INSTALL_UFW=false
 		SHOULD_INSTALL_COLLABORA=false
@@ -549,7 +549,7 @@ function main() {
 		log "Running in dry-mode. This script won't actually do anything on" \
 			"your system!"
 
-	if [ "$UNATTENTED_INSTALL" = true ]; then
+	if [ "$UNATTENDED_INSTALL" = true ]; then
 		log "Trying unattented installation."
 	fi
 

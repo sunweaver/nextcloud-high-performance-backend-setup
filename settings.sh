@@ -6,7 +6,7 @@ DRY_RUN=false
 
 # Should the script try to install the high-performance-backend server
 # without any user input?
-UNATTENTED_INSTALL=true
+UNATTENDED_INSTALL=true
 
 # General settings
 # Leave empty, if you wish that the user will be asked about this.
@@ -36,7 +36,7 @@ SHOULD_INSTALL_CERTBOT=true
 SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 SHOULD_INSTALL_MSMTP=true
 
-# Logfile get created if UNATTENTED_INSTALL is true.
+# Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
 LOGFILE_PATH="./setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 

@@ -62,7 +62,7 @@ function collabora_step3() {
 	#   - some dictionaries, German, English, French, Spanish, Dutch
 	#   - Microsoft fonts.
 	if ! is_dry_run; then
-		if [ "$UNATTENTED_INSTALL" == true ]; then
+		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Collabora."
 			export DEBIAN_FRONTEND=noninteractive
 			args_apt="-qqy"

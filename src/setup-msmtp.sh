@@ -41,7 +41,7 @@ function msmtp_step1() {
     #   - msmtp-mta
     #   - mailutils
     if ! is_dry_run; then
-        if [ "$UNATTENTED_INSTALL" == true ]; then
+        if [ "$UNATTENDED_INSTALL" == true ]; then
             log "Trying unattended install for msmtp etup."
             export DEBIAN_FRONTEND=noninteractive
             args_apt="-qqy"
@@ -120,7 +120,7 @@ END
         )Please check any error messages printed by msmtp (email client).\n\n$(
         )The configuration file for msmtp is located at: '/etc/msmtprc'.")
 
-        if [ "$UNATTENTED_INSTALL" != true ]; then
+        if [ "$UNATTENDED_INSTALL" != true ]; then
             whiptail --title "MSMTP configuration fail\!" \
                 --msgbox "$dialog_text" \
                 15 65

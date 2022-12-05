@@ -558,7 +558,7 @@
         * src/setup-collabora.sh: Adding hostname to /etc/hosts entry.
           (0762310)
         * src/setup-collabora.sh: Fix asking for user input in
-          UNATTENTED_INSTALL mode. (2144a06)
+          UNATTENDED_INSTALL mode. (2144a06)
         * setup-nextcloud-hpb.sh: Enable newlines for logging; src/setup_*:
           Add print_info function and prettify logging. (284b3aa)
         * data/collabora/collabora-server.conf: Fix Collabora nginx config.

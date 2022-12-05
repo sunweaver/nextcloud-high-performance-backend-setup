@@ -9,7 +9,7 @@ function run_certbot_command() {
 	fi
 
 	arg_interactive=""
-	if [ "$UNATTENTED_INSTALL" == true ]; then
+	if [ "$UNATTENDED_INSTALL" == true ]; then
 		arg_interactive="--non-interactive --agree-tos"
 	else
 		arg_interactive="--force-interactive $CERTBOT_AGREE_TOS"
@@ -46,7 +46,7 @@ function run_certbot_command() {
 		# purposes for example).
 		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
 		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENTED_INSTALL" != true ]; then
+			if [ "$UNATTENDED_INSTALL" != true ]; then
 				if whiptail --title "$error_title_ratelimited" --defaultno \
 					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
 					# Recursively call this function
@@ -76,7 +76,7 @@ function run_certbot_command() {
 		# purposes for example).
 		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
 		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENTED_INSTALL" != true ]; then
+			if [ "$UNATTENDED_INSTALL" != true ]; then
 				if whiptail --title "$error_title_ratelimited" --defaultno \
 					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
 					# Recursively call this function
@@ -104,7 +104,7 @@ function run_certbot_command() {
 		# purposes for example).
 		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
 		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENTED_INSTALL" != true ]; then
+			if [ "$UNATTENDED_INSTALL" != true ]; then
 				if whiptail --title "$error_title_ratelimited" --defaultno \
 					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
 					# Recursively call this function
@@ -131,7 +131,7 @@ function certbot_step1() {
 	log "\nStep 1: Installing Certbot packages"
 	packages_to_install=(python3-certbot-nginx certbot ssl-cert)
 	if ! is_dry_run; then
-		if [ "$UNATTENTED_INSTALL" == true ]; then
+		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Certbot."
 			export DEBIAN_FRONTEND=noninteractive
 			apt-get install -qqy "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
@@ -151,7 +151,7 @@ function certbot_step2() {
 	if ! run_certbot_command && ! is_dry_run; then
 		log "Something wen't wrong while starting Certbot."
 
-		if [ "$UNATTENTED_INSTALL" != true ]; then
+		if [ "$UNATTENDED_INSTALL" != true ]; then
 			log "Maybe the error is in the nextcloud-hpb.conf" \
 				"file (please read the error message above).\n"
 			read -p "Do you wish to delete this file:$(
