@@ -463,6 +463,22 @@ function main() {
 		log "No settings file specified using defaults or asking user for input."
 	fi
 
+	# Check 'whiptail' dependency
+	if ! command -v whiptail &>/dev/null; then
+		log "whiptail could not be found! Trying to install it…"
+		if ! is_dry_run; then
+			if [ "$UNATTENTED_INSTALL" == true ]; then
+				log "Trying unattended install for 'whiptail'."
+				export DEBIAN_FRONTEND=noninteractive
+				args_apt="-qqy"
+			else
+				args_apt="-y"
+			fi
+
+			apt-get install "$args_apt" whiptail 2>&1 | tee -a $LOGFILE_PATH
+		fi
+	fi
+
 	# Let's check if we should open dialogs.
 	if [ "$UNATTENTED_INSTALL" != true ]; then
 		# Override settings file!
