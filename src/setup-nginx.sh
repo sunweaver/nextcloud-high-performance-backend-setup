@@ -13,7 +13,7 @@ function install_nginx() {
 function nginx_step1() {
 	log "\nStep 1: Installing Nginx package"
 	if ! is_dry_run; then
-		if [ "$UNATTENTED_INSTALL" == true ]; then
+		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Nginx."
 			export DEBIAN_FRONTEND=noninteractive
 			apt-get install -qqy nginx ssl-cert 2>&1 | tee -a $LOGFILE_PATH

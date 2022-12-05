@@ -38,7 +38,7 @@ function unattendedupgrades_step1() {
 	# Installing:
 	#   - unattended-upgrades
 	if ! is_dry_run; then
-		if [ "$UNATTENTED_INSTALL" == true ]; then
+		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for unattended upgrades."
 			export DEBIAN_FRONTEND=noninteractive
 			args_apt="-qqy"

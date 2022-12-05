@@ -40,7 +40,7 @@ EOL
 
 		# Installing: golang-go make build-essential
 		if ! is_dry_run; then
-			if [ "$UNATTENTED_INSTALL" == true ]; then
+			if [ "$UNATTENDED_INSTALL" == true ]; then
 				log "Trying unattended install for Signaling."
 				export DEBIAN_FRONTEND=noninteractive
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
@@ -67,7 +67,7 @@ EOL
 		# - janus
 		# - ssl-cert
 		if ! is_dry_run; then
-			if [ "$UNATTENTED_INSTALL" == true ]; then
+			if [ "$UNATTENDED_INSTALL" == true ]; then
 				export DEBIAN_FRONTEND=noninteractive
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 					apt-get install -qqy ssl-cert 2>&1 | tee -a $LOGFILE_PATH
@@ -146,7 +146,7 @@ function signaling_build_coturn() {
 
 	# Installing: golang-go make build-essential
 	if ! is_dry_run; then
-		if [ "$UNATTENTED_INSTALL" == true ]; then
+		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Signaling."
 			export DEBIAN_FRONTEND=noninteractive
 			apt-get install -qqy cmake libssl-dev libevent-dev git 2>&1 | tee -a $LOGFILE_PATH
@@ -242,7 +242,7 @@ function signaling_step3() {
 	# - nextcloud-spreed-signaling
 	# - coturn
 	if ! is_dry_run; then
-		if [ "$UNATTENTED_INSTALL" == true ]; then
+		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Signaling."
 			export DEBIAN_FRONTEND=noninteractive
 			apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
