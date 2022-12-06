@@ -241,6 +241,6 @@
     </remote_config>
 
     <remote_font_config>
-        <url desc="URL of optional JSON file that lists fonts to be included in Online" type="string" default=""></url>
+<COLLABORA_REMOTE_CONFIGS>
     </remote_font_config>
 </config>
