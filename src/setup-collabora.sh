@@ -113,6 +113,21 @@ EOF
 	log "Replacing '<COLLABORA_HOST_DEFINITIONS>' with:\n${COLLABORA_HOST_DEFINITIONS[*]}"
 	sed -ri "s|<COLLABORA_HOST_DEFINITIONS>|${COLLABORA_HOST_DEFINITIONS[*]}|g" "$TMP_DIR_PATH"/collabora/*
 	unset IFS
+
+	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+		IFS= read -r -d '' COLLABORA_REMOTE_FONT_CONFIG <<EOF || true
+				<url desc="URL of optional JSON file that lists fonts to be included in Online" type="string" default="">https://$NC_SERVER/apps/richdocuments/settings/fonts.json</url>
+EOF
+
+		# Escape newlines for sed later on.
+		COLLABORA_REMOTE_FONT_CONFIG=$(echo "$COLLABORA_REMOTE_FONT_CONFIG" | sed -z 's|\n|\\n|g')
+		COLLABORA_REMOTE_FONT_CONFIGS+=("$COLLABORA_REMOTE_FONT_CONFIG")
+	done
+
+	IFS= # Avoid whitespace between definitions.
+	log "Replacing '<COLLABORA_REMOTE_FONT_CONFIGS>' with:\n${COLLABORA_REMOTE_FONT_CONFIGS[*]}"
+	sed -ri "s|<COLLABORA_REMOTE_FONT_CONFIGS>|${COLLABORA_REMOTE_FONT_CONFIGS[*]}|g" "$TMP_DIR_PATH"/collabora/*
+	unset IFS
 }
 
 function collabora_step5() {
