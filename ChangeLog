@@ -1,6 +1,158 @@
+2023-01-23 Mike Gabriel
+
+        * release 1.2.2 (HEAD -> main, tag: 1.2.2)
+        * Merge branch 'DecaTec-IT-office-remote_font_config' (24a7c0c)
+
+2022-12-11 DecaTec
+
+        * Avoid recurring NC domains in Collabora remote font config
+          (c6301c6)
+        * Variable naming (5c11737)
+
+2022-12-06 DecaTec
+
+        * Set (multiple) collabora remote_configs (d229b16)
+
+2022-12-12 PhilProg
+
+        * dumb version (8ae8f5f)
+
+2022-12-05 Mike Gabriel
+
+        * Correctly spell UNATTENDED. (8f44128) (tag: 1.2.1)
+
+2022-12-05 Daniel Teichmann
+
+        * data/unattended-upgrades/60unattended-upgrades-nextcloud-hpb-setup:
+          Don't erase old config files at upgrade. (fd613cd)
+          Fixes:
+          #74
+
+        * setup-nextcloud-hpb.sh: Check if whiptail is installed and if not,
+          install it. (976e4c3)
+          Fixes: #71
+
+        * src/setup-collabora.sh: Print Collabora configuration file into
+          secrets file. (9cfe8dc)
+          Fixes: #72
+
+2022-12-04 Mirco
+
+        * link fix (fded493)
+        * link fix (3643dec)
+
+2022-11-25 PhilProg
+
+        * README_en: Wiki is in German (ea588f0) (tag: 1.2)
+
+2022-11-25 Mirco
+
+        * dump version (053a93d)
+
+2022-11-23 Daniel Teichmann
+
+        * src/setup-certbot.sh: Handle LetsEcrypt rate limit + Implement
+          dialog which asks to enable staging certs. (b858580)
+          Fixes:
+          #58
+
+        * data/certbot/deploy-hook-certbot.sh: Add new deploy fil.
+          src/setup-certbot.sh: Deploy deploy-hook-certbot.sh file.
+          (7b83821)
+          Fixes: #50
+
+        * src/setup-certbot.sh: Find every directory under
+          /etc/letsencrypt/{archive, live}/ and make chmod 2750.
+          (2c08770)
+        * src/setup-msmtp.sh: Fix small typo in $dialog_text. (137f098)
+        * src/setup-msmtp.sh: Remove $from_address completely and let msmtp
+          decide. (10e53de)
+        * src/setup-msmtp.sh: Intercept msmtp if it failed and show error
+          dialog by default. (7326598)
+          Fixes: #63
+
+        * settings.sh: Add standard SMTP port 25 for EMAIL_SERVER_PORT.
+          (4ca7d8a)
+        * src/setup-certbot.sh: Split steps into own functions; Also generate
+          DHPARAM file for Certbot. (b07ce06)
+        * src/setup-{signaling, nginx}.sh, setup-nextcloud-hpb.sh: Move
+          dhparam generation into main file and prevent multiple
+          openssl calls. (a0501a4)
+        * src/setup-certbot.sh: Fixup for: 8c953c9b39. (98b1fac)
+        * src/setup-certbot.sh: Fix running setup-certbot in dry mode.
+          (457dd3f)
+        * src/setup-certbot.sh: Fix: Install needed 'ssl-cert' package too.
+          (cb39934)
+        * AUTHORS: Clean up AUTHORS file. (d59f886)
+
+2022-11-17 Daniel Teichmann
+
+        * src/setup-unattendedupgrades.sh: Enable Unattended-Upgrades for
+          Collabora. (3280796)
+        * src/setup-unattendedupgrades.sh: Introduce new style for
+          configuring unattended-upgrades. (dee620e)
+
+2022-11-18 Daniel Teichmann
+
+        * src/setup-signaling.sh: Don't build software if dry run is
+          activated. (0eb1c1f)
+        * src/setup-signaling.sh: Nats-Server building: Introduce
+          LATEST_RELEASE_TAG to make copying more precise &
+          Refactor. (bf1bd04)
+        * src/setup-msmtp.sh: Change From address to EMAIL_USER_ADDRESS for
+          test email. (65c43f1)
+          Fixes: #56
+
+2022-11-17 Daniel Teichmann
+
+        * All files: Ensure newline at the end of all files. (2ad198b)
+
+2022-11-16 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Update E-Mail dialog texts to give more
+          details. (9020d54)
+        * setup-nextcloud-hpb.sh: Fix formatting of '====' lines. (c8dd9ec)
+        * src/setup-nginx.sh: Fix copy&paste typo. (e45eb00)
+        * settings.sh: Fix whitespace; src/setup-msmtp.sh: Add
+          msmtp_print_info() & msmtp_write_secrets_to_file() text.
+          (25476cf)
+        * src/setup-msmtp.sh: Update msmtp_step5() to actually send a working
+          HTML email. (9a92912)
+        * data/msmtp/msmtprc, settings.sh, src/setup-msmtp.sh: Add
+          EMAIL_SERVER_PORT variable to customize the SMTP port.
+          (851f8df)
+        * settings.sh, setup-nextcloud-hpb.sh: Introduce msmtp setup.
+          (2d90dfa)
+        * Replace '↳' character with '-' character uniformly to ensure
+          maximum console support. (9b87f16)
+        * Rename $EMAIL_ADDRESS variable to $EMAIL_USER_ADDRESS. (d32ff9a)
+        * src/setup-msmtp.sh: Add msmtp setup draft. (43348fc)
+        * .gitignore: Ignore potential secrets files. (f566a52)
+
+2022-11-18 Daniel Teichmann
+
+        * src/setup-signaling.sh: Improve whitespacing of commands. (ca0af83)
+
+2022-11-16 Daniel Teichmann
+
+        * data/msmtp/{aliases, msmtprc, test-email.html}: New configuration
+          files. (c5c3f29)
+
+2022-11-21 Daniel Teichmann
+
+        * src/setup-collabora.sh: Execute apt update after enabling contrib.
+          (764e419)
+
+2022-11-18 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Fix Debian bookworm behaviou.
+          src/setup-collabora.sh: Implement hack for Debian 12.
+          (c77a273)
+          Fixes: #54
+
 2022-11-22 Mike Gabriel
 
-        * release 1.1.1 (HEAD -> main, tag: 1.1.1)
+        * release 1.1.1 (7a60130) (tag: 1.1.1)
 
 2022-11-22 Daniel Teichmann
 
@@ -558,7 +710,7 @@
         * src/setup-collabora.sh: Adding hostname to /etc/hosts entry.
           (0762310)
         * src/setup-collabora.sh: Fix asking for user input in
-          UNATTENDED_INSTALL mode. (2144a06)
+          UNATTENTED_INSTALL mode. (2144a06)
         * setup-nextcloud-hpb.sh: Enable newlines for logging; src/setup_*:
           Add print_info function and prettify logging. (284b3aa)
         * data/collabora/collabora-server.conf: Fix Collabora nginx config.
