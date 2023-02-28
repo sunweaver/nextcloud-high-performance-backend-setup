@@ -40,7 +40,7 @@ You are guided by 8 dialogues during the installation and then the packages are 
 
 As a company, association or school, you often just want to rent a Nextcloud from a provider. There are good offers e. g. at Hetzner ([Storage Box](https://www.hetzner.com/de/storage/storage-box)) or Ionos. These offer a lot of storage space, but the computing power is often severely restricted.
 
-The script can help here, as it outsources the missing performance-eating applications such as video conference (Talk) with more than 4 people and online office (Collabora Office) on our own server. Since you operate the server yourself, there are no DSGVO problems. Among other things, [Hetzner Cloud Servers](https://www.hetzner.com/de/cloud) are very suitable for the script.
+The script can help here, as it outsources the missing performance-eating applications such as video conference (Talk) with more than 4 people and online office (Collabora Office) on our own server. Since you operate the server yourself, there are no GDPR problems. Among other things, [Hetzner Cloud Servers](https://www.hetzner.com/de/cloud) are very suitable for the script.
 
 The script is also suitable for larger installations where the admin simply does not want to make the entire installation by hand. We stick strictly to the Debian requirements here so that later updates work smoothly. The script secures the server with the UFW firewall. In addition, you can also deactivate SSH access. Then you can only get access to the machine via the server console.
 
