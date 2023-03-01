@@ -443,6 +443,10 @@ function main() {
 
 	check_root_perm
 
+	# Make sure PATH is correctly set.
+	# There are VPS providers which alter the PATH env variable.
+	export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 	check_debian_system
 
 	# We need to test if nextcloud-signaling-spreed, coturn, nats-server and
