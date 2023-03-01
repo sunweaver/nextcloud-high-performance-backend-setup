@@ -121,7 +121,7 @@ END
         )The configuration file for msmtp is located at: '/etc/msmtprc'.")
 
         if [ "$UNATTENDED_INSTALL" != true ]; then
-            whiptail --title "MSMTP configuration fail\!" \
+            whiptail --title "MSMTP configuration fail!" \
                 --msgbox "$dialog_text" \
                 15 65
         else
