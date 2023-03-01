@@ -38,23 +38,23 @@ EOL
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
-		# Installing: golang-go make build-essential
+		# Installing: golang-go make build-essential wget curl
 		if ! is_dry_run; then
 			if [ "$UNATTENDED_INSTALL" == true ]; then
 				log "Trying unattended install for Signaling."
 				export DEBIAN_FRONTEND=noninteractive
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 					apt-get install -qqy -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-					apt-get install -qqy protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -qqy wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				else
-					apt-get install -qqy golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -qqy wget curl golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
 				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
 					apt-get install -y -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-					apt-get install -y protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -y wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				else
-					apt-get install -y golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -y wget curl golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			fi
 		fi
