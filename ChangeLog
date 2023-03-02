@@ -1,6 +1,27 @@
+2023-03-02 Daniel Teichmann
+
+        * release 1.2.3 (HEAD -> main)
+        * VERSION: Bump version number to 1.2.3. (ddfe631)
+
+2023-03-01 Daniel Teichmann
+
+        * src/setup-signaling.sh: Install wget and curl before trying to
+          build. (e828bf6)
+        * src/setup-msmpt.sh: Fix typo in error dialog title. (9a033ae)
+        * setup-nextcloud-hpb.sh: Always add necessary dirs to PATH env
+          variable. (fe898a2)
+
+2023-02-28 PhilProg
+
+        * README_en: Translate DSGVO correctly (65c9dbd)
+
+2023-01-24 PhilProg
+
+        * dumb version (773ab59)
+
 2023-01-23 Mike Gabriel
 
-        * release 1.2.2 (HEAD -> main, tag: 1.2.2)
+        * release 1.2.2 (a149c27) (tag: 1.2.2)
         * Merge branch 'DecaTec-IT-office-remote_font_config' (24a7c0c)
 
 2022-12-11 DecaTec
