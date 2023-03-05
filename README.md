@@ -7,7 +7,7 @@
 
 Dieses Skript installiert vollautomatisch das Nextcloud High Performance Backend mit eigenem Coturn- und Signaling-Server, sowie Collabora Office als Debian-Paket. Die Installation ist extra einfach gehalten und ermöglicht dadurch auch Anwendern mit wenig Unix-/Linux-Kenntnissen eine Installation in ca. 5 Minuten.
 
-Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktuellen Sourcen (für Debian Stable) installiert werden. Das Collabora-Paket wird immer als aktuellstes Paket aus dem Stable-Zweig installiert. Bitte beachten Sie, dass Collabora Office in dieser Version auf 20 gleichzeitig arbeitende Benutzer beschränkt ist. Dies können Sie natürlich durch eine Lizenz-Key auch jederzeit erweitern.
+Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktuellen Sourcen (für Debian Stable) installiert werden. Das Collabora-Paket wird immer als aktuellstes Paket aus dem Stable-Zweig installiert. Bitte beachten Sie, dass Collabora Office hier in der Community Version installiert wird. Dies können Sie natürlich durch eine Lizenz-Key auch jederzeit auf eine Proffesional Version erweitern.
 
 [**Hier im Wiki finden Sie eine detaillierte Installationsanleitung!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script)
 
