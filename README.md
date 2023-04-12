@@ -15,6 +15,7 @@ Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktue
 
 **Voraussetzungen für den Betrieb:**
 
+* Ein Server mit einer öffentlich Zugänglichen IP! (nicht für Systeme hinter einer Firewall oder Nat mit Privater Adresse)
 * Einen virtuellen oder physikalischen Server mit Debian 11 (Bullseye)
 * Eine Subdomain für den Server, auf dem das Skript installiert wird
 
