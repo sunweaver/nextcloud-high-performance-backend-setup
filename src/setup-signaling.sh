@@ -257,6 +257,9 @@ function signaling_step3() {
 function signaling_step4() {
 	log "\nStep 4: Prepare configuration"
 
+	# Make sure /etc/nginx/snippets/ is created
+	is_dry_run || mkdir -p /etc/nginx/snippets || true
+
 	# Make SSL certificates available for coturn
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ] && ! is_dry_run; then
 		mkdir -p "$COTURN_DIR/certs"
