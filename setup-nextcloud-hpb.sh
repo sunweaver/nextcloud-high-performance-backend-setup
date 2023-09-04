@@ -467,6 +467,7 @@ function main() {
 		log "No settings file specified using defaults or asking user for input."
 	fi
 
+	### INSTALL DEPENDENCIES
 	# Check 'whiptail' dependency
 	if ! command -v whiptail &>/dev/null; then
 		log "whiptail could not be found! Trying to install it…"
@@ -482,6 +483,23 @@ function main() {
 			apt-get install "$args_apt" whiptail 2>&1 | tee -a $LOGFILE_PATH
 		fi
 	fi
+
+	# Check 'wget' dependency
+	if ! command -v wget &>/dev/null; then
+		log "wget could not be found! Trying to install it…"
+		if ! is_dry_run; then
+			if [ "$UNATTENDED_INSTALL" == true ]; then
+				log "Trying unattended install for 'wget'."
+				export DEBIAN_FRONTEND=noninteractive
+				args_apt="-qqy"
+			else
+				args_apt="-y"
+			fi
+
+			apt-get install "$args_apt" wget 2>&1 | tee -a $LOGFILE_PATH
+		fi
+	fi
+	###
 
 	# Let's check if we should open dialogs.
 	if [ "$UNATTENDED_INSTALL" != true ]; then
