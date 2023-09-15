@@ -208,12 +208,16 @@ function signaling_build_nextcloud-spreed-signaling() {
 	fi
 
 	log "Creating '_signaling' account"
+	# TODO: If bullseye support is dropped sometime then this fix can be dropped too.
+	# if adduser >= 3.122; then use --allow-bad-names
+	# if not; then use --force-badname
+	badname_option="--allow-bad-names"
+	version=$(dpkg-query --show --showformat='${Version}' adduser)
+	if dpkg --compare-versions "$version" "lt" "3.122"; then
+		badname_option="--force-badname"
+	fi
 	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
-		--force-badname _signaling || true
-
-	# In some mysterious update they changed --allow-badname to --force-badname…
-	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
-		--allow-badname _signaling || true
+		"$badname_option" _signaling || true
 }
 
 #function signaling_step1() {
