@@ -7,16 +7,7 @@ function msmtp_do_preseed() {
     value="$4"
     is_dry_run ||
         echo $pkg $template $type "$value" | debconf-set-selections ||
-        log "Failed to load preseed '$template'"
-}
-
-function msmtp_do_reconfigure() {
-    package="$1"
-    log "Silently running dpkg-reconfigure on package $package…"
-    is_dry_run || dpkg -l $package 1>/dev/null 2>/dev/null && {
-        dpkg-reconfigure -fnoninteractive -pcritical $package &&
-            log "Reconfigure DONE" || log "Reconfigure FAILED"
-    }
+            log "Failed to preseed '$template'"
 }
 
 function install_msmtp() {
@@ -32,7 +23,15 @@ function install_msmtp() {
 }
 
 function msmtp_step1() {
-    log "\nStep 1: Installing msmtp package"
+    log "\nStep 1: Preseeding msmtp package."
+    if ! is_dry_run; then
+        # preseed package
+        msmtp_do_preseed msmtp msmtp/apparmor boolean true 2>&1 | tee -a $LOGFILE_PATH
+    fi
+}
+
+function msmtp_step2() {
+    log "\nStep 2: Installing msmtp package"
 
     is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
@@ -50,15 +49,6 @@ function msmtp_step1() {
         fi
 
         apt-get install "$args_apt" msmtp msmtp-mta mailutils 2>&1 | tee -a $LOGFILE_PATH
-    fi
-}
-
-function msmtp_step2() {
-    log "\nStep 2: Preseed and reconfigure msmtp package."
-    if ! is_dry_run; then
-        # preseed and reconfigure
-        msmtp_do_preseed msmtp msmtp/apparmor boolean false 2>&1 | tee -a $LOGFILE_PATH
-        msmtp_do_reconfigure msmtp 2>&1 | tee -a $LOGFILE_PATH
     fi
 }
 
