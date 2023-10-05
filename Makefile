@@ -1,4 +1,4 @@
-all: check_root clean
+all: check_root
 	@echo "Execute 'sudo make install' to start the setup."
 
 check_root:
