@@ -35,13 +35,7 @@ function collabora_step2() {
 	# 2. Add CODE package repositories
 	log "\nStep 2: Add CODE package repositories"
 
-	collabora_debian_major_version=$DEBIAN_MAJOR_VERSION
-	# Collabora doesn't have a repo for bookworm yet.
-	# FIXME: Remove this hack if Debian Bookworm is released! (or update to Debian 13…)
-	if [ "$collabora_debian_major_version" = "12" ]; then
-		collabora_debian_major_version="11"
-	fi
-	COLLABORA_REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-debian$collabora_debian_major_version"
+	COLLABORA_REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-deb"
 
 	log "Installing Collabora APT-Repo URL: '$COLLABORA_REPO_URL'…"
 	is_dry_run || cat <<EOF >$COLLABORA_SOURCES_FILE
