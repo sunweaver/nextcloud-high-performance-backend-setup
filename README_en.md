@@ -1,5 +1,8 @@
+# WARNING: The history of the 'dev' branch can be rewritten at anytime (force-push)!
+# Please use the 'main' branch or the releases at: https://github.com/sunweaver/nextcloud-high-performance-backend-setup/releases/
+
 <p align="center">
-  <a href="https://github.com/sunweaver/nextcloud-high-performance-backend-setup/blob/main/README.md">Deutsch</a> |
+  <a href="https://github.com/sunweaver/nextcloud-high-performance-backend-setup/blob/dev/README.md">Deutsch</a> |
   <span>English</span>
 </p>
 

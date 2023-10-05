@@ -1,6 +1,9 @@
+# ACHTUNG: Die Historie des 'dev'-Branches kann jederzeit überschrieben werden (force-push)!
+# Bitte verwende den 'main'-Branch bzw. die Releases: https://github.com/sunweaver/nextcloud-high-performance-backend-setup/releases/
+
 <p align="center">
   <span>Deutsch</span> |
-  <a href="https://github.com/sunweaver/nextcloud-high-performance-backend-setup/blob/main/README_en.md">English</a>
+  <a href="https://github.com/sunweaver/nextcloud-high-performance-backend-setup/blob/dev/README_en.md">English</a>
 </p>
 
 # Einfaches Setup für Nextcloud Hochleistungsbackend, Signaling & Collabora Office
