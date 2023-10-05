@@ -93,6 +93,9 @@ EOL
 		log "Reloading systemd."
 		systemctl daemon-reload | tee -a $LOGFILE_PATH
 	else
+		# Skipped because, we don't need sunweaver's packages anymore.
+		# The packages arived in official Debian repositories.
+		# TODO: This code should be removed soon IMHO.
 		#signaling_step1
 		#signaling_step2
 		signaling_step3
@@ -247,7 +250,7 @@ function signaling_step3() {
 
 	# Installing:
 	# - janus
-	# - nats Server
+	# - nats-server
 	# - nextcloud-spreed-signaling
 	# - coturn
 	if ! is_dry_run; then
