@@ -301,23 +301,19 @@ function show_dialogs() {
 
 	if [ "$UNATTENDED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
-			if whiptail --title "Build from sources?" --defaultno \
-				--yesno "The packages 'nextcloud-spreed-signaling' and $(
-				)'nats-server' are relatively new in Debian and therefore $(
-				)currently only available in Debian testing. Also the current $(
-				)version of 'coturn' does have some crashing issues. Do you $(
-				)wish to build and install the packages from sources?" \
-				13 65 3>&1 1>&2 2>&3; then
-				SIGNALING_BUILD_FROM_SOURCES=true
-			fi
+			whiptail --title "Building from sources." \
+				--msgbox "The package 'nextcloud-spreed-signaling' unfortunately is pretty $(
+				)old in Debian Stable right now. This will cause issues. Instead the $(
+				)package will get build and installed from sources." 13 65
 		else
-			whiptail --title "Build from sources?" \
+			whiptail --title "Building from sources." \
 				--msgbox "The packages 'nextcloud-spreed-signaling' and $(
 				)'nats-server' are not available in the package archive. The $(
 				)packages will get build and installed from sources." 13 65
-			SIGNALING_BUILD_FROM_SOURCES=true
 		fi
 	fi
+	SIGNALING_BUILD_FROM_SOURCES=true
+
 	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
 }
 
