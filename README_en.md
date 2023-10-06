@@ -3,7 +3,7 @@
   <span>English</span>
 </p>
 
-# Easy setup for Nextcloud High performance backend, Signaling & Collabora Office
+# Easy setup for Nextcloud High performance backend, Signaling & Collabora Office for Debian 12 (Bookworm)
 
 
 This script installs the Nextcloud High Performance Backend with its own coturn and signaling server, as well as Collabora Office as a Debian package. The installation is kept extra simple and thus also enables users with a few Unix/Linux skills an installation in about 5 minutes.
