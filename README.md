@@ -16,7 +16,7 @@ Das Nextcloud HPB kann als Debian-Paket (nur Debian Unstable) oder aus den aktue
 **Voraussetzungen für den Betrieb:**
 
 * Ein Server mit einer öffentlich zugänglichen IP! (nicht für Systeme hinter einer Firewall oder NAT mit privater Adresse)
-* Einen virtuellen oder physikalischen Server mit Debian 11 (Bullseye)
+* Einen virtuellen oder physikalischen Server mit Debian 12 (Bookworm)
 * Eine Subdomain für den Server, auf dem das Skript installiert wird
 
 Sie werden bei der Installation durch 8 Dialoge geführt und danach werden die Pakete voll automatisch installiert, konfiguriert und Sie erhalten eine Übersicht mit allen einzutragenden Schlüsseln für die Nextcloud-Instanz. Das Skript kann auch mehrere Nextcloud-URLs auf dem Server verwalten. Diese geben Sie in dem Script einfach mit Kommata separiert ein (Multidomain).
