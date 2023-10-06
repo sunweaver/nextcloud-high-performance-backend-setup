@@ -1,6 +1,64 @@
+2023-10-06 Daniel Teichmann
+
+        * VERSION: Bump version to 1.2.4 (HEAD -> main)
+
+2023-10-05 Daniel Teichmann
+
+        * src/setup-signaling.sh: Fix typo; Add comment about legacy code
+          (Adding sunweaver's repo). (6ca8463)
+        * src/setup-collabora.sh: Update repo URI. (92a33e1)
+          Fixes: #119
+
+        * src/setup-msmtp.sh: Preseed and then install package.. Swapping
+          step1 with step2. (1695510)
+          Fixes: #118
+
+        * {src/setup-signaling.sh, setup-nextcloud-hpb.sh}: Always build from
+          sources for nextcloud-spreed-signaling. (5571d2f)
+          Fixes:
+          #114
+
+        * src/setup-collabora.sh: Silence apt-add-repository. (609a2ae)
+          Fixes:
+          #117
+
+        * Makefile: Remove 'clean' target as dependency for 'all'. (f7abbf8)
+
+2023-09-04 Daniel Teichmann
+
+        * src/setup-signaling.sh: Make sure /etc/nginx/snippets/ is created,
+          before trying to deploy files there. (4125f5d)
+          Fixes: #99
+
+        * setup-nextcloud-hpb.sh: Check dependency 'wget'; Install if
+          necessary. (7023afb)
+          Fixes: #92
+
+2023-09-15 Daniel Teichmann
+
+        * src/setup-signaling.sh: Smartly detect if we should use
+          '--force-badname' or '--allow-bad-names' option for
+          adduser. (11003c6)
+          Fixes: #100
+
+        * src/setup-msmtp.sh: Escape EMAIL_USER_PASSWORD before passing it to
+          sed. (6050811)
+          Fixes: #106
+
+2023-04-12 Mirco
+
+        * Update README.md (6a193d9)
+        * Update README_en.md (d360297)
+        * Update README.md (0582da3)
+
+2023-03-05 Mirco
+
+        * Update README_en.md (b228445)
+        * Update README.md (ed21f0b)
+
 2023-03-02 Daniel Teichmann
 
-        * release 1.2.3 (HEAD -> main)
+        * release 1.2.3 (ef25c09) (tag: 1.2.3)
         * VERSION: Bump version number to 1.2.3. (ddfe631)
 
 2023-03-01 Daniel Teichmann
