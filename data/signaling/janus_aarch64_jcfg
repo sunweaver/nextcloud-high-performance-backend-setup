@@ -1,14 +1,14 @@
-/home/phil/nextcloud-high-performance-backend-setup/data/signaling/janus.jcfg# General configuration: folders where the configuration and the plugins
+/home/phil/nextcloud-high-performance-backend-setup/data/signaling/janus_arm.jcfg# General configuration: folders where the configuration and the plugins
 # can be found, how output should be logged, whether Janus should run as
 # a daemon or in foreground, default interface to use, debug/logging level
 # and, if needed, shared apisecret and/or token authentication mechanism
 # between application(s) and Janus.
 general: {
 	configs_folder = "/etc/janus"			# Configuration files folder
-	plugins_folder = "/usr/lib/x86_64-linux-gnu/janus/plugins"			# Plugins folder
-	transports_folder = "/usr/lib/x86_64-linux-gnu/janus/transports"	# Transports folder
-	events_folder = "/usr/lib/x86_64-linux-gnu/janus/events"			# Event handlers folder
-	loggers_folder = "/usr/lib/x86_64-linux-gnu/janus/loggers"			# External loggers folder
+	plugins_folder = "/usr/lib/aarch64-linux-gnu/janus/plugins"			# Plugins folder
+	transports_folder = "/usr/lib/aarch64-linux-gnu/janus/transports"	# Transports folder
+	events_folder = "/usr/lib/aarch64-linux-gnu/janus/events"			# Event handlers folder
+	loggers_folder = "/usr/lib/aarch64-linux-gnu/janus/loggers"			# External loggers folder
 
 		# The next settings configure logging
 	#log_to_stdout = false					# Whether the Janus output should be written
