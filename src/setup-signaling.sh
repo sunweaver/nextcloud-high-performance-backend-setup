@@ -126,18 +126,23 @@ function signaling_build_nats-server() {
 	log "Latest nats-server version is: '$LATEST_RELEASE_TAG'"
 
 	log "Removing old sources…"
-	rm -v nats-server-v*-linux-amd64.tar.gz | tee -a $LOGFILE_PATH || true
+	rm -v nats-server-v*-linux-*.tar.gz | tee -a $LOGFILE_PATH || true
 
 	log "Downloading sources…"
-	wget $(curl -s "$LATEST_RELEASE" | grep 'linux-amd64.tar.gz' |
-		grep 'browser_download_url' | cut -d\" -f4) |
-		tee -a $LOGFILE_PATH
+	if [ "$(dpkg --print-architecture)" = "arm64" ]; then
+		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-arm64.tar.gz' |
+			grep 'browser_download_url' | cut -d\" -f4) |
+			tee -a $LOGFILE_PATH
+	else
+		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-amd64.tar.gz' |
+			grep 'browser_download_url' | cut -d\" -f4) |
+			tee -a $LOGFILE_PATH
 
 	log "Extracting sources…"
-	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-amd64.tar.gz" | tee -a $LOGFILE_PATH
+	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-*.tar.gz" | tee -a $LOGFILE_PATH
 
 	log "Copying binary into /usr/local/bin/nats-server…"
-	cp --backup=numbered -v "nats-server-$LATEST_RELEASE_TAG-linux-amd64/nats-server" /usr/local/bin/nats-server | tee -a $LOGFILE_PATH
+	cp --backup=numbered -v "nats-server-$LATEST_RELEASE_TAG-linux-*/nats-server" /usr/local/bin/nats-server | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.conf /etc/nats-server.conf || true
@@ -226,7 +231,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 	fi
 	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
 		"$badname_option" _signaling || true
-}
+}if [ "$(dpkg --print-architecture)" = "arm64" ]; then
 
 #function signaling_step1() {
 #	log "\nStep 1: Import sunweaver's gpg key."
