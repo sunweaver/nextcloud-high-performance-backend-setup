@@ -3,7 +3,7 @@
   <a href="https://github.com/sunweaver/nextcloud-high-performance-backend-setup/blob/main/README_en.md">English</a>
 </p>
 
-# Einfaches Setup für Nextcloud Hochleistungsbackend, Signaling & Collabora Office
+# Einfaches Setup für Nextcloud Hochleistungsbackend, Signaling & Collabora Office für Debian 12 (Bookworm)
 
 Dieses Skript installiert vollautomatisch das Nextcloud High Performance Backend mit eigenem Coturn- und Signaling-Server, sowie Collabora Office als Debian-Paket. Die Installation ist extra einfach gehalten und ermöglicht dadurch auch Anwendern mit wenig Unix-/Linux-Kenntnissen eine Installation in ca. 5 Minuten.
 
