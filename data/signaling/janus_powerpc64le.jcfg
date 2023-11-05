@@ -1,4 +1,4 @@
-/home/phil/nextcloud-high-performance-backend-setup/data/signaling/janus_arm.jcfg# General configuration: folders where the configuration and the plugins
+# General configuration: folders where the configuration and the plugins
 # can be found, how output should be logged, whether Janus should run as
 # a daemon or in foreground, default interface to use, debug/logging level
 # and, if needed, shared apisecret and/or token authentication mechanism
