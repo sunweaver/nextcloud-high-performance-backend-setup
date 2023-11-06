@@ -137,6 +137,7 @@ function signaling_build_nats-server() {
 		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-amd64.tar.gz' |
 			grep 'browser_download_url' | cut -d\" -f4) |
 			tee -a $LOGFILE_PATH
+   	fi
 
 	log "Extracting sources…"
 	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-*.tar.gz" | tee -a $LOGFILE_PATH
@@ -231,7 +232,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 	fi
 	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
 		"$badname_option" _signaling || true
-}if [ "$(dpkg --print-architecture)" = "arm64" ]; then
+}
 
 #function signaling_step1() {
 #	log "\nStep 1: Import sunweaver's gpg key."
