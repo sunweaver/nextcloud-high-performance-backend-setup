@@ -387,8 +387,6 @@ function signaling_step5() {
 
 	if [ "$(dpkg --print-architecture)" = "arm64" ]; then
 		deploy_file "$TMP_DIR_PATH"/signaling/janus_aarch64.jcfg /etc/janus/janus.jcfg || true
-	elif [ "$(dpkg --print-architecture)" = "ppc64el" ]; then
-		deploy_file "$TMP_DIR_PATH"/signaling/janus_powerpc64le.jcfg /etc/janus/janus.jcfg || true
 	else
 		deploy_file "$TMP_DIR_PATH"/signaling/janus.jcfg /etc/janus/janus.jcfg || true
 	fi
