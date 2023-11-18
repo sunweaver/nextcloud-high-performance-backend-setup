@@ -26,7 +26,7 @@ declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 function install_signaling() {
 	log "Installing Signaling…"
 
-	if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 		log "Enable bullseye-backports"
 		is_dry_run || cat <<EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
 #Added by nextcloud-high-performance-backend setup-script.
@@ -43,14 +43,14 @@ EOL
 			if [ "$UNATTENDED_INSTALL" == true ]; then
 				log "Trying unattended install for Signaling."
 				export DEBIAN_FRONTEND=noninteractive
-				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -qqy -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -qqy wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				else
 					apt-get install -qqy wget curl golang-go protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
-				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -y -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -y wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 				else
@@ -61,7 +61,7 @@ EOL
 
 		is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
 		# Only if Debian 11
-		if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			is_dry_run || signaling_build_coturn && log "Would have built coturn now…"
 			is_dry_run || signaling_build_nats-server && log "Would have built nats-server now…"
 		fi
@@ -74,14 +74,14 @@ EOL
 		if ! is_dry_run; then
 			if [ "$UNATTENDED_INSTALL" == true ]; then
 				export DEBIAN_FRONTEND=noninteractive
-				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -qqy ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 				else
 					apt-get install -qqy janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
-				if [ "$DEBIAN_MAJOR_VERSION" = "11" ]; then
+				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -y ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -y -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 				else
