@@ -307,10 +307,16 @@ function show_dialogs() {
 				)old in Debian Stable right now. This will cause issues. Instead the $(
 				)package will get build and installed from sources." 13 65
 		else
-			whiptail --title "Building from sources." \
+			# Originally, this part was for running this script on Debian 10 which is not
+			# supported anymore.
+			#
+			# Nowadays, most probable reason for landing here is if people try this script
+			# on Debian testing and one of the required packages has been removed from
+			# testing due to release critical bugs.
+			whiptail --title "Build from sources?" \
 				--msgbox "The packages 'nextcloud-spreed-signaling' and $(
 				)'nats-server' are not available in the package archive. The $(
-				)packages will get build and installed from sources." 13 65
+				)packages will get built and installed from sources." 13 65
 		fi
 	fi
 	SIGNALING_BUILD_FROM_SOURCES=true
