@@ -59,7 +59,9 @@ EOL
 			fi
 		fi
 
-		is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
+		if dpkg --compare-versions $DEBIAN_VERSION_MAJOR le 13; then
+			is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
+		fi
 		# Only if Debian 11
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			is_dry_run || signaling_build_coturn && log "Would have built coturn now…"
@@ -71,21 +73,26 @@ EOL
 		# - ssl-cert
 		# - nats-server (Debian 12+)
 		# - coturn (Debian 12+)
+		# - nextcloud-spreed-signaling (Debian 13+)
 		if ! is_dry_run; then
 			if [ "$UNATTENDED_INSTALL" == true ]; then
 				export DEBIAN_FRONTEND=noninteractive
 				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -qqy ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
-				else
+				elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 					apt-get install -qqy janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+				else
+					apt-get install -qqy janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
 				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -y ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -y -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
-				else
+				elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 					apt-get install -y janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+				else
+					apt-get install -y janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			fi
 		fi

@@ -302,10 +302,33 @@ function show_dialogs() {
 
 	if [ "$UNATTENDED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
-			whiptail --title "Building from sources." \
-				--msgbox "The package 'nextcloud-spreed-signaling' unfortunately is pretty $(
-				)old in Debian Stable right now. This will cause issues. Instead the $(
-				)package will get build and installed from sources." 13 65
+			if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
+				whiptail --title "Build from sources." --defaultno \
+				    --msgbox "The packages 'nextcloud-spreed-signaling' and $(
+				    )'nats-server' in Debian 11 are rather old and buggy. Also the $(
+				    )Debian 11 version of 'coturn' does have some crashing issues. To $(
+				    )avoid these problems the packages will be built and installed $(
+				    )from sources." \
+				    13 65 3>&1 1>&2 2>&3
+				SIGNALING_BUILD_FROM_SOURCES=true
+			elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
+				whiptail --title "Building from sources." \
+				    --msgbox "The package 'nextcloud-spreed-signaling' unfortunately is pretty $(
+				    )old in Debian 12. This will cause issues. Instead the package will $(
+				    )built and installed from sources." 13 65
+				SIGNALING_BUILD_FROM_SOURCES=true
+			else
+				# A working version of nextcloud-spreed-signaling is available since
+				# Debian 13 (provided first in Debian testing on 2023-10-22) and newer
+				if whiptail --title "Build from sources?" --defaultno \
+					--yesno "The package 'nextcloud-spreed-signaling' and $(
+					) is relatively new in Debian and therefore currently $(
+					)only available in Debian testing. Do you $(
+					)wish to build and install the package from sources?" \
+					13 65 3>&1 1>&2 2>&3; then
+					SIGNALING_BUILD_FROM_SOURCES=true
+				fi
+			fi
 		else
 			# Originally, this part was for running this script on Debian 10 which is not
 			# supported anymore.
@@ -317,10 +340,9 @@ function show_dialogs() {
 				--msgbox "The packages 'nextcloud-spreed-signaling' and $(
 				)'nats-server' are not available in the package archive. The $(
 				)packages will get built and installed from sources." 13 65
+			SIGNALING_BUILD_FROM_SOURCES=true
 		fi
 	fi
-	SIGNALING_BUILD_FROM_SOURCES=true
-
 	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
 }
 
