@@ -26,6 +26,7 @@ EMAIL_SERVER_HOST=""   # Ask user
 EMAIL_SERVER_PORT=""   # Ask user
 DISABLE_SSH_SERVER=false
 SIGNALING_BUILD_FROM_SOURCES="" # Ask user
+DEBIAN_VERSION_ATLEAST="11"
 
 SETUP_VERSION=$(cat VERSION | head -n 1 | tr '\n' ' ')
 
@@ -381,23 +382,26 @@ function check_root_perm() {
 
 function check_debian_system() {
 	# File exists and not empty
-	if ! [ -s /etc/debian_version ]; then
-		log "Couldn't read /etc/debian_version! Is this a debian system?"
+	if ! [ -s /etc/os-release ]; then
+		log "Couldn't read /etc/os-release! What kind of OS is this?"
 		exit 1
 	else
-		DEBIAN_VERSION=$(cat /etc/debian_version)
-
-		# Quick hack for debian testing (currently bookworm)
-		if [[ "$DEBIAN_VERSION" = "bookworm/sid" ]]; then
-			DEBIAN_VERSION="12"
+		source /etc/os-release
+		if [ "$ID" != "debian" ]; then
+			log "This host does not run Debian. Wrong distribution!"
+			exit 1
 		fi
-
-		if ! [[ $DEBIAN_VERSION =~ [0-9] ]]; then
-			log "Debian version '$DEBIAN_VERSION' not supported!"
+		if [ -z "$VERSION_ID" ] && [[ "$VERSION_CODENAME" =~ "sid" ]]; then
+			# /etc/os-release lacks VERSION_ID in testing/unstable, so assume
+			# a not-yet-released version of Debian
+			VERSION_ID=999
+		fi
+		if dpkg --compare-versions $VERSION_ID lt $DEBIAN_VERSION_ATLEAST; then
+			log "Debian version '$VERSION_ID' not supported (too old)!"
 			exit 1
 		fi
 
-		DEBIAN_MAJOR_VERSION=$(echo $DEBIAN_VERSION | grep -o -E "[0-9][0-9]")
+		DEBIAN_MAJOR_VERSION=$VERSION_ID
 	fi
 }
 
