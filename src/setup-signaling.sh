@@ -26,12 +26,21 @@ declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 function install_signaling() {
 	log "Installing Signaling…"
 
+	if [ "$DEBIAN_VERSION_MAJOR" = "12" ] ; then
+		log "Enable bookworm-backports"
+		is_dry_run || cat <<-EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
+			# Added by nextcloud-high-performance-backend setup-script.
+			deb http://deb.debian.org/debian bookworm-backports main
+		EOL
+		is_dry_run || apt-get update 2>&1 | tee -a $LOGFILE_PATH
+	fi
+
 	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 		log "Enable bullseye-backports"
-		is_dry_run || cat <<EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
-#Added by nextcloud-high-performance-backend setup-script.
-deb http://deb.debian.org/debian bullseye-backports main
-EOL
+		is_dry_run || cat <<-EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
+			# Added by nextcloud-high-performance-backend setup-script.
+			deb http://deb.debian.org/debian bullseye-backports main
+		EOL
 		is_dry_run || apt-get update 2>&1 | tee -a $LOGFILE_PATH
 	fi
 
@@ -73,7 +82,7 @@ EOL
 		# - ssl-cert
 		# - nats-server (Debian 12+)
 		# - coturn (Debian 12+)
-		# - nextcloud-spreed-signaling (Debian 13+)
+		# - nextcloud-spreed-signaling (Debian 12~bpo+)
 		if ! is_dry_run; then
 			if [ "$UNATTENDED_INSTALL" == true ]; then
 				export DEBIAN_FRONTEND=noninteractive
@@ -82,6 +91,7 @@ EOL
 					apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 				elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 					apt-get install -qqy janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -qqy -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
 				else
 					apt-get install -qqy janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
 				fi
@@ -91,6 +101,7 @@ EOL
 					apt-get install -y -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 				elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 					apt-get install -y janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+					apt-get install -y -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
 				else
 					apt-get install -y janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
 				fi

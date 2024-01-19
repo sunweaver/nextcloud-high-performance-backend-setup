@@ -311,18 +311,13 @@ function show_dialogs() {
 				    )from sources." \
 				    13 65 3>&1 1>&2 2>&3
 				SIGNALING_BUILD_FROM_SOURCES=true
-			elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
-				whiptail --title "Building from sources." \
-				    --msgbox "The package 'nextcloud-spreed-signaling' unfortunately is pretty $(
-				    )old in Debian 12. This will cause issues. Instead the package will $(
-				    )built and installed from sources." 13 65
-				SIGNALING_BUILD_FROM_SOURCES=true
 			else
 				# A working version of nextcloud-spreed-signaling is available since
-				# Debian 13 (provided first in Debian testing on 2023-10-22) and newer
+				# Debian 12 (backports) and Debian 13 (provided first in Debian testing
+				# on 2023-10-22) and newer
 				if whiptail --title "Build from sources?" --defaultno \
-					--yesno "The package 'nextcloud-spreed-signaling' and $(
-					) is relatively new in Debian and therefore currently $(
+					--yesno "The package 'nextcloud-spreed-signaling' $(
+					)is relatively new in Debian and therefore currently $(
 					)only available in Debian testing. Do you $(
 					)wish to build and install the package from sources?" \
 					13 65 3>&1 1>&2 2>&3; then
