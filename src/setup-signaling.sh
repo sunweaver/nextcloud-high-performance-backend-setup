@@ -89,21 +89,19 @@ function install_signaling() {
 				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -qqy ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -qqy -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
-				elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
-					apt-get install -qqy janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
-					apt-get install -qqy -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+				#elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then //
 				else
-					apt-get install -qqy janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+					# Install rest normally.
+					apt-get install -qqy janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			else
 				if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 					apt-get install -y ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 					apt-get install -y -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
-				elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
-					apt-get install -y janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
-					apt-get install -y -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+				#elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 				else
-					apt-get install -y janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+					# Install rest normally.
+					apt-get install -y janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
 				fi
 			fi
 		fi
@@ -279,13 +277,22 @@ function signaling_step3() {
 	# - coturn
 	if ! is_dry_run; then
 		if [ "$UNATTENDED_INSTALL" == true ]; then
-			log "Trying unattended install for Signaling."
 			export DEBIAN_FRONTEND=noninteractive
-			apt-get install -qqy janus nats-server nextcloud-spreed-signaling \
-				coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+			#if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then // NOPE, SHOULD ALWAYS BE BUILT FROM SOURCES.
+			if [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
+				apt-get install -qqy janus nats-server coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -qqy -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+			else
+				apt-get install -qqy janus ssl-cert nats-server coturn nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+			fi
 		else
-			apt-get install -y janus nats-server nextcloud-spreed-signaling \
-				coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+			#if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then // NOPE, SHOULD ALWAYS BE BUILT FROM SOURCES.
+			if [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
+				apt-get install -y janus nats-server coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+				apt-get install -y -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+			else
+				apt-get install -y janus nats-server coturn ssl-cert nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+			fi
 		fi
 	fi
 }
