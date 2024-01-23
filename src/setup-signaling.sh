@@ -47,6 +47,9 @@ function install_signaling() {
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
+		# Remove old packages.
+		is_dry_run || apt purge nextcloud-spreed-signaling nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+
 		# Installing: golang-go make build-essential wget curl
 		if ! is_dry_run; then
 			if [ "$UNATTENDED_INSTALL" == true ]; then
