@@ -424,7 +424,7 @@ function check_debian_system() {
 			exit 1
 		fi
 
-		DEBIAN_MAJOR_VERSION=$VERSION_ID
+		DEBIAN_VERSION_MAJOR=$VERSION_ID
 	fi
 }
 
