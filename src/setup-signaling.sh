@@ -262,7 +262,14 @@ function signaling_step3() {
 		APT_PARAMS="-qqy"
 	fi
 
-	is_dry_run || apt-get install $APT_PARAMS janus nats-server nextcloud-spreed-signaling coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+	#if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then // Nope, always build from sources.
+	if [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
+		# Special case, please install 'nextcloud-spreed-signaling' from bookworm-backports.
+		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
+		is_dry_run || apt-get install $APT_PARAMS -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+	else
+		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+	fi
 }
 
 function signaling_step4() {
