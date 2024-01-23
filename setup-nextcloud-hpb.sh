@@ -300,29 +300,29 @@ function show_dialogs() {
 	fi
 	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
 
+	# For UNATTENDED_INSTALL, please fill SIGNALING_BUILD_FROM_SOURCES via settings.sh.
 	if [ "$UNATTENDED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
 			if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 				whiptail --title "Build from sources." --defaultno \
-				    --msgbox "The packages 'nextcloud-spreed-signaling' and $(
-				    )'nats-server' in Debian 11 are rather old and buggy. Also the $(
-				    )Debian 11 version of 'coturn' does have some crashing issues. To $(
-				    )avoid these problems the packages will be built and installed $(
-				    )from sources." \
+				    --msgbox "The package 'nextcloud-spreed-signaling' is not available $(
+					)in this version of Debian (Debian 11). Also 'nats-server' and $(
+					)'coturn' in Debian 11 are rather old and buggy. To avoid these $(
+					)problems the packages will be built and installed from sources." \
 				    13 65 3>&1 1>&2 2>&3
 				SIGNALING_BUILD_FROM_SOURCES=true
-			else
-				# A working version of nextcloud-spreed-signaling is available since
-				# Debian 12 (backports) and Debian 13 (provided first in Debian testing
-				# on 2023-10-22) and newer
-				if whiptail --title "Build from sources?" --defaultno \
-					--yesno "The package 'nextcloud-spreed-signaling' $(
-					)is relatively new in Debian and therefore currently $(
-					)only available in Debian testing. Do you $(
-					)wish to build and install the package from sources?" \
-					13 65 3>&1 1>&2 2>&3; then
-					SIGNALING_BUILD_FROM_SOURCES=true
-				fi
+			fi
+
+			# A working version of nextcloud-spreed-signaling is available since
+			# Debian 12 (backports) and Debian 13 (provided first in Debian testing
+			# on 2023-10-22) and newer
+			if whiptail --title "Build from sources?" --defaultno \
+				--yesno "Would you like to build and install the $(
+				)'nextcloud-spreed-signaling' package from sources $(
+				)to get the newest possible version? This is normally $(
+				)not required and we suggest using the existing Debian packages." \
+				13 65 3>&1 1>&2 2>&3; then
+				SIGNALING_BUILD_FROM_SOURCES=true
 			fi
 		else
 			# Originally, this part was for running this script on Debian 10 which is not
