@@ -71,9 +71,8 @@ function install_signaling() {
 			fi
 		fi
 
-		if dpkg --compare-versions $DEBIAN_VERSION_MAJOR le 13; then
-			is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
-		fi
+		is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
+
 		# Only if Debian 11
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			is_dry_run || signaling_build_coturn && log "Would have built coturn now…"
