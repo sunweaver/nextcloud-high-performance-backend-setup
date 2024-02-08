@@ -1,6 +1,81 @@
+2024-02-08 Daniel Teichmann
+
+        * VERSION: Bump version to 1.2.5. (HEAD -> main)
+        * settings.sh: Link wiki page, where settings.sh is explained.
+          (9374423)
+
+2024-01-27 Mirco
+
+        * Update README_en.md (67f9da5)
+        * Update README.md (6745200)
+        * Update README.md (5c20dd5)
+
+2024-01-23 Daniel Teichmann
+
+        * src/setup-signaling.sh: Install 'nextcloud-spreed-signaling' from
+          bookworm-backports (at the right place in the code now).
+          (f73d731)
+        * setup-nextcloud-hpb.sh: Fix text of whiptail dialogs for
+          built-signaling-from-sources. (9e03dc7)
+        * src/setup-signaling.sh: Simplify all apt install commands via
+          APT_PARAMS. + Drop installing nextcloud-spreed-signaling
+          package, if signaling backend should be build from
+          sources. (ade202e)
+        * src/setup-signaling.sh: Always build nextcloud-spreed-signaling if
+          signaling backend should be build from sources. (cdb1405)
+        * src/setup-signaling.sh: Fix setups where the user first installed
+          from packages and then wants to build from sources.
+          (f617507)
+        * setup-nextcloud-hpb.sh: Fix renaming leftover DEBIAN_MAJOR_VERSION
+          to DEBIAN_VERSION_MAJOR. (31cc13d)
+
+2024-01-19 Mike Gabriel
+
+        * Also support testing nextcloud-spreed-signaling packages available
+          in Debian bookworm-backports. (241c434)
+
+2023-11-18 Mike Gabriel
+
+        * Support testing nextcloud-spreed-signaling packages available in
+          Debian trixie/sid. (cdb7569)
+        * setup-nextcloud-hpb.sh: Explain why signaling server packages could
+          be missing from Debian nowadays. (1cd20a0)
+        * Rename DEBIAN_MAJOR_VERSION DEBIAN_VERSION_MAJOR. (351dd3b)
+        * setup-nextcloud-hpb.sh: Refactor check_debian_version(). (cb0138a)
+
+2023-11-17 PhilDevProg
+
+        * Revert "Remove support for PowerPC64LE" (e49e6a4)
+        * Remove support for PowerPC64LE (5066de7)
+
+2023-11-06 PhilProg
+
+        * setup-signaling: Fix typos (7717347)
+
+2023-11-05 PhilDevProg
+
+        * Fix janus configs (4b57a71)
+
+2023-11-04 PhilDevProg
+
+        * Add janus_powerpc64le.jcfg and use it for ppc64el (be61213)
+        * Build nats: Add support for arm64 (e77dc67)
+        * Add janus_aarch64.jcfg and use it for arm64 (508abad)
+
+2023-11-05 PhilProg
+
+        * Update README.md (f156c60)
+
+2023-10-06 Mirco
+
+        * Update README_en.md (b6d8936)
+        * Update README_en.md (b1d50db)
+        * Update README.md (20ce380)
+
 2023-10-06 Daniel Teichmann
 
-        * VERSION: Bump version to 1.2.4 (HEAD -> main)
+        * Release 1.2.4 (a1628cd) (tag: 1.2.4)
+        * VERSION: Bump version to 1.2.4 (7503a68)
 
 2023-10-05 Daniel Teichmann
 
