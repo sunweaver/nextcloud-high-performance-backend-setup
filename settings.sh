@@ -1,5 +1,9 @@
 # !!! Be careful, this script will be executed by the root user. !!!
 
+# Please have a look at this Wiki page for this file:
+# NOTE: It's in german.
+# https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script
+
 # Dry run (Don't actually alter anything on the system. (except in $TMP_DIR_PATH))
 # Leave empty, if you wish that the user will be asked about this.
 DRY_RUN=false
