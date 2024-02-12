@@ -262,13 +262,15 @@ function signaling_step3() {
 		APT_PARAMS="-qqy"
 	fi
 
-	#if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then // Nope, always build from sources.
-	if [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
+	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
+		# Nope, always build from sources. This function should never be called in the first place.
+		exit 1;
+	elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 		# Special case, please install 'nextcloud-spreed-signaling' from bookworm-backports.
 		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
-		is_dry_run || apt-get install $APT_PARAMS -t bookworm-backports nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+		is_dry_run || apt-get install $APT_PARAMS -t bookworm-backports nextcloud-spreed-signaling nextcloud-spreed-signaling-client 2>&1 | tee -a $LOGFILE_PATH
 	else
-		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert nextcloud-spreed-signaling 2>&1 | tee -a $LOGFILE_PATH
+		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert nextcloud-spreed-signaling nextcloud-spreed-signaling-client 2>&1 | tee -a $LOGFILE_PATH
 	fi
 }
 
