@@ -10,7 +10,7 @@ DRY_RUN=false
 
 # Should the script try to install the high-performance-backend server
 # without any user input?
-UNATTENDED_INSTALL=true
+UNATTENDED_INSTALL=false
 
 # General settings
 # Leave empty, if you wish that the user will be asked about this.
