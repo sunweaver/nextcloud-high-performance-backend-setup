@@ -1,6 +1,24 @@
+2024-02-15 Daniel Teichmann
+
+        * src/setup-signaling.sh: Install golang-go from bookworm-backports
+          for Debian 12 bookworm. (fa3afc7) (HEAD -> main)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/144
+
+2024-02-12 Daniel Teichmann
+
+        * src/setup-signaling.sh: Also install
+          nextcloud-spreed-signaling-client for Debian 12+.
+          (8025041)
+        * src/setup-signaling.sh: Rename bullseye-backports.list to
+          debian-backports.list. (823c366)
+        * settings.sh: Set default value of UNATTENDED_INSTALL to false.
+          (b0c45a5)
+
 2024-02-08 Daniel Teichmann
 
-        * VERSION: Bump version to 1.2.5. (HEAD -> main)
+        * New release 1.2.5. (efe2ba5) (tag: 1.2.5)
+        * VERSION: Bump version to 1.2.5. (4b5e7c5)
         * settings.sh: Link wiki page, where settings.sh is explained.
           (9374423)
 
