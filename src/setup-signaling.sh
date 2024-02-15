@@ -61,6 +61,9 @@ function install_signaling() {
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+		elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
+			apt-get install $APT_PARAMS -t bookworm-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
+			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 		else
 			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
 		fi
