@@ -10,7 +10,7 @@ This script installs the Nextcloud High Performance Backend with its own coturn 
 
 The Nextcloud HPB can be installed as a Debian package (Debian 12 Bookworm Backports) or from the current source code (for Debian 12 bookworm). The Collabora package is always installed as the latest package from the stable branch. Please note that Collabora Office in this version is the community edition. Of course, you can also expand this at any time with a license key.
 
-[**Here in the wiki you will find detailed installation instructions!**]([https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/09-Home-(en)))
+[**Here in the wiki you will find detailed installation instructions!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/09-Home-(en)))
 
 [**You can download the newest version of the script here**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/releases)
 
