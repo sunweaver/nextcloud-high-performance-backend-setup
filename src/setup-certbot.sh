@@ -45,7 +45,7 @@ function run_certbot_command() {
 			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
 			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
-			--chain-path "$SSL_CHAIN_PATH_RSA" -authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			--chain-path "$SSL_CHAIN_PATH_RSA" --authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
@@ -91,7 +91,7 @@ function run_certbot_command() {
 			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
 			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
-			--chain-path "$SSL_CHAIN_PATH_ECDSA" -authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			--chain-path "$SSL_CHAIN_PATH_ECDSA" --authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
