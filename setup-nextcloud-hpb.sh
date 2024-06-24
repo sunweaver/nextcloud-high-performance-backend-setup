@@ -94,7 +94,7 @@ function show_dialogs() {
 			esac
 		done
 	fi
-	log "Using '$CERTBOT_AUTH_METHOD' for DRY_RUN".
+	log "Using '$CERTBOT_AUTH_METHOD' for Certbot Auth Method".
 
 	if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
 		if [ "$IPV64_API_KEY" = "" ]; then
@@ -104,6 +104,11 @@ function show_dialogs() {
 				exit 1
 			fi
 
+			IPV64_API_KEY_PATH="./"
+			if [ -s "$IPV64_API_KEY_PATH" ]; then
+				# Rebuilding dhparam file.
+				IPV64_API_KEY=$(cat credentials.ini | sed -r "s#dns_ipv64_bearer_token = ?\:\/\/##gi")
+			fi
 			IPV64_API_KEY=$(
 				whiptail --title "IPV64.de API Key" \
 					--inputbox "Please enter your IPV64.de API Key here. $(
@@ -119,7 +124,7 @@ function show_dialogs() {
 		fi
 		
 		touch credentials.ini
-		echo "$IPV64_API_KEY" > "credentials.ini"
+		echo "dns_ipv64_bearer_token = $IPV64_API_KEY" > "credentials.ini"
 		log "Created credentials.ini at $IPV64_API_KEY_PATH"
 	fi
 
