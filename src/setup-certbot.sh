@@ -41,11 +41,15 @@ function run_certbot_command() {
 			--chain-path "$SSL_CHAIN_PATH_RSA")
 			;;
 		"ipv64")
-			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			certbot_args=(certonly --authenticator dns-ipv64
+			--dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini"
+			--nginx $arg_staging $arg_interactive $arg_dry_run
 			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
 			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
-			--chain-path "$SSL_CHAIN_PATH_RSA" --authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			--chain-path "$SSL_CHAIN_PATH_RSA"
+			--authenticator dns-ipv64 
+			--dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
@@ -87,11 +91,14 @@ function run_certbot_command() {
 			--chain-path "$SSL_CHAIN_PATH_ECDSA")
 			;;
 		"ipv64")
-			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			certbot_args=(certonly --authenticator dns-ipv64
+			--dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini"
+			--nginx $arg_staging $arg_interactive $arg_dry_run
 			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
 			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
-			--chain-path "$SSL_CHAIN_PATH_ECDSA" --authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			--chain-path "$SSL_CHAIN_PATH_ECDSA"
+			)
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
@@ -190,6 +197,11 @@ function certbot_step1() {
 			apt-get install -y "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
 		fi
 		if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
+			CERTBOT_PLUGIN_DIR="./certbot-dns-ipv64"
+			if [ -e "$CERTBOT_PLUGIN_DIR" ]; then
+				log "Deleted contents of '$CERTBOT_PLUGIN_DIR'."
+				rm -vr "$CERTBOT_PLUGIN_DIR"/* 2>&1 | tee -a $LOGFILE_PATH || true
+			fi
 			git clone https://github.com/XonaTheProtogen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
 			cd certbot-dns-ipv64
 			python3 ./setup.py build 2>&1 | tee -a $LOGFILE_PATH
@@ -231,7 +243,7 @@ function certbot_step2() {
 	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/live
 	is_dry_run || find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
 
-	deploy_file "$TMP_DIR_PATH"/certbot/deploy-hook-certbot.sh /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh || true
+	deploy_file "$CERTBOT_PLUGIN_DIR"/certbot/deploy-hook-certbot.sh /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh || true
 	is_dry_run || chmod 750 /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh
 }
 
