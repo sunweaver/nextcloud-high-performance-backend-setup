@@ -104,19 +104,19 @@ function show_dialogs() {
 				exit 1
 			fi
 
-			IPV64_API_KEY_PATH="./"
+			IPV64_API_KEY_PATH="./credentials.ini"
 			if [ -s "$IPV64_API_KEY_PATH" ]; then
 				# Rebuilding dhparam file.
-				IPV64_API_KEY=$(cat credentials.ini | sed -r "s#dns_ipv64_bearer_token = ?\:\/\/##gi")
+				IPV64_API_KEY_Old=$(sed -r "s#dns_ipv64_bearer_token = ?##gi" credentials.ini)
 			fi
 			IPV64_API_KEY=$(
 				whiptail --title "IPV64.de API Key" \
 					--inputbox "Please enter your IPV64.de API Key here. $(
 					)" 12 65 \
-					"123456789abcdefg123456789abcdefg" 3>&1 1>&2 2>&3
+					"$IPV64_API_KEY_Old" 3>&1 1>&2 2>&3
 			)
 		fi
-		IPV64_API_KEY_PATH="./"
+		IPV64_API_KEY_PATH="./credentials.ini"
 		if [ -s "$IPV64_API_KEY_PATH" ]; then
 			# Rebuilding dhparam file.
 			log "Removing old Credential file at '$IPV64_API_KEY_PATH'."
