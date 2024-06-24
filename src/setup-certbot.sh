@@ -32,11 +32,27 @@ function run_certbot_command() {
 	error_title_ratelimited="LetsEncrypt rate limit reached!"
 
 	# RSA certificate
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
-		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
-		--chain-path "$SSL_CHAIN_PATH_RSA")
+	case "$CERTBOT_AUTH_METHOD" in
+		"http")
+			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
+			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
+			--chain-path "$SSL_CHAIN_PATH_RSA")
+			;;
+		"ipv64")
+			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
+			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
+			--chain-path "$SSL_CHAIN_PATH_RSA" -authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			;;
+		*)
+			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
+			exit 1
+			;;
+	esac
+
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
@@ -62,11 +78,26 @@ function run_certbot_command() {
 	fi
 
 	# ECDSA certificate
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
-		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
-		--chain-path "$SSL_CHAIN_PATH_ECDSA")
+	case "$CERTBOT_AUTH_METHOD" in
+		"http")
+			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
+			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
+			--chain-path "$SSL_CHAIN_PATH_ECDSA")
+			;;
+		"ipv64")
+			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
+			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
+			--chain-path "$SSL_CHAIN_PATH_ECDSA" -authenticator dns-ipv64 --dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			;;
+		*)
+			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
+			exit 1
+			;;
+	esac	
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
@@ -129,7 +160,27 @@ function install_certbot() {
 
 function certbot_step1() {
 	log "\nStep 1: Installing Certbot packages"
-	packages_to_install=(python3-certbot-nginx certbot ssl-cert)
+	if [ "$CERTBOT_AUTH_METHOD" = "" ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm" \
+				"missing CERTBOT_AUTH_METHOD!"
+			exit 1
+		fi
+	fi
+
+	case "$CERTBOT_AUTH_METHOD" in
+		"http")
+			packages_to_install=(python3-certbot-nginx certbot ssl-cert)
+			;;
+		"ipv64")
+			packages_to_install=(git python3-setuptools python3-certbot-nginx certbot ssl-cert)
+			;;
+		*)
+			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
+			exit 1
+			;;
+	esac
+	
 	if ! is_dry_run; then
 		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Certbot."
@@ -137,6 +188,12 @@ function certbot_step1() {
 			apt-get install -qqy "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
 		else
 			apt-get install -y "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
+		fi
+		if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
+			git clone https://github.com/XonaTheProtogen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
+			cd certbot-dns-ipv64
+			python3 ./setup.py build 2>&1 | tee -a $LOGFILE_PATH
+			python3 ./setup.py install 2>&1 | tee -a $LOGFILE_PATH
 		fi
 	else
 		log "Would have installed '${packages_to_install[@]}' via APT now."
