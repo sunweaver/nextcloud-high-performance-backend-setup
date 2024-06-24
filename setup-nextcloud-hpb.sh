@@ -69,8 +69,8 @@ function show_dialogs() {
 	CHOICES=$(whiptail --title "Select Certbot Authentication Method" \
 	--menu "Use the space bar key to select/deselect the AUTH Method $(
 	)you want to use." 15 90 2 \
-	"1" "Use HTTP Challenge" ON \
-	"2" "Use IPv64.net DNS Challenge" OFF \
+	"1" "Use HTTP Challenge" \
+	"2" "Use IPv64.net DNS Challenge" \
 	3>&1 1>&2 2>&3 || true)
 
 	if [ -z "$CHOICES" ]; then
