@@ -40,6 +40,11 @@ SHOULD_INSTALL_CERTBOT=true
 SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 SHOULD_INSTALL_MSMTP=true
 
+#Select between http and ipv64 DNS Challenage
+CERTBOT_AUTH_METHOD=""
+#Becomes mandatory if Certbot Auth method ipv64 is specified
+IPV64_API_KEY=""
+
 # Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
 LOGFILE_PATH="./setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"

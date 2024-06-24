@@ -96,6 +96,33 @@ function show_dialogs() {
 	fi
 	log "Using '$CERTBOT_AUTH_METHOD' for DRY_RUN".
 
+	if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
+		if [ "$IPV64_API_KEY" = "" ]; then
+			if [ "$UNATTENDED_INSTALL" = true ]; then
+				log "Can't continue since this is a non-interactive installation and I'm" \
+					"missing IPV64_API_KEY!"
+				exit 1
+			fi
+
+			IPV64_API_KEY=$(
+				whiptail --title "IPV64.de API Key" \
+					--inputbox "Please enter your IPV64.de API Key here. $(
+					)" 12 65 \
+					"123456789abcdefg123456789abcdefg" 3>&1 1>&2 2>&3
+			)
+		fi
+		IPV64_API_KEY_PATH="./"
+		if [ -s "$IPV64_API_KEY_PATH" ]; then
+			# Rebuilding dhparam file.
+			log "Removing old Credential file at '$IPV64_API_KEY_PATH'."
+			rm -fv "$IPV64_API_KEY_PATH/credentials.ini" 2>&1 | tee -a "$LOGFILE_PATH"
+		fi
+		
+		touch credentials.ini
+		echo "$IPV64_API_KEY" > "credentials.ini"
+		log "Created credentials.ini at $IPV64_API_KEY_PATH"
+	fi
+
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \

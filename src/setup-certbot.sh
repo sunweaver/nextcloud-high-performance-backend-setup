@@ -42,14 +42,12 @@ function run_certbot_command() {
 			;;
 		"ipv64")
 			certbot_args=(certonly --authenticator dns-ipv64
-			--dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini"
+			--dns-ipv64-credentials "./credentials.ini"
 			--nginx $arg_staging $arg_interactive $arg_dry_run
 			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
 			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
-			--chain-path "$SSL_CHAIN_PATH_RSA"
-			--authenticator dns-ipv64 
-			--dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini")
+			--chain-path "$SSL_CHAIN_PATH_RSA")
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
@@ -92,7 +90,7 @@ function run_certbot_command() {
 			;;
 		"ipv64")
 			certbot_args=(certonly --authenticator dns-ipv64
-			--dns-ipv64-credentials "/home/daniel/certbot-dns-ipv64/credentials.ini"
+			--dns-ipv64-credentials "./credentials.ini"
 			--nginx $arg_staging $arg_interactive $arg_dry_run
 			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
@@ -200,7 +198,7 @@ function certbot_step1() {
 			CERTBOT_PLUGIN_DIR="./certbot-dns-ipv64"
 			if [ -e "$CERTBOT_PLUGIN_DIR" ]; then
 				log "Deleted contents of '$CERTBOT_PLUGIN_DIR'."
-				rm -vr "$CERTBOT_PLUGIN_DIR" 2>&1 | tee -a $LOGFILE_PATH || true
+				rm -vrf "$CERTBOT_PLUGIN_DIR" 2>&1 | tee -a $LOGFILE_PATH || true
 			fi
 			git clone https://github.com/XonaTheProtogen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
 			cd certbot-dns-ipv64
