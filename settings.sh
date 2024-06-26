@@ -28,6 +28,11 @@ UNATTENDED_INSTALL=false
 #SSL_CHAIN_PATH_ECDSA=""
 #DHPARAM_PATH=""
 
+# If you are running the script behind a NAT you need to specify it with true
+# make sure that the webserver are reachable from the internet via 
+# port (80 only if http cert auth method is used),443 & 5349 (TCP & UDP)
+BEHIND_NAT=""
+
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
 

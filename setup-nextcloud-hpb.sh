@@ -7,6 +7,7 @@ set -eo pipefail
 # See settings.sh
 DRY_RUN=false
 UNATTENDED_INSTALL=false
+BEHIND_NAT="" # Ask user
 NEXTCLOUD_SERVER_FQDNS=""  # Ask user
 CERTBOT_AUTH_METHOD="" # Ask user
 SERVER_FQDN=""             # Ask user
@@ -66,6 +67,22 @@ function show_dialogs() {
 	fi
 	log "Using '$DRY_RUN' for DRY_RUN".
 
+	if [ "$BEHIND_NAT" = "" ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm missing BEHIND_NAT!"
+			exit 1
+		fi
+
+		if whiptail --title "Are you behind a NAT?" --yesno "Are you running the server $(
+		)behind a NAT? Make sure that the ports (80 only if http cert auth method is used),443 and 5349 (TCP & UDP) $(
+		)are opened in the Firewall." 10 65 --defaultno; then
+			BEHIND_NAT=true
+		else
+			BEHIND_NAT=false
+		fi
+	fi
+	log "BEHIND_NAT '$BEHIND_NAT' selected.".
+
 	if [ "$CERTBOT_AUTH_METHOD" = "" ]; then
 		CHOICES=$(whiptail --title "Select Certbot Authentication Method" \
 		--menu "Use the space bar key to select/deselect the AUTH Method $(
@@ -81,11 +98,9 @@ function show_dialogs() {
 			for CHOICE in $CHOICES; do
 				case "$CHOICE" in
 				"1")
-					log "Collabora (certbot, nginx, ufw) will be installed."
 					CERTBOT_AUTH_METHOD="http"
 					;;
 				"2")
-					log "Signaling (certbot, nginx, ufw) will be installed."
 					CERTBOT_AUTH_METHOD="ipv64"
 					;;
 				*)
