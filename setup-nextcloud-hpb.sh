@@ -66,33 +66,35 @@ function show_dialogs() {
 	fi
 	log "Using '$DRY_RUN' for DRY_RUN".
 
-	CHOICES=$(whiptail --title "Select Certbot Authentication Method" \
-	--menu "Use the space bar key to select/deselect the AUTH Method $(
-	)you want to use." 15 90 2 \
-	"1" "Use HTTP Challenge" \
-	"2" "Use IPv64.net DNS Challenge" \
-	3>&1 1>&2 2>&3 || true)
+	if [ "$CERTBOT_AUTH_METHOD" = "" ]; then
+		CHOICES=$(whiptail --title "Select Certbot Authentication Method" \
+		--menu "Use the space bar key to select/deselect the AUTH Method $(
+		)you want to use." 15 90 2 \
+		"1" "Use HTTP Challenge" \
+		"2" "Use IPv64.net DNS Challenge" \
+		3>&1 1>&2 2>&3 || true)
 
-	if [ -z "$CHOICES" ]; then
-		log "No AUTH Method was selected (user hit Cancel or unselected all options) Exiting…"
-		exit 0
-	else
-		for CHOICE in $CHOICES; do
-			case "$CHOICE" in
-			"1")
-				log "Collabora (certbot, nginx, ufw) will be installed."
-				CERTBOT_AUTH_METHOD="http"
-				;;
-			"2")
-				log "Signaling (certbot, nginx, ufw) will be installed."
-				CERTBOT_AUTH_METHOD="ipv64"
-				;;
-			*)
-				log "Unsupported service $CHOICE!" >&2
-				exit 1
-				;;
-			esac
-		done
+		if [ -z "$CHOICES" ]; then
+			log "No AUTH Method was selected (user hit Cancel or unselected all options) Exiting…"
+			exit 0
+		else
+			for CHOICE in $CHOICES; do
+				case "$CHOICE" in
+				"1")
+					log "Collabora (certbot, nginx, ufw) will be installed."
+					CERTBOT_AUTH_METHOD="http"
+					;;
+				"2")
+					log "Signaling (certbot, nginx, ufw) will be installed."
+					CERTBOT_AUTH_METHOD="ipv64"
+					;;
+				*)
+					log "Unsupported service $CHOICE!" >&2
+					exit 1
+					;;
+				esac
+			done
+		fi
 	fi
 	log "Using '$CERTBOT_AUTH_METHOD' for Certbot Auth Method".
 
