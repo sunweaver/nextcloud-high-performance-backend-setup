@@ -129,30 +129,30 @@ function run_certbot_command() {
 	fi
 
 	# Force renewal of certificates
-	certbot_args=(renew --force-renewal $arg_staging $arg_interactive $arg_dry_run)
+	# certbot_args=(renew --force-renewal $arg_staging $arg_interactive $arg_dry_run)
 
-	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+	# log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
-		return 0
-	else
-		# Checking if Certbot reported rate limit error
-		# Let the user decide if they want staging certificates (for testing
-		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
-		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENDED_INSTALL" != true ]; then
-				if whiptail --title "$error_title_ratelimited" --defaultno \
-					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
-					# Recursively call this function
-					run_certbot_command "true"
-					return 0
-				fi
-			else
-				log "$error_message_ratelimited"
-			fi
-		fi
-	fi
+	# if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+	# 	return 0
+	# else
+	# 	# Checking if Certbot reported rate limit error
+	# 	# Let the user decide if they want staging certificates (for testing
+	# 	# purposes for example).
+	# 	error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+	# 	if [ -n "$error_ratelimited" ]; then
+	# 		if [ "$UNATTENDED_INSTALL" != true ]; then
+	# 			if whiptail --title "$error_title_ratelimited" --defaultno \
+	# 				--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
+	# 				# Recursively call this function
+	# 				run_certbot_command "true"
+	# 				return 0
+	# 			fi
+	# 		else
+	# 			log "$error_message_ratelimited"
+	# 		fi
+	# 	fi
+	# fi
 }
 
 function install_certbot() {
