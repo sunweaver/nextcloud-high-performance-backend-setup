@@ -206,6 +206,7 @@ function certbot_step1() {
 			git checkout fix-dns-zone 2>&1 | tee -a $LOGFILE_PATH
 			python3 ./setup.py build 2>&1 | tee -a $LOGFILE_PATH
 			python3 ./setup.py install 2>&1 | tee -a $LOGFILE_PATH
+			cd ../
 		fi
 	else
 		log "Would have installed '${packages_to_install[@]}' via APT now."
