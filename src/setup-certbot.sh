@@ -202,8 +202,8 @@ function certbot_step1() {
 				rm -vrf "$CERTBOT_PLUGIN_DIR" 2>&1 | tee -a $LOGFILE_PATH || true
 			fi
 			git clone https://github.com/lodzen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
-			git checkout fix-dns-zone 2>&1 | tee -a $LOGFILE_PATH
 			cd certbot-dns-ipv64
+			git checkout fix-dns-zone 2>&1 | tee -a $LOGFILE_PATH
 			python3 ./setup.py build 2>&1 | tee -a $LOGFILE_PATH
 			python3 ./setup.py install 2>&1 | tee -a $LOGFILE_PATH
 		fi
