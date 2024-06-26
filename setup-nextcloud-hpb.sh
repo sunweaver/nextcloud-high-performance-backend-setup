@@ -96,6 +96,7 @@ function show_dialogs() {
 	fi
 	log "Using '$CERTBOT_AUTH_METHOD' for Certbot Auth Method".
 
+	IPV64_API_KEY_FILE="./credentials.ini"
 	if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
 		if [ "$IPV64_API_KEY" = "" ]; then
 			if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -103,9 +104,9 @@ function show_dialogs() {
 					"missing IPV64_API_KEY!"
 				exit 1
 			fi
-
-			IPV64_API_KEY_PATH="./credentials.ini"
-			if [ -s "$IPV64_API_KEY_PATH" ]; then
+			
+			IPV64_API_KEY_Old="123456789abcdefg123456789abcdefg"
+			if [ -e "$IPV64_API_KEY_FILE" ]; then
 				# Rebuilding dhparam file.
 				IPV64_API_KEY_Old=$(sed -r "s#dns_ipv64_bearer_token = ?##gi" credentials.ini)
 			fi
@@ -116,16 +117,16 @@ function show_dialogs() {
 					"$IPV64_API_KEY_Old" 3>&1 1>&2 2>&3
 			)
 		fi
-		IPV64_API_KEY_PATH="./credentials.ini"
-		if [ -s "$IPV64_API_KEY_PATH" ]; then
+
+		if [ -e "$IPV64_API_KEY_FILE" ]; then
 			# Rebuilding dhparam file.
-			log "Removing old Credential file at '$IPV64_API_KEY_PATH'."
-			rm -fv "$IPV64_API_KEY_PATH/credentials.ini" 2>&1 | tee -a "$LOGFILE_PATH"
+			log "Removing old Credential file at '$IPV64_API_KEY_FILE'."
+			rm -fv "$IPV64_API_KEY_FILE/credentials.ini" 2>&1 | tee -a "$LOGFILE_PATH"
 		fi
 		
 		touch credentials.ini
 		echo "dns_ipv64_bearer_token = $IPV64_API_KEY" > "credentials.ini"
-		log "Created credentials.ini at $IPV64_API_KEY_PATH"
+		log "Created credentials.ini at $IPV64_API_KEY_FILE"
 	fi
 
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then

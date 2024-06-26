@@ -47,7 +47,8 @@ function run_certbot_command() {
 			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
 			--chain-path "$SSL_CHAIN_PATH_RSA"
 			--authenticator dns-ipv64
-			--dns-ipv64-credentials "credentials.ini")
+			--dns-ipv64-credentials "credentials.ini"
+			--dns-ipv64-propagation-seconds 30)
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
@@ -95,7 +96,8 @@ function run_certbot_command() {
 			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
 			--chain-path "$SSL_CHAIN_PATH_ECDSA"
 			--authenticator dns-ipv64
-			--dns-ipv64-credentials "credentials.ini")
+			--dns-ipv64-credentials "credentials.ini"
+			--dns-ipv64-propagation-seconds 30)
 			;;
 		*)
 			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
@@ -199,7 +201,8 @@ function certbot_step1() {
 				log "Deleted contents of '$CERTBOT_PLUGIN_DIR'."
 				rm -vrf "$CERTBOT_PLUGIN_DIR" 2>&1 | tee -a $LOGFILE_PATH || true
 			fi
-			git clone https://github.com/XonaTheProtogen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
+			git clone https://github.com/lodzen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
+			git checkout fix-dns-zone 2>&1 | tee -a $LOGFILE_PATH
 			cd certbot-dns-ipv64
 			python3 ./setup.py build 2>&1 | tee -a $LOGFILE_PATH
 			python3 ./setup.py install 2>&1 | tee -a $LOGFILE_PATH
