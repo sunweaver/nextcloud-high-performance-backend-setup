@@ -377,7 +377,8 @@ function signaling_step4() {
 
 	if [ "$BEHIND_NAT" = true ]; then
 		log "Running behind NAT, commenting out external IP's for TURN"
-		sed "/<SIGNALING_COTURN_EXTERN_IPV4>/,/<SIGNALING_COTURN_EXTERN_IPV6>/s/^/#/" "$TMP_DIR_PATH"/signaling/*
+		sed -i "/<SIGNALING_COTURN_EXTERN_IPV4>/,/<SIGNALING_COTURN_EXTERN_IPV6>/s/^/#/" "$TMP_DIR_PATH"/signaling/*
+		sed -i "s|listening-ip=127.0.0.1|listening-ip=0.0.0.0|g" "$TMP_DIR_PATH"/signaling/*
 	else
 		EXTERN_IPv4=$(wget -4 ident.me -O - -o /dev/null || true)
 		log "Replacing '<SIGNALING_COTURN_EXTERN_IPV4>' with '$EXTERN_IPv4'…"
