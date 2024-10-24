@@ -11,6 +11,61 @@ function msmtp_do_preseed() {
 }
 
 function install_msmtp() {
+    log "Checking requirements for msmtp…"
+
+    local show_error=""
+    if [[ -z "$EMAIL_USER_ADDRESS" ]]; then
+        show_error="The email address (EMAIL_USER_ADDRESS) is missing."
+        # show_error="Es fehlt die E-Mail Adresse (EMAIL_USER_ADDRESS)."
+    fi
+
+    if [[ -z "$EMAIL_USER_USERNAME" ]]; then
+        show_error="The email username (EMAIL_USER_USERNAME) is missing."
+        # show_error="Es fehlt der E-Mail Benutzername (EMAIL_USER_USERNAME)."
+    fi
+
+    if [[ -z "$EMAIL_USER_PASSWORD" ]]; then
+        show_error="The email password (EMAIL_USER_PASSWORD) is missing."
+        # show_error="Es fehlt das E-Mail Passwort (EMAIL_USER_PASSWORD)."
+    fi
+
+    if [[ -z "$EMAIL_SERVER_HOST" ]]; then
+        show_error="The email server address (EMAIL_SERVER_HOST) is missing."
+        # show_error="Es fehlt die E-Mail-Server Adresse (EMAIL_SERVER_HOST)."
+    fi
+
+    if [[ -z "$EMAIL_SERVER_PORT" ]]; then
+        show_error="The email server port (EMAIL_SERVER_PORT) is missing."
+        # show_error="Es fehlt der E-Mail-Server Port (EMAIL_SERVER_PORT)."
+    fi
+
+    if [[ -n "${show_error}" ]]; then
+        dialog_text=$(echo -e "Couldn't install MSMTP.\n$(
+        )${show_error}\n\n$(
+        )Should the nextcloud high-performance-backend setup\n$(
+        )continue without the installation of 'msmtp'?\n\n$(
+        )NOTE: You can run this script again, but you'll have\n$(
+        )to re-enter your data again.")
+
+        # dialog_text=$(echo -e "Kann MSMTP nicht installieren.\n$(
+        # )${show_error}\n\n$(
+        # )Soll das Nextcloud High-Performance-Backend Setup-Skript\n$(
+        # )ohne die Installation von 'msmtp' fortgesetzt werden?\n\n$(
+        # )Achtung: Sie müssen, wenn Sie jetzt das Setup abbrechen,\n$(
+        # )Ihre Daten erneut eingeben.")
+
+        if [ "$UNATTENDED_INSTALL" != true ]; then
+            if whiptail --title "MSMTP configuration fail!" \
+                --yesno "$dialog_text" \
+                15 65 --defaultno; then
+                return
+            fi
+        else
+            log "$dialog_text"
+            return
+        fi
+    fi
+
     log "Installing msmtp…"
 
     msmtp_step1
