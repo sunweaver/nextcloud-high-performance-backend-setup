@@ -316,13 +316,26 @@ function show_dialogs() {
 			# A working version of nextcloud-spreed-signaling is available since
 			# Debian 12 (backports) and Debian 13 (provided first in Debian testing
 			# on 2023-10-22) and newer
-			if whiptail --title "Build from sources?" --defaultno \
-				--yesno "Would you like to build and install the $(
-				)'nextcloud-spreed-signaling' package from sources $(
-				)to get the newest possible version? This is normally $(
-				)not required and we suggest using the existing Debian packages." \
-				13 65 3>&1 1>&2 2>&3; then
-				SIGNALING_BUILD_FROM_SOURCES=true
+			if ! [[ -n "" ]]; then # Remove '!', if Debian catched up with its nextcloud-spreed-signaling package.
+				if whiptail --title "Build from sources?" --defaultno --yesno \
+				        "Would you like to build and install the $(
+					)'nextcloud-spreed-signaling' package from sources $(
+					)to get the newest possible version? The existing $(
+					)Debian package is rather old currently, therefore $(
+					)we would highly suggest building from source e.g.$(
+					)'no' option. \
+					13 65 3>&1 1>&2 2>&3; then
+					SIGNALING_BUILD_FROM_SOURCES=true
+				fi
+			else
+				if whiptail --title "Build from sources?" --defaultno \
+					--yesno "Would you like to build and install the $(
+					)'nextcloud-spreed-signaling' package from sources $(
+					)to get the newest possible version? This is normally $(
+					)not required and we suggest using the existing Debian packages." \
+					13 65 3>&1 1>&2 2>&3; then
+					SIGNALING_BUILD_FROM_SOURCES=true
+				fi
 			fi
 		else
 			# Originally, this part was for running this script on Debian 10 which is not
