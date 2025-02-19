@@ -322,8 +322,8 @@ function show_dialogs() {
 					)'nextcloud-spreed-signaling' package from sources $(
 					)to get the newest possible version? The existing $(
 					)Debian package is rather old currently, therefore $(
-					)we would highly suggest building from source e.g.$(
-					)'no' option. \
+					)we would highly suggest building from source e.g. $(
+					)'no' option." \
 					13 65 3>&1 1>&2 2>&3; then
 					SIGNALING_BUILD_FROM_SOURCES=true
 				fi
