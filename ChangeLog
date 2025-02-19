@@ -1,7 +1,34 @@
+2025-02-19 Daniel Teichmann
+
+        * VERSION: Bump version to 1.2.7. (HEAD -> main)
+        * setup-nextcloud-hpb.sh: Fix previous broken commit. (Missing ").
+          (c60ceea)
+
+2025-02-10 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Add dummy-if-switch for toggling between,
+          if 'Debian package' or 'building from sources' is
+          suggested. (653e41c)
+
+2024-10-17 Daniel Teichmann
+
+        * src/setup-msmtp.sh: Check for MSMTP requirements (EMAIL_*).
+          (eb1b720)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/93
+
+2024-02-17 Mirco
+
+        * Update README_en.md (f7fa53c)
+        * Update README_en.md (fec9ff6)
+        * Update README_en.md (a2ef64f)
+
 2024-02-15 Daniel Teichmann
 
+        * New release 1.2.6. (fe9e186) (tag: 1.2.6)
+        * VERSION: Bump version to 1.2.6. (c75e443)
         * src/setup-signaling.sh: Install golang-go from bookworm-backports
-          for Debian 12 bookworm. (fa3afc7) (HEAD -> main)
+          for Debian 12 bookworm. (fa3afc7)
           Fixes:
           https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/144
 
