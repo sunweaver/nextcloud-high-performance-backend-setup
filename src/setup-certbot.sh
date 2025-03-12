@@ -32,11 +32,30 @@ function run_certbot_command() {
 	error_title_ratelimited="LetsEncrypt rate limit reached!"
 
 	# RSA certificate
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
-		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
-		--chain-path "$SSL_CHAIN_PATH_RSA")
+	case "$CERTBOT_AUTH_METHOD" in
+		"http")
+			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
+			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
+			--chain-path "$SSL_CHAIN_PATH_RSA")
+			;;
+		"ipv64")
+			certbot_args=(certonly $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
+			--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
+			--chain-path "$SSL_CHAIN_PATH_RSA"
+			--authenticator dns-ipv64
+			--dns-ipv64-credentials "credentials.ini"
+			--dns-ipv64-propagation-seconds 30)
+			;;
+		*)
+			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
+			exit 1
+			;;
+	esac
+
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
@@ -62,11 +81,29 @@ function run_certbot_command() {
 	fi
 
 	# ECDSA certificate
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
-		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
-		--chain-path "$SSL_CHAIN_PATH_ECDSA")
+	case "$CERTBOT_AUTH_METHOD" in
+		"http")
+			certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
+			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
+			--chain-path "$SSL_CHAIN_PATH_ECDSA")
+			;;
+		"ipv64")
+			certbot_args=(certonly $arg_staging $arg_interactive $arg_dry_run
+			--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
+			--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
+			--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
+			--chain-path "$SSL_CHAIN_PATH_ECDSA"
+			--authenticator dns-ipv64
+			--dns-ipv64-credentials "credentials.ini"
+			--dns-ipv64-propagation-seconds 30)
+			;;
+		*)
+			log "Unsupported AUTH Method $CERTBOT_AUTH_METHOD!" >&2
+			exit 1
+			;;
+	esac	
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
@@ -92,30 +129,30 @@ function run_certbot_command() {
 	fi
 
 	# Force renewal of certificates
-	certbot_args=(renew --force-renewal $arg_staging $arg_interactive $arg_dry_run)
+	# certbot_args=(renew --force-renewal $arg_staging $arg_interactive $arg_dry_run)
 
-	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+	# log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
-		return 0
-	else
-		# Checking if Certbot reported rate limit error
-		# Let the user decide if they want staging certificates (for testing
-		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
-		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENDED_INSTALL" != true ]; then
-				if whiptail --title "$error_title_ratelimited" --defaultno \
-					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
-					# Recursively call this function
-					run_certbot_command "true"
-					return 0
-				fi
-			else
-				log "$error_message_ratelimited"
-			fi
-		fi
-	fi
+	# if certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
+	# 	return 0
+	# else
+	# 	# Checking if Certbot reported rate limit error
+	# 	# Let the user decide if they want staging certificates (for testing
+	# 	# purposes for example).
+	# 	error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+	# 	if [ -n "$error_ratelimited" ]; then
+	# 		if [ "$UNATTENDED_INSTALL" != true ]; then
+	# 			if whiptail --title "$error_title_ratelimited" --defaultno \
+	# 				--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
+	# 				# Recursively call this function
+	# 				run_certbot_command "true"
+	# 				return 0
+	# 			fi
+	# 		else
+	# 			log "$error_message_ratelimited"
+	# 		fi
+	# 	fi
+	# fi
 }
 
 function install_certbot() {
@@ -129,7 +166,27 @@ function install_certbot() {
 
 function certbot_step1() {
 	log "\nStep 1: Installing Certbot packages"
-	packages_to_install=(python3-certbot-nginx certbot ssl-cert)
+	if [ "$CERTBOT_AUTH_METHOD" = "" ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm" \
+				"missing CERTBOT_AUTH_METHOD!"
+			exit 1
+		fi
+	fi
+
+	case "$CERTBOT_AUTH_METHOD" in
+		"http")
+			packages_to_install=(python3-certbot-nginx certbot ssl-cert)
+			;;
+		"ipv64")
+			packages_to_install=(git python3-setuptools python3-certbot-nginx certbot ssl-cert)
+			;;
+		*)
+			log "Unsupported Certbot AUTH method: $CERTBOT_AUTH_METHOD!" >&2
+			exit 1
+			;;
+	esac
+	
 	if ! is_dry_run; then
 		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Certbot."
@@ -137,6 +194,19 @@ function certbot_step1() {
 			apt-get install -qqy "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
 		else
 			apt-get install -y "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
+		fi
+		if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
+			CERTBOT_PLUGIN_DIR="./certbot-dns-ipv64"
+			if [ -e "$CERTBOT_PLUGIN_DIR" ]; then
+				log "Deleted contents of '$CERTBOT_PLUGIN_DIR'."
+				rm -vrf "$CERTBOT_PLUGIN_DIR" 2>&1 | tee -a $LOGFILE_PATH || true
+			fi
+			git clone https://github.com/lodzen/certbot-dns-ipv64.git 2>&1 | tee -a $LOGFILE_PATH
+			cd certbot-dns-ipv64
+			git checkout fix-dns-zone 2>&1 | tee -a $LOGFILE_PATH
+			python3 ./setup.py build 2>&1 | tee -a $LOGFILE_PATH
+			python3 ./setup.py install 2>&1 | tee -a $LOGFILE_PATH
+			cd ../
 		fi
 	else
 		log "Would have installed '${packages_to_install[@]}' via APT now."
