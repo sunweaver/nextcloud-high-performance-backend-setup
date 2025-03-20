@@ -1,6 +1,14 @@
+2025-03-20 Daniel Teichmann
+
+        * VERSION: Bump version to 1.2.7a. (HEAD -> main)
+        * setup-nextcloud-hpb.sh: Fix "Build from sources?"-dialog of N-S-S
+          being defaultno; Changing text to be more
+          clear/informative. (d460f67)
+
 2025-02-19 Daniel Teichmann
 
-        * VERSION: Bump version to 1.2.7. (HEAD -> main)
+        * New release 1.2.7. (1b4ddee) (tag: 1.2.7)
+        * VERSION: Bump version to 1.2.7. (6b16220)
         * setup-nextcloud-hpb.sh: Fix previous broken commit. (Missing ").
           (c60ceea)
 
