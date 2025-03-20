@@ -317,13 +317,14 @@ function show_dialogs() {
 			# Debian 12 (backports) and Debian 13 (provided first in Debian testing
 			# on 2023-10-22) and newer
 			if ! [[ -n "" ]]; then # Remove '!', if Debian catched up with its nextcloud-spreed-signaling package.
-				if whiptail --title "Build from sources?" --defaultno --yesno \
+				if whiptail --title "Build from sources?" --yesno \
 				        "Would you like to build and install the $(
 					)'nextcloud-spreed-signaling' package from sources $(
-					)to get the newest possible version? The existing $(
-					)Debian package is rather old currently, therefore $(
-					)we would highly suggest building from source e.g. $(
-					)'no' option." \
+					)to get the newest possible version?$(
+					)The alternative method, installing the Debian package,$(
+					)is not suggested. Because the package is rather old$(
+					)currently, therefore we would highly suggest $(
+					)building from source e.g. 'yes' option." \
 					13 65 3>&1 1>&2 2>&3; then
 					SIGNALING_BUILD_FROM_SOURCES=true
 				fi
