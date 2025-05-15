@@ -48,7 +48,11 @@ function install_signaling() {
 		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
 		# Remove old packages.
-		is_dry_run || apt purge nextcloud-spreed-signaling nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+    APT_PACKAGES="nextcloud-spreed-signaling"
+		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
+			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
+		fi
+		is_dry_run || apt purge "${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
 
 		# Installing: golang-go make build-essential wget curl
 		APT_PARAMS="-y"
