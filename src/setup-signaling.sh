@@ -32,7 +32,6 @@ function install_signaling() {
 			# Added by nextcloud-high-performance-backend setup-script.
 			deb http://deb.debian.org/debian bookworm-backports main
 		EOL
-		is_dry_run || apt-get update 2>&1 | tee -a $LOGFILE_PATH
 	fi
 
 	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
@@ -41,14 +40,14 @@ function install_signaling() {
 			# Added by nextcloud-high-performance-backend setup-script.
 			deb http://deb.debian.org/debian bullseye-backports main
 		EOL
-		is_dry_run || apt-get update 2>&1 | tee -a $LOGFILE_PATH
 	fi
 
+	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
+
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
-		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
 		# Remove old packages.
-    APT_PACKAGES="nextcloud-spreed-signaling"
+		APT_PACKAGES="nextcloud-spreed-signaling"
 		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
 			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
 		fi
@@ -145,7 +144,7 @@ function signaling_build_nats-server() {
 		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-amd64.tar.gz' |
 			grep 'browser_download_url' | cut -d\" -f4) |
 			tee -a $LOGFILE_PATH
-   	fi
+	fi
 
 	log "Extracting sources…"
 	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-*.tar.gz" | tee -a $LOGFILE_PATH
@@ -164,8 +163,6 @@ function signaling_build_coturn() {
 	log "Building coturn…"
 
 	log "Installing necessary packages…"
-	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
-
 	APT_PARAMS="-y"
 	if [ "$UNATTENDED_INSTALL" == true ]; then
 		export DEBIAN_FRONTEND=noninteractive
@@ -255,8 +252,6 @@ function signaling_build_nextcloud-spreed-signaling() {
 
 function signaling_step3() {
 	log "\nStep 3: Install packages"
-
-	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
 	# Installing:
 	# - janus
