@@ -43,6 +43,11 @@ function install_signaling() {
 	fi
 
 	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
+	APT_PARAMS="-y"
+	if [ "$UNATTENDED_INSTALL" == true ]; then
+		export DEBIAN_FRONTEND=noninteractive
+		APT_PARAMS="-qqy"
+	fi
 
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 
@@ -51,15 +56,10 @@ function install_signaling() {
 		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
 			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
 		fi
-		is_dry_run || apt purge "${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
+		is_dry_run || apt purge "${APT_PARAMS} ${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
 
 		# Installing: golang-go make build-essential wget curl
-		APT_PARAMS="-y"
-		if [ "$UNATTENDED_INSTALL" == true ]; then
-			export DEBIAN_FRONTEND=noninteractive
-			APT_PARAMS="-qqy"
-			log "Trying unattended install for Signaling."
-		fi
+		[ "$UNATTENDED_INSTALL" == true ] && log "Trying unattended install for Signaling."
 
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
@@ -84,12 +84,6 @@ function install_signaling() {
 		# - ssl-cert
 		# - nats-server (Always built from sources for Debian 11)
 		# - coturn      (Always built from sources for Debian 11)
-		APT_PARAMS="-y"
-		if [ "$UNATTENDED_INSTALL" == true ]; then
-			export DEBIAN_FRONTEND=noninteractive
-			APT_PARAMS="-qqy"
-		fi
-
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			is_dry_run || apt-get install $APT_PARAMS ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
