@@ -56,7 +56,7 @@ function install_signaling() {
 		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
 			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
 		fi
-		is_dry_run || apt purge "${APT_PARAMS} ${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
+		is_dry_run || apt purge "${APT_PARAMS}" "${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
 
 		# Installing: golang-go make build-essential wget curl
 		[ "$UNATTENDED_INSTALL" == true ] && log "Trying unattended install for Signaling."
