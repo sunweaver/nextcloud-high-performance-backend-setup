@@ -28,6 +28,11 @@ UNATTENDED_INSTALL=false
 #SSL_CHAIN_PATH_ECDSA=""
 #DHPARAM_PATH=""
 
+# If you are running the script behind a NAT you need to specify it with true
+# make sure that the webserver are reachable from the internet via 
+# port (80 only if http cert auth method is used),443 & 5349 (TCP & UDP)
+BEHIND_NAT=""
+
 # Collabora (Gets asked anyway, except unattended install.)
 SHOULD_INSTALL_COLLABORA=true
 
@@ -39,6 +44,11 @@ SHOULD_INSTALL_NGINX=true
 SHOULD_INSTALL_CERTBOT=true
 SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 SHOULD_INSTALL_MSMTP=true
+
+#Select between http and ipv64 DNS Challenage
+CERTBOT_AUTH_METHOD=""
+#Becomes mandatory if Certbot Auth method ipv64 is specified
+IPV64_API_KEY=""
 
 # Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
