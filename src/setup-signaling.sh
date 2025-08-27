@@ -27,24 +27,24 @@ function install_signaling() {
 	log "Installing Signaling…"
 
 	if [ "$DEBIAN_VERSION_MAJOR" = "12" ] ; then
-		log "Enable bookworm-backports"
+		log "Enabling bookworm-backports..."
 		is_dry_run || cat <<-EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
 			# Added by nextcloud-high-performance-backend setup-script.
 			deb http://deb.debian.org/debian bookworm-backports main
 		EOL
 	fi
-
 	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-		log "Enable bullseye-backports"
+		log "Enabling bullseye-backports..."
 		is_dry_run || cat <<-EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
 			# Added by nextcloud-high-performance-backend setup-script.
 			deb http://deb.debian.org/debian bullseye-backports main
 		EOL
 	fi
-
 	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
+
 	APT_PARAMS="-y"
 	if [ "$UNATTENDED_INSTALL" == true ]; then
+		log "Trying unattended install for Signaling."
 		export DEBIAN_FRONTEND=noninteractive
 		APT_PARAMS="-qqy"
 	fi
@@ -52,15 +52,21 @@ function install_signaling() {
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 
 		# Remove old packages.
+		log "Purging old signaling packages..."
 		APT_PACKAGES="nextcloud-spreed-signaling"
 		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
 			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
 		fi
 		is_dry_run || apt purge "${APT_PARAMS}" "${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
 
-		# Installing: golang-go make build-essential wget curl
-		[ "$UNATTENDED_INSTALL" == true ] && log "Trying unattended install for Signaling."
-
+		# Installing:
+		#   - build-essential
+		#   - curl
+		#   - golang-go
+		#   - make
+		#   - protobuf-compiler
+		#   - wget
+		log "Installing signaling dependencies..."
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
@@ -105,8 +111,8 @@ function install_signaling() {
 	signaling_step4
 	signaling_step5
 
-	# Make sure janus is restartet 15 sec after system reboot, wo that coturn service is already up
-	# Otherwise, janus will silently crash if coturn is not available.
+	# Make sure janus is restartet 15 sec after system reboot, so that Coturn service has time to get up.
+	# Otherwise, janus will silently crash if Coturn is not available.
 	set +eo pipefail
 	crontab -l >cron_backup
 	echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1" >>cron_backup
