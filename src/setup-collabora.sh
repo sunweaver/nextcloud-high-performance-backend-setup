@@ -54,37 +54,56 @@ function collabora_step3() {
 	#   - coolwsd
 	#   - code-brand
 	#   - some dictionaries, German, English, French, Spanish, Dutch
-	#   - Microsoft fonts.
-	if ! is_dry_run; then
-		if [ "$UNATTENDED_INSTALL" == true ]; then
-			log "Trying unattended install for Collabora."
-			export DEBIAN_FRONTEND=noninteractive
-			args_apt="-qqy"
-		else
-			args_apt="-y"
-		fi
-
-		apt-get install "$args_apt" \
-			software-properties-common \
-			2>&1 | tee -a $LOGFILE_PATH
-
-		apt-add-repository -y contrib \
-			2>&1 | tee -a $LOGFILE_PATH
-
-		is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
-
-		apt-get install "$args_apt" \
-			ttf-mscorefonts-installer \
-			2>&1 | tee -a $LOGFILE_PATH
-
-		apt-get install "$args_apt" \
-			coolwsd code-brand collaboraoffice-dict-en \
-			collaboraofficebasis-de collaboraoffice-dict-de \
-			collaboraofficebasis-fr collaboraoffice-dict-fr \
-			collaboraofficebasis-nl collaboraoffice-dict-nl \
-			collaboraofficebasis-es collaboraoffice-dict-es \
-			2>&1 | tee -a $LOGFILE_PATH
+	#   - Microsoft fonts (contrib)
+	if [ "$UNATTENDED_INSTALL" == true ]; then
+		log "Trying unattended install for Collabora."
+		export DEBIAN_FRONTEND=noninteractive
+		args_apt="-qqy"
+	else
+		args_apt="-y"
 	fi
+
+	# Make 'contrib' available. Needed to install 'ttf-mscorefonts-installer' for Collabora.
+	#
+	# BUG: software-properties has issues migrating from sid to testing for about a year currently.
+	#      See https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/190
+	if ! apt-cache show software-properties-common > /dev/null 2>&1; then
+		is_dry_run || {
+			# For deb822 sources (default in Debian 13)
+			sed -i 's/^Components: main$/& contrib/' /etc/apt/sources.list.d/debian.sources || true
+
+			# For the classic sources.list
+			sed -r -i 's/^deb(.*main)$/deb\1 contrib/' /etc/apt/sources.list || true
+		} 2>&1 | tee -a $LOGFILE_PATH
+	else
+		is_dry_run || {
+			apt-get install "$args_apt" software-properties-common
+			apt-add-repository -y contrib
+		} 2>&1 | tee -a $LOGFILE_PATH
+	fi
+
+	# Update before trying to install from 'contrib'.
+	is_dry_run || {
+		apt update 2>&1 | tee -a $LOGFILE_PATH
+	}
+
+	# Install Microsoft Fonts.
+	is_dry_run || {
+		apt-get install "$args_apt" \
+		ttf-mscorefonts-installer \
+		2>&1 | tee -a $LOGFILE_PATH
+	}
+
+	# Install collabora packages.
+	is_dry_run || {
+		apt-get install "$args_apt" \
+		coolwsd code-brand collaboraoffice-dict-en \
+		collaboraofficebasis-de collaboraoffice-dict-de \
+		collaboraofficebasis-fr collaboraoffice-dict-fr \
+		collaboraofficebasis-nl collaboraoffice-dict-nl \
+		collaboraofficebasis-es collaboraoffice-dict-es \
+		2>&1 | tee -a $LOGFILE_PATH
+	}
 }
 
 function collabora_step4() {
