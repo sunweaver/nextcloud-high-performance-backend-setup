@@ -1,5 +1,8 @@
 <!-- -*- nxml-child-indent: 4; tab-width: 4; indent-tabs-mode: nil -*- -->
 <config>
+    <remote_font_config>
+<COLLABORA_REMOTE_FONT_CONFIGS>
+    </remote_font_config>
 
     <!-- For more detailed documentation on typical configuration options please see:
          https://sdk.collaboraonline.com/docs/installation/Configuration.html -->
@@ -239,8 +242,4 @@
     <remote_config>
         <remote_url desc="remote server to which you will send resquest to get remote config in response" type="string" default=""></remote_url>
     </remote_config>
-
-    <remote_font_config>
-<COLLABORA_REMOTE_FONT_CONFIGS>
-    </remote_font_config>
 </config>
