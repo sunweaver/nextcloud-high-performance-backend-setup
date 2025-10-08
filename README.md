@@ -3,11 +3,11 @@
   <a href="https://github.com/sunweaver/nextcloud-high-performance-backend-setup/blob/main/README_en.md">English</a>
 </p>
 
-# Einfaches Setup für Nextcloud Hochleistungsbackend, Signaling & Collabora Office für Debian 12 (Bookworm)
+# Einfaches Setup für Nextcloud Hochleistungsbackend, Signaling & Collabora Office für Debian 13 (Trixie)
 
 Dieses Skript installiert vollautomatisch das Nextcloud High Performance Backend mit eigenem Coturn- und Signaling-Server, sowie Collabora Office als Debian-Paket oder aus den Sourcen. Die Installation ist extra einfach gehalten und ermöglicht dadurch auch Anwendern mit wenig Unix-/Linux-Kenntnissen eine Installation in ca. 5 Minuten.
 
-Das Nextcloud HPB kann als Debian-Paket (Debian 12 Bookworm Backports) oder aus den aktuellen Sourcen (Debian 12 Bookworm) installiert werden. Das Collabora-Paket wird immer als aktuellstes Paket aus dem Stable-Zweig installiert. Bitte beachten Sie, dass Collabora Office hier in der Community Version installiert wird. Dies können Sie natürlich durch eine Lizenz-Key auch jederzeit auf eine Proffesional Version erweitern.
+Bitte beachten Sie, dass Collabora Office hier in der Community Version installiert wird. Dies können Sie natürlich durch eine Lizenz-Key auch jederzeit auf eine Proffesional Version erweitern.
 
 [**Hier im Wiki finden Sie eine detaillierte Installationsanleitung!**](https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/02-Setup-Script)
 
@@ -16,7 +16,7 @@ Das Nextcloud HPB kann als Debian-Paket (Debian 12 Bookworm Backports) oder aus 
 **Voraussetzungen für den Betrieb:**
 
 * Ein Server mit einer öffentlich zugänglichen IP! (nicht für Systeme hinter einer Firewall oder NAT mit privater Adresse)
-* Einen virtuellen oder physikalischen Server mit Debian 12 (Bookworm)
+* Einen virtuellen oder physikalischen Server mit Debian 13 (Trixie)
 * Eine Subdomain für den Server, auf dem das Skript installiert wird
 
 Sie werden bei der Installation durch 8 Dialoge geführt und danach werden die Pakete voll automatisch installiert, konfiguriert und Sie erhalten eine Übersicht mit allen einzutragenden Schlüsseln für die Nextcloud-Instanz. Das Skript kann auch mehrere Nextcloud-URLs auf dem Server verwalten. Diese geben Sie in dem Script einfach mit Kommata separiert ein (Multidomain).
