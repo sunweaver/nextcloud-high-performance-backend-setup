@@ -620,17 +620,17 @@ function signaling_print_info() {
 		"\ninstances with an adminstrator account and install the Talk app." \
 		"\nThen navigate to Settings -> Administration -> Talk and put in the" \
 		"\nsettings down below.\n" \
-		"$(printf '\t- https://%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")\n"
+		"$(for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do printf '\t- %shttps://%s%s\n' "${cyan}" "$NC_SERVER" "${blue}"; done)\n"
 
 	# Don't actually *log* passwords!
-	log "STUN server = $SERVER_FQDN:5349"
+	log "STUN server = ${cyan}$SERVER_FQDN:5349"
 	log "TURN server:"
-	log " - 'turn and turns'"
-	log " - turnserver+port: $SERVER_FQDN:5349"
-	echo -e " - secret: $SIGNALING_TURN_STATIC_AUTH_SECRET"
-	log " - 'udp & tcp'"
+	log " - '${cyan}turn and turns${blue}'"
+	log " - ${cyan}turnserver+port${blue}: ${cyan}$SERVER_FQDN:5349"
+	echo -e " - secret: ${cyan}$SIGNALING_TURN_STATIC_AUTH_SECRET"
+	log " - '${cyan}udp & tcp${blue}'"
 	log "High-performance backend:"
-	log " - https://$SERVER_FQDN/standalone-signaling"
+	log " - ${cyan}https://$SERVER_FQDN/standalone-signaling"
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")

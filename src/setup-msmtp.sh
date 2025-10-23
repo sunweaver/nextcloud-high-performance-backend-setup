@@ -199,9 +199,9 @@ function msmtp_print_info() {
         "\nhave a look and make sure you also look into your spam folder.\n"
 
     log "=== MSMTP Setup ==="
-    log "E-Mails get sent to: $EMAIL_USER_ADDRESS"
-    log "E-Mail account username: $EMAIL_USER_USERNAME"
-    log "E-Mail account password: *****"
-    log "E-Mail server host: $EMAIL_SERVER_HOST"
-    log "E-Mail server port: $EMAIL_SERVER_PORT"
+    log "E-Mails get sent to: ${cyan}$EMAIL_USER_ADDRESS"
+    log "E-Mail account username: ${cyan}$EMAIL_USER_USERNAME"
+    log "E-Mail account password: ${cyan}*****"
+    log "E-Mail server host: ${cyan}$EMAIL_SERVER_HOST"
+    log "E-Mail server port: ${cyan}$EMAIL_SERVER_PORT"
 }

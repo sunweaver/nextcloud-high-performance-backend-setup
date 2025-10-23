@@ -105,7 +105,7 @@ function nginx_write_secrets_to_file() {
 
 function nginx_print_info() {
 	log "Nginx got installed which acts as a reverse proxy for your selected" \
-		"\nservices.No extra configuration needed."
+		"\nservices. No extra configuration needed."
 
 	if [ "$SHOULD_INSTALL_CERTBOT" != true ]; then
 		log "\nExcept one thing. Since you choose to not install an automatic" \
