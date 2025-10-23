@@ -1,6 +1,90 @@
+2025-10-23 Daniel Teichmann
+
+        * New release 1.3. (HEAD -> main)
+        * VERSION: Bump version to 1.3. (1ff1a92)
+        * Revert "Added dns challenge authentication for ipv64, Updated
+          script to work behind NAT" (dc17db3)
+        * setup-msmtp: Fix bug where failed mail test would lead to positive
+          result text. (e4b1558)
+        * src/setup-*.sh: Colourize secrets output for better visibility.
+          (df887be)
+        * setup-nextcloud-hpb deploy-file(): Add log messages for dry-run
+          mode. (c91e231)
+        * setup-signaling: Use https for ident.me (fedc7e5)
+        * src/setup-*.sh: Make step logging message colorful. (cc7fbd9)
+        * Announce installation steps colorfully with nice banners. (6ec581b)
+        * Add optional colored output to setup-nextcloud-hpb.sh (42ca45c)
+        * setup-signaling: Do not rebuild packages every time, if they are
+          already built. (b3969d7)
+        * setup-signaling: build janus: install equivs package to satisfy
+          janus dependencies (4d9e915)
+        * setup-signaling: build janus: add cleanup and directory management
+          (f1a0653)
+        * setup-nextcloud-hpb: Fix Signaling package detection. (3a957f2)
+        * setup-signaling: Add missing dry-run checks. (00bbceb)
+        * is_dry_run(): Logging a message explaining what would've happened
+          if not currently in dry-run. (bcaf335)
+        * setup-signaling: Better log messages when building software
+          (64b1b8a)
+        * setup-signaling: Fix bug where purge would not be successful, if
+          multiple packages were to be purged. (a4e152e)
+        * setup-signaling: add support for Janus package installation and
+          building (711b0e8)
+
+2025-10-22 Daniel Teichmann
+
+        * signaling-server(conf): revert accidental config line change
+          (c046e0b)
+        * signaling-server: update configuration file for Debian 13 (upstream
+          v1.2.4) (a45d033)
+
+2025-10-08 Daniel Teichmann
+
+        * Update README for Debian 13 support (a0001e6)
+        * Update README for Debian 13 (Trixie) support (968fc31)
+        * data/collabora/coolwsd.xml: Move <remote_font_config> to the
+          beginning of the <config> block. (555bc73)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/120
+
+2025-08-25 Daniel Teichmann
+
+        * src/setup-collabora.sh: Fix bug where installation would stop for
+          Debian 13. (65aeb69)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/190
+
+2024-06-24 lodzen
+
+        * Added dns challenge authentication for ipv64, Updated script to
+          work behind NAT (3ed87fb)
+
+2025-08-27 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Fix missing spaces in dialog text.
+          (91aa1dc)
+        * src/setup-signaling.sh: Improve log messages and comments.
+          (129b4aa)
+
+2025-05-21 Arthur BOUDREAULT
+
+        * fix: Correct APT purge command syntax by adjusting parameter order
+          (b30f278)
+
+2025-05-19 Thomas MICHEL
+
+        * fix: APT_PARAMS factorize and declared upper for apt purge use
+          (165d360)
+        * fix: update apt cache only after sources.list update (8a6a33f)
+
+2025-05-15 Thomas MICHEL
+
+        * fix: debian12 from source (4c0c46e)
+
 2025-03-20 Daniel Teichmann
 
-        * VERSION: Bump version to 1.2.7a. (HEAD -> main)
+        * New release 1.2.7a. (e382dae) (tag: 1.2.7a)
+        * VERSION: Bump version to 1.2.7a. (9563db1)
         * setup-nextcloud-hpb.sh: Fix "Build from sources?"-dialog of N-S-S
           being defaultno; Changing text to be more
           clear/informative. (d460f67)
