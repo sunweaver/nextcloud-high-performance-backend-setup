@@ -145,6 +145,13 @@ function install_signaling() {
 function signaling_build_janus() {
 	log "[Building Janus] Building janus…"
 
+	# Create temporary build directory
+	JANUS_BUILD_DIR=$(mktemp -d)
+	log "[Building Janus] Using temporary build directory: $JANUS_BUILD_DIR"
+
+	# Store original directory
+	ORIGINAL_DIR=$(pwd)
+
 	log "[Building Janus] Installing necessary packages…"
 	APT_PARAMS="-y"
 	if [ "$UNATTENDED_INSTALL" == true ]; then
@@ -152,6 +159,9 @@ function signaling_build_janus() {
 		APT_PARAMS="-qqy"
 	fi
 	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts 2>&1 | tee -a $LOGFILE_PATH
+
+	# Change to temporary build directory
+	cd "$JANUS_BUILD_DIR"
 
 	log "[Building Janus] Fetching latest Janus version from Debian sources API…"
 	JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
@@ -168,7 +178,8 @@ function signaling_build_janus() {
 	log "[Building Janus] Downloading Janus source package…"
 	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
 	log "[Building Janus] DSC URL: $JANUS_DSC_URL"
-	is_dry_run || dget "$JANUS_DSC_URL" 2>&1 | tee -a $LOGFILE_PATH
+	is_dry_run "Would've downloaded $JANUS_DSC_URL." || \
+		dget --allow-unauthenticated "$JANUS_DSC_URL" 2>&1 | tee -a $LOGFILE_PATH
 
 	# Extract base version without debian revision
 	JANUS_BASE_VERSION=$(echo "$JANUS_VERSION" | cut -d'-' -f1)
@@ -181,13 +192,13 @@ function signaling_build_janus() {
 	fi
 
 	log "[Building Janus] Installing build dependencies…"
-	is_dry_run || cd "$JANUS_SOURCE_DIR" && mk-build-deps -i -r -t "apt-get -y" 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
+	is_dry_run || (cd "$JANUS_SOURCE_DIR" && mk-build-deps -i -r -t "apt-get -y" 2>&1 | tee -a "$LOGFILE_PATH" && cd ..)
 
 	log "[Building Janus] Building Janus…"
-	is_dry_run || cd "$JANUS_SOURCE_DIR" && debian/rules build 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
+	is_dry_run || (cd "$JANUS_SOURCE_DIR" && debian/rules build 2>&1 | tee -a "$LOGFILE_PATH" && cd ..)
 
 	log "[Building Janus] Creating Janus package…"
-	is_dry_run || cd "$JANUS_SOURCE_DIR" && debian/rules binary 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
+	is_dry_run || (cd "$JANUS_SOURCE_DIR" && debian/rules binary 2>&1 | tee -a "$LOGFILE_PATH" && cd ..)
 
 	log "[Building Janus] Installing Janus package…"
 	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
@@ -196,6 +207,13 @@ function signaling_build_janus() {
 
 	log "[Building Janus] Installing any missing dependencies…"
 	is_dry_run || apt-get install $APT_PARAMS -f 2>&1 | tee -a $LOGFILE_PATH
+
+	# Return to original directory
+	cd "$ORIGINAL_DIR"
+
+	# Clean up temporary build directory
+	log "[Building Janus] Cleaning up temporary build directory…"
+	rm -rf "$JANUS_BUILD_DIR"
 }
 
 function signaling_build_nats-server() {
