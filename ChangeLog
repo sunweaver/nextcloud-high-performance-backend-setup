@@ -1,6 +1,14 @@
 2025-10-23 Daniel Teichmann
 
-        * New release 1.3. (HEAD -> main)
+        * VERSION: Bump version to 1.3.1. (HEAD -> main)
+        * setup-certbot: Fix typo. (5dbf241)
+        * setup-certbot: Fix new versions of Certbot using a slightly
+          different error message for rate limits. (a6d1100)
+        * setup-signaling: Fixup mistakes made by last commit revert.
+          (1ac6855)
+        * setup-collabora: Replace old 'apt-cache show...' with 'apt-cache
+          policy...'. (a6ee146)
+        * New release 1.3. (e5c0a70) (tag: 1.3)
         * VERSION: Bump version to 1.3. (1ff1a92)
         * Revert "Added dns challenge authentication for ipv64, Updated
           script to work behind NAT" (dc17db3)
