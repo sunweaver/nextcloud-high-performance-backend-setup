@@ -7,7 +7,9 @@ set -eo pipefail
 # See settings.sh
 DRY_RUN=false
 UNATTENDED_INSTALL=false
+BEHIND_NAT="" # Ask user
 NEXTCLOUD_SERVER_FQDNS=""  # Ask user
+CERTBOT_AUTH_METHOD=""     # Ask user
 SERVER_FQDN=""             # Ask user
 SSL_CERT_PATH_RSA=""       # Will be auto filled, if not overriden by settings file.
 SSL_CERT_KEY_PATH_RSA=""   # Will be auto filled, if not overriden by settings file.
@@ -64,6 +66,85 @@ function show_dialogs() {
 		fi
 	fi
 	log "Using '$DRY_RUN' for DRY_RUN".
+
+	if [ "$BEHIND_NAT" = "" ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
+			log "Can't continue since this is a non-interactive installation and I'm missing BEHIND_NAT!"
+			exit 1
+		fi
+
+		if whiptail --title "Are you behind a NAT?" --yesno "Are you running the server $(
+		)behind a NAT? Make sure that the ports (80 only if http cert auth method is used), 443 and 5349 (TCP & UDP) $(
+		)are opened in the Firewall." 10 65 --defaultno; then
+			BEHIND_NAT=true
+		else
+			BEHIND_NAT=false
+		fi
+	fi
+	log "BEHIND_NAT '$BEHIND_NAT' selected.".
+
+	if [ "$CERTBOT_AUTH_METHOD" = "" ]; then
+		CHOICES=$(whiptail --title "Select Certbot Authentication Method" \
+		--menu "Use the space bar key to select/deselect the AUTH Method $(
+		)you want to use." 15 90 2 \
+		"1" "Use HTTP Challenge" \
+		"2" "Use IPv64.net DNS Challenge" \
+		3>&1 1>&2 2>&3 || true)
+
+		if [ -z "$CHOICES" ]; then
+			log "No AUTH Method was selected (user hit Cancel or unselected all options) Exiting…"
+			exit 0
+		else
+			for CHOICE in $CHOICES; do
+				case "$CHOICE" in
+				"1")
+					CERTBOT_AUTH_METHOD="http"
+					;;
+				"2")
+					CERTBOT_AUTH_METHOD="ipv64"
+					;;
+				*)
+					log "Unsupported service $CHOICE!" >&2
+					exit 1
+					;;
+				esac
+			done
+		fi
+	fi
+	log "Using '$CERTBOT_AUTH_METHOD' for CERTBOT_AUTH_METHOD".
+
+	IPV64_API_KEY_FILE="./credentials.ini"
+	if [ "$CERTBOT_AUTH_METHOD" = "ipv64" ]; then
+		if [ "$IPV64_API_KEY" = "" ]; then
+			if [ "$UNATTENDED_INSTALL" = true ]; then
+				log "Can't continue since this is a non-interactive installation and I'm" \
+					"missing IPV64_API_KEY!"
+				exit 1
+			fi
+
+			IPV64_API_KEY_Old="123456789abcdefg123456789abcdefg"
+			if [ -e "$IPV64_API_KEY_FILE" ]; then
+				# Rebuilding dhparam file.
+				IPV64_API_KEY_Old=$(sed -r "s#dns_ipv64_bearer_token = ?##gi" credentials.ini)
+			fi
+			IPV64_API_KEY=$(
+				whiptail --title "IPV64.de API Key" \
+					--inputbox "Please enter your IPV64.de API Key here. $(
+					)" 12 65 \
+					"$IPV64_API_KEY_Old" 3>&1 1>&2 2>&3
+			)
+		fi
+
+		if [ -e "$IPV64_API_KEY_FILE" ]; then
+			# Rebuilding dhparam file.
+			log "Removing old Credential file at '$IPV64_API_KEY_FILE'."
+			rm -fv "$IPV64_API_KEY_FILE/credentials.ini" 2>&1 | tee -a "$LOGFILE_PATH"
+		fi
+
+		touch credentials.ini
+		echo "dns_ipv64_bearer_token = $IPV64_API_KEY" > "credentials.ini"
+		log "Created credentials.ini at $IPV64_API_KEY_FILE"
+	fi
 
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
