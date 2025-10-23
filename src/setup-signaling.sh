@@ -158,7 +158,7 @@ function signaling_build_janus() {
 		export DEBIAN_FRONTEND=noninteractive
 		APT_PARAMS="-qqy"
 	fi
-	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts 2>&1 | tee -a $LOGFILE_PATH
+	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts equivs 2>&1 | tee -a $LOGFILE_PATH
 
 	# Change to temporary build directory
 	cd "$JANUS_BUILD_DIR"
