@@ -44,7 +44,7 @@ function run_certbot_command() {
 		# Checking if Certbot reported rate limit error
 		# Let the user decide if they want staging certificates (for testing
 		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates')"
 		if [ -n "$error_ratelimited" ]; then
 			if [ "$UNATTENDED_INSTALL" != true ]; then
 				if whiptail --title "$error_title_ratelimited" --defaultno \
@@ -74,7 +74,7 @@ function run_certbot_command() {
 		# Checking if Certbot reported rate limit error
 		# Let the user decide if they want staging certificates (for testing
 		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates')"
 		if [ -n "$error_ratelimited" ]; then
 			if [ "$UNATTENDED_INSTALL" != true ]; then
 				if whiptail --title "$error_title_ratelimited" --defaultno \
@@ -102,7 +102,7 @@ function run_certbot_command() {
 		# Checking if Certbot reported rate limit error
 		# Let the user decide if they want staging certificates (for testing
 		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates (5) already issued for this exact set of domains in the last 168 hours')"
+		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates')"
 		if [ -n "$error_ratelimited" ]; then
 			if [ "$UNATTENDED_INSTALL" != true ]; then
 				if whiptail --title "$error_title_ratelimited" --defaultno \
