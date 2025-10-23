@@ -53,7 +53,7 @@ function install_signaling() {
 
 		# Remove old packages.
 		log "Purging old signaling packages..."
-		APT_PACKAGES="nextcloud-spreed-signaling"
+		APT_PACKAGES="nextcloud-spreed-signaling janus"
 		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
 			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
 		fi
@@ -85,8 +85,14 @@ function install_signaling() {
 			is_dry_run || signaling_build_nats-server && log "Would have built nats-server now…"
 		fi
 
+		# Check if Janus package is available, if not build it from sources
+		if ! apt-cache policy janus 2>/dev/null | grep -q "Candidate:" | grep -qv "(none)"; then
+			log "Janus package not available, building from sources…"
+			is_dry_run || signaling_build_janus && log "Would have built janus now…"
+		fi
+
 		# Installing:
-		# - janus
+		# - janus (if available, otherwise already built)
 		# - ssl-cert
 		# - nats-server (Always built from sources for Debian 11)
 		# - coturn      (Always built from sources for Debian 11)
@@ -94,7 +100,10 @@ function install_signaling() {
 			is_dry_run || apt-get install $APT_PARAMS ssl-cert 2>&1 | tee -a $LOGFILE_PATH
 			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 		else
-			is_dry_run || apt-get install $APT_PARAMS janus ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+			is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
+			if apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
+				is_dry_run || apt-get install $APT_PARAMS janus 2>&1 | tee -a $LOGFILE_PATH
+			fi
 		fi
 
 		log "Reloading systemd."
@@ -121,6 +130,63 @@ function install_signaling() {
 	set -eo pipefail
 
 	log "Signaling install completed."
+}
+
+function signaling_build_janus() {
+	log "Building janus…"
+
+	log "Installing necessary packages…"
+	APT_PARAMS="-y"
+	if [ "$UNATTENDED_INSTALL" == true ]; then
+		export DEBIAN_FRONTEND=noninteractive
+		APT_PARAMS="-qqy"
+	fi
+	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts 2>&1 | tee -a $LOGFILE_PATH
+
+	log "Fetching latest Janus version from Debian sources API…"
+	JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
+	log "API response: $JANUS_API_RESPONSE"
+
+	# Parse the JSON to get the latest version (first in the versions array)
+	JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
+	log "Latest Janus version: $JANUS_VERSION"
+
+	if [ -z "$JANUS_VERSION" ]; then
+		log "ERROR: Could not determine Janus version from API!"
+		exit 1
+	fi
+
+	log "Downloading Janus source package…"
+	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
+	log "DSC URL: $JANUS_DSC_URL"
+	is_dry_run || dget "$JANUS_DSC_URL" 2>&1 | tee -a $LOGFILE_PATH
+
+	# Extract base version without debian revision
+	JANUS_BASE_VERSION=$(echo "$JANUS_VERSION" | cut -d'-' -f1)
+	JANUS_SOURCE_DIR="janus-${JANUS_BASE_VERSION}"
+	log "Source directory: $JANUS_SOURCE_DIR"
+
+	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
+		log "ERROR: Source directory $JANUS_SOURCE_DIR not found!"
+		exit 1
+	fi
+
+	log "Installing build dependencies…"
+	is_dry_run || cd "$JANUS_SOURCE_DIR" && mk-build-deps -i -r -t "apt-get -y" 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
+
+	log "Building Janus…"
+	is_dry_run || cd "$JANUS_SOURCE_DIR" && debian/rules build 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
+
+	log "Creating Janus package…"
+	is_dry_run || cd "$JANUS_SOURCE_DIR" && debian/rules binary 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
+
+	log "Installing Janus package…"
+	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
+	log "Package file: $JANUS_DEB_FILE"
+	is_dry_run || dpkg -i "$JANUS_DEB_FILE" 2>&1 | tee -a $LOGFILE_PATH
+
+	log "Installing any missing dependencies…"
+	is_dry_run || apt-get install $APT_PARAMS -f 2>&1 | tee -a $LOGFILE_PATH
 }
 
 function signaling_build_nats-server() {
