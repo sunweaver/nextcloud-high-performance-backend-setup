@@ -498,15 +498,17 @@ function deploy_file() {
 			return 1
 		else
 			if [ "$UNATTENDED_INSTALL" = true ]; then
-				cp "$source_file_path" "$target_file_path"
+				is_dry_run "Would've replaced existing '$target_file_path'." || \
+					cp "$source_file_path" "$target_file_path"
 			else
 				log "file '$target_file_path' exists and will be updated deployed."
-				is_dry_run || cp "$source_file_path" "$target_file_path"
+				is_dry_run "Would've replaced existing '$target_file_path'." || \
+					cp "$source_file_path" "$target_file_path"
 			fi
 		fi
 	else
 		# Target file is empty or doesn't exist.
-		is_dry_run || cp "$source_file_path" "$target_file_path"
+		is_dry_run "Would've deployed '$target_file_path'." || cp "$source_file_path" "$target_file_path"
 	fi
 	return 0
 }
