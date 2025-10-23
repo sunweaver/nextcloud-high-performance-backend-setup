@@ -430,8 +430,34 @@ function show_dialogs() {
 	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
 }
 
+# SUPPORT FOR COLORS! (If terminal supports it)
+# Check if stdout is a terminal and set colors if available.
+if test -t 1; then
+	# Pause set -e
+	set +e
+	# See if it supports colors...
+	ncolors=$(tput colors 2> /dev/null)
+	set -e
+
+	if [[ -n "$ncolors" && "$ncolors" -ge 8 ]]; then
+		bold="$(tput bold)"
+		underline="$(tput smul)"
+		standout="$(tput smso)"
+		normal="$(tput sgr0)"
+		black="$(tput setaf 0)"
+		red="$(tput setaf 1)"
+		green="$(tput setaf 2)"
+		yellow="$(tput setaf 3)"
+		blue="$(tput setaf 4)"
+		magenta="$(tput setaf 5)"
+		cyan="$(tput setaf 6)"
+		white="$(tput setaf 7)"
+	fi
+fi
+
 function log() {
-	echo -e "$@" 2>&1 | tee -a $LOGFILE_PATH
+	echo -e "$@" >> $LOGFILE_PATH
+	echo -e "${blue}$@${normal}"
 }
 
 function generate_dhparam_file() {
