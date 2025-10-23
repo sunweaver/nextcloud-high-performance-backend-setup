@@ -52,12 +52,21 @@ function install_signaling() {
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 
 		# Remove old packages.
-		log "Purging old signaling packages..."
+		log "Purging old Signaling packages..."
 		APT_PACKAGES="nextcloud-spreed-signaling janus"
 		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
 			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
 		fi
-		is_dry_run || apt purge "${APT_PARAMS}" "${APT_PACKAGES}" 2>&1 | tee -a "${LOGFILE_PATH}"
+
+		for pkg in $APT_PACKAGES; do
+			if is_dry_run; then
+				log "Would purge package: $pkg now…"
+				continue
+			fi
+
+			log "Purging package: $pkg"
+			apt purge $APT_PARAMS "$pkg" 2>&1 | tee -a "$LOGFILE_PATH" || true
+		done
 
 		# Installing:
 		#   - build-essential
@@ -66,7 +75,7 @@ function install_signaling() {
 		#   - make
 		#   - protobuf-compiler
 		#   - wget
-		log "Installing signaling dependencies..."
+		log "Installing Signaling dependencies..."
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
