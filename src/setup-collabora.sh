@@ -68,7 +68,7 @@ function collabora_step3() {
 	#
 	# BUG: software-properties has issues migrating from sid to testing for about a year currently.
 	#      See https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/190
-	if ! apt-cache show software-properties-common > /dev/null 2>&1; then
+	if ! apt-cache policy software-properties-common 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		is_dry_run || {
 			# For deb822 sources (default in Debian 13)
 			sed -i 's/^Components: main$/& contrib/' /etc/apt/sources.list.d/debian.sources || true
