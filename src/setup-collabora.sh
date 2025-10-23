@@ -25,7 +25,7 @@ function install_collabora() {
 
 function collabora_step1() {
 	# 1. Import the signing key
-	log "\nStep 1: Import the signing key"
+	log "\n${green}Step 1: Import the signing key"
 
 	cd $COLLABORA_KEYRING_DIR
 	is_dry_run || wget "$COLLABORA_KEYRING_URL" || exit 1
@@ -34,7 +34,7 @@ function collabora_step1() {
 
 function collabora_step2() {
 	# 2. Add CODE package repositories
-	log "\nStep 2: Add CODE package repositories"
+	log "\n${green}Step 2: Add CODE package repositories"
 
 	COLLABORA_REPO_URL="https://www.collaboraoffice.com/repos/CollaboraOnline/CODE-deb"
 
@@ -49,7 +49,7 @@ EOF
 
 function collabora_step3() {
 	# 3. Install packages
-	log "\nStep 3: Install packages"
+	log "\n${green}Step 3: Install packages"
 
 	# Installing:
 	#   - coolwsd
@@ -109,7 +109,7 @@ function collabora_step3() {
 
 function collabora_step4() {
 	# 4. Prepare configuration
-	log "\nStep 4: Prepare configuration"
+	log "\n${green}Step 4: Prepare configuration"
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		IFS= read -r -d '' COLLABORA_HOST_DEFINITION <<EOF || true
@@ -146,7 +146,7 @@ EOF
 
 function collabora_step5() {
 	# 5. Deploy configuration
-	log "\nStep 5: Deploy configuration"
+	log "\n${green}Step 5: Deploy configuration"
 
 	deploy_file "$TMP_DIR_PATH"/collabora/snippet-coolwsd.conf /etc/nginx/snippets/coolwsd.conf || true
 	deploy_file "$TMP_DIR_PATH"/collabora/coolwsd.xml /etc/coolwsd/coolwsd.xml || true

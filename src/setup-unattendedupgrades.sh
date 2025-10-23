@@ -32,7 +32,7 @@ function install_unattendedupgrades() {
 }
 
 function unattendedupgrades_step1() {
-	log "\nStep 1: Install unattended-upgrades package"
+	log "\n${green}Step 1: Install unattended-upgrades package"
 
 	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
@@ -54,7 +54,7 @@ function unattendedupgrades_step1() {
 }
 
 function unattendedupgrades_step2() {
-	log "\nStep 2: Preseed and reconfigure unattended-upgrades package"
+	log "\n${green}Step 2: Preseed and reconfigure unattended-upgrades package"
 
 	if ! is_dry_run; then
 		# preseed and reconfigure
@@ -70,7 +70,7 @@ function unattendedupgrades_step2() {
 }
 
 function unattendedupgrades_step3() {
-	log "\nStep 3: Prepare unattended-upgrades configuration"
+	log "\n${green}Step 3: Prepare unattended-upgrades configuration"
 
 	UNATTENDED_UPGRADES_ENABLE_COLLABORA_UPGRADES=""
 	if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then
@@ -83,7 +83,7 @@ Unattended-Upgrade::Origins-Pattern {\"site=www.collaboraoffice.com\";}"
 }
 
 function unattendedupgrades_step4() {
-	log "\nStep 4: Deploy unattended-upgrades configuration"
+	log "\n${green}Step 4: Deploy unattended-upgrades configuration"
 
 	deploy_file "$TMP_DIR_PATH"/unattended-upgrades/60unattended-upgrades-nextcloud-hpb-setup /etc/apt/apt.conf.d/60unattended-upgrades-nextcloud-hpb-setup || true
 }

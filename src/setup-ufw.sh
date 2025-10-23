@@ -12,7 +12,7 @@ function install_ufw() {
 
 function ufw_step1() {
 	# 1. Install packages
-	log "\nStep 1: Install package"
+	log "\n${green}Step 1: Install package"
 
 	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
@@ -33,7 +33,7 @@ function ufw_step1() {
 
 function ufw_step2() {
 	# 2. Configure firewall
-	log "\nStep 2: Configure firewall"
+	log "\n${green}Step 2: Configure firewall"
 
 	# Prefix command with 'log' if in dry run mode.
 	local _cmdprefix=""

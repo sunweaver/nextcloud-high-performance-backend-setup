@@ -166,7 +166,7 @@ function install_certbot() {
 }
 
 function certbot_step1() {
-	log "\nStep 1: Installing Certbot packages"
+	log "\n${green}Step 1: Installing Certbot packages"
 	if [ "$CERTBOT_AUTH_METHOD" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
 			log "Can't continue since this is a non-interactive installation and I'm" \
@@ -215,7 +215,7 @@ function certbot_step1() {
 }
 
 function certbot_step2() {
-	log "\nStep 2: Configuring Certbot"
+	log "\n${green}Step 2: Configuring Certbot"
 
 	generate_dhparam_file
 
