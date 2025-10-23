@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function install_nginx() {
+	announce_installation "Installing Nginx"
 	log "Installing Nginx…"
 
 	nginx_step1

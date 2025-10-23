@@ -11,6 +11,7 @@ function msmtp_do_preseed() {
 }
 
 function install_msmtp() {
+    announce_installation "Installing msmtp"
     log "Checking requirements for msmtp…"
 
     local show_error=""

@@ -156,6 +156,7 @@ function run_certbot_command() {
 }
 
 function install_certbot() {
+	announce_installation "Installing Certbot"
 	log "Installing Certbot…"
 
 	certbot_step1
