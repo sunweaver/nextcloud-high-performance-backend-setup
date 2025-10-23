@@ -412,13 +412,13 @@ function signaling_build_nextcloud-spreed-signaling() {
 }
 
 #function signaling_step1() {
-#	log "\nStep 1: Import sunweaver's gpg key."
+#	log "\n${green}Step 1: Import sunweaver's gpg key."
 #	is_dry_run || wget http://packages.sunweavers.net/archive.key \
 #		-O /etc/apt/trusted.gpg.d/sunweaver-archive-keyring.asc
 #}
 
 #function signaling_step2() {
-#	log "\nStep 2: Add sunweaver package repository"
+#	log "\n${green}Step 2: Add sunweaver package repository"
 #
 #	is_dry_run || cat <<EOF >$SIGNALING_SUNWEAVER_SOURCE_FILE
 ## Added by nextcloud-high-performance-backend setup-script.
@@ -427,7 +427,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 #}
 
 function signaling_step3() {
-	log "\nStep 3: Install packages"
+	log "\n${green}Step 3: Install packages"
 
 	# Installing:
 	# - janus
@@ -453,7 +453,7 @@ function signaling_step3() {
 }
 
 function signaling_step4() {
-	log "\nStep 4: Prepare configuration"
+	log "\n${green}Step 4: Prepare configuration"
 
 	# Make sure /etc/nginx/snippets/ is created
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
@@ -566,7 +566,7 @@ function signaling_step4() {
 }
 
 function signaling_step5() {
-	log "\nStep 5: Deploy configuration"
+	log "\n${green}Step 5: Deploy configuration"
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nginx-signaling-upstream-servers.conf /etc/nginx/snippets/signaling-upstream-servers.conf || true
 	deploy_file "$TMP_DIR_PATH"/signaling/nginx-signaling-forwarding.conf /etc/nginx/snippets/signaling-forwarding.conf || true

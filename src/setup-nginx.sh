@@ -12,7 +12,7 @@ function install_nginx() {
 }
 
 function nginx_step1() {
-	log "\nStep 1: Installing Nginx package"
+	log "\n${green}Step 1: Installing Nginx package"
 	if ! is_dry_run; then
 		if [ "$UNATTENDED_INSTALL" == true ]; then
 			log "Trying unattended install for Nginx."
@@ -25,7 +25,7 @@ function nginx_step1() {
 }
 
 function nginx_step2() {
-	log "\nStep 2: Prepare configuration"
+	log "\n${green}Step 2: Prepare configuration"
 
 	generate_dhparam_file
 

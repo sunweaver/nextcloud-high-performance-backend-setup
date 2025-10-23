@@ -79,7 +79,7 @@ function install_msmtp() {
 }
 
 function msmtp_step1() {
-    log "\nStep 1: Preseeding msmtp package."
+    log "\n${green}Step 1: Preseeding msmtp package."
     if ! is_dry_run; then
         # preseed package
         msmtp_do_preseed msmtp msmtp/apparmor boolean true 2>&1 | tee -a $LOGFILE_PATH
@@ -87,7 +87,7 @@ function msmtp_step1() {
 }
 
 function msmtp_step2() {
-    log "\nStep 2: Installing msmtp package"
+    log "\n${green}Step 2: Installing msmtp package"
 
     is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
@@ -109,7 +109,7 @@ function msmtp_step2() {
 }
 
 function msmtp_step3() {
-    log "\nStep 3: Prepare msmtp configuration"
+    log "\n${green}Step 3: Prepare msmtp configuration"
 
     # Don't actually *log* passwords! (Or do for debugging…)
 
@@ -132,7 +132,7 @@ function msmtp_step3() {
 }
 
 function msmtp_step4() {
-    log "\nStep 4: Deploy msmtp configuration"
+    log "\n${green}Step 4: Deploy msmtp configuration"
 
     deploy_file "$TMP_DIR_PATH"/msmtp/aliases /etc/aliases || true
     deploy_file "$TMP_DIR_PATH"/msmtp/msmtprc /etc/msmtprc || true
@@ -141,7 +141,7 @@ function msmtp_step4() {
 }
 
 function msmtp_step5() {
-    log "\nStep 5: Test msmtp configuration"
+    log "\n${green}Step 5: Test msmtp configuration"
 
     msmtp_arguments=(root -X "$LOGFILE_PATH")
     if is_dry_run; then
