@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Track whether msmtp test email was sent successfully
+MSMTP_TEST_SUCCESS=false
+
 function msmtp_do_preseed() {
     pkg="$1"
     template="$2"
@@ -59,10 +62,12 @@ function install_msmtp() {
             if whiptail --title "MSMTP configuration fail!" \
                 --yesno "$dialog_text" \
                 15 65 --defaultno; then
+                MSMTP_TEST_SUCCESS=skipped
                 return
             fi
         else
             log "$dialog_text"
+            MSMTP_TEST_SUCCESS=skipped
             return
         fi
     fi
@@ -174,6 +179,12 @@ END
         else
             log "$dialog_text"
         fi
+
+        # Mark test as failed
+        MSMTP_TEST_SUCCESS=false
+    else
+        # Mark test as successful
+        MSMTP_TEST_SUCCESS=true
     fi
 
     set -e
@@ -194,14 +205,43 @@ function msmtp_write_secrets_to_file() {
 }
 
 function msmtp_print_info() {
-    log "The msmtp package got successfully configured. So this system can" \
-        "\nsend emails to you now. You should have got a test email. Please" \
-        "\nhave a look and make sure you also look into your spam folder.\n"
+    if [ "$MSMTP_TEST_SUCCESS" = true ]; then
+        log "The msmtp package got successfully configured. So this system can" \
+            "\nsend emails to you now. You should have got a test email. Please" \
+            "\nhave a look and make sure you also look into your spam folder.\n"
 
-    log "=== MSMTP Setup ==="
-    log "E-Mails get sent to: ${cyan}$EMAIL_USER_ADDRESS"
-    log "E-Mail account username: ${cyan}$EMAIL_USER_USERNAME"
-    log "E-Mail account password: ${cyan}*****"
-    log "E-Mail server host: ${cyan}$EMAIL_SERVER_HOST"
-    log "E-Mail server port: ${cyan}$EMAIL_SERVER_PORT"
+        log "=== MSMTP Setup ==="
+        log "E-Mails get sent to: ${cyan}$EMAIL_USER_ADDRESS"
+        log "E-Mail account username: ${cyan}$EMAIL_USER_USERNAME"
+        log "E-Mail account password: ${cyan}*****"
+        log "E-Mail server host: ${cyan}$EMAIL_SERVER_HOST"
+        log "E-Mail server port: ${cyan}$EMAIL_SERVER_PORT"
+    elif [ "$MSMTP_TEST_SUCCESS" = skipped ]; then
+        log "${yellow}MSMTP installation was skipped due to missing or incomplete configuration.\n"
+
+        log "=== MSMTP Setup (SKIPPED) ==="
+
+        log "\n${yellow}ACTION REQUIRED:"
+        log "${yellow}1. Update the email settings in ${cyan}settings.sh${yellow} or provide correct"
+        log "${yellow}   values via the dialog text input fields when re-running this script"
+        log "${yellow}2. Re-run this setup script to configure and test msmtp.\n"
+    else
+        log "${red}MSMTP configuration was completed, but the test email failed to send."
+        log "${red}This system cannot send emails until the issue is resolved.\n"
+
+        log "=== MSMTP Setup (FAILED) ==="
+        log "E-Mails should be sent to: ${cyan}$EMAIL_USER_ADDRESS"
+        log "E-Mail account username: ${cyan}$EMAIL_USER_USERNAME"
+        log "E-Mail account password: ${cyan}*****"
+        log "E-Mail server host: ${cyan}$EMAIL_SERVER_HOST"
+        log "E-Mail server port: ${cyan}$EMAIL_SERVER_PORT"
+
+        log "\n${yellow}ACTION REQUIRED:"
+        log "${yellow}1. Verify your email server settings"
+        log "${yellow}2. Ensure your email server (${cyan}$EMAIL_SERVER_HOST${yellow}) is reachable"
+        log "${yellow}3. Check that your username and password are correct"
+        log "${yellow}4. Update the email settings in ${cyan}settings.sh${yellow} or provide correct"
+        log "${yellow}   values via the dialog text input fields when re-running this script"
+        log "${yellow}5. Re-run this setup script to test the email configuration again.\n"
+    fi
 }
