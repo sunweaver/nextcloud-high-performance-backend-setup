@@ -20,6 +20,7 @@ function unattendedupgrades_do_reconfigure() {
 }
 
 function install_unattendedupgrades() {
+	announce_installation "Installing unattended-upgrades"
 	log "Installing unattended-upgrades…"
 
 	unattendedupgrades_step1

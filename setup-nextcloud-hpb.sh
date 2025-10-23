@@ -590,6 +590,20 @@ function is_dry_run() {
 	fi
 }
 
+function announce_installation() {
+	local software_name="$1"
+	local box_width=$((${#software_name} + 4))
+
+	# Top border
+	echo -e "${green}┌$(printf '─%.0s' $(seq 1 $box_width))┐${normal}"
+	# Content
+	echo -e "${green}│  ${software_name}  │${normal}"
+	# Bottom border
+	echo -e "${green}└$(printf '─%.0s' $(seq 1 $box_width))┘${normal}"
+
+	sleep 1
+}
+
 function main() {
 	log "Nextcloud HPB setup script version: $SETUP_VERSION"
 

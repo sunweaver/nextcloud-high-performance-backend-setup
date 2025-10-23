@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function install_ufw() {
+	announce_installation "Installing UFW"
 	log "Installing UFW…"
 
 	ufw_step1

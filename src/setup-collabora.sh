@@ -11,6 +11,7 @@ COLLABORA_KEYRING_FILE="$COLLABORA_KEYRING_DIR/collaboraonline-release-keyring.g
 COLLABORA_SOURCES_FILE="/etc/apt/sources.list.d/collaboraonline.sources"
 
 function install_collabora() {
+	announce_installation "Installing Collabora"
 	log "Installing Collabora…"
 
 	collabora_step1

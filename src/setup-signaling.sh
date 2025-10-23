@@ -24,6 +24,7 @@ declare -A SIGNALING_NC_SERVER_MAXSTREAMBITRATE # Associative array
 declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 
 function install_signaling() {
+	announce_installation "Installing Signaling"
 	log "Installing Signaling…"
 
 	if [ "$DEBIAN_VERSION_MAJOR" = "12" ] ; then
