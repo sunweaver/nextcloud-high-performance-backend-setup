@@ -549,8 +549,15 @@ function check_available_signaling_packages() {
 	fi
 }
 
+# Executes command only if NOT in dry-run mode.
+# Usage: is_dry_run "Description of what would happen" || actual_command
+# If in dry-run mode: logs the description and returns success (allows || to skip command)
+# If not in dry-run mode: returns failure (allows || to execute command)
 function is_dry_run() {
 	if [ "$DRY_RUN" == true ]; then
+		if [[ -n "$1" ]]; then
+			log "${yellow}$1${normal}"
+		fi
 		return 0
 	else
 		return 1

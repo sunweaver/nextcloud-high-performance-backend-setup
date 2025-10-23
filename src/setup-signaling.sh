@@ -86,18 +86,19 @@ function install_signaling() {
 			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
 		fi
 
-		is_dry_run || signaling_build_nextcloud-spreed-signaling && log "Would have built nextcloud-spreed-signaling now…"
+		is_dry_run "Would have built nextcloud-spreed-signaling now…" || signaling_build_nextcloud-spreed-signaling
 
 		# Only if Debian 11
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-			is_dry_run || signaling_build_coturn && log "Would have built coturn now…"
-			is_dry_run || signaling_build_nats-server && log "Would have built nats-server now…"
+			is_dry_run "Would have built coturn now…" || signaling_build_coturn
+			is_dry_run "Would have built nats-server now…" || signaling_build_nats-server
 		fi
 
 		# Check if Janus package is available, if not build it from sources
-		if ! apt-cache policy janus 2>/dev/null | grep -q "Candidate:" | grep -qv "(none)"; then
+		JANUS_POLICY_OUTPUT="$(apt-cache policy janus 2>/dev/null)"
+		if ! (echo "$JANUS_POLICY_OUTPUT" | grep -q "Candidate:" && echo "$JANUS_POLICY_OUTPUT" | grep -qv "(none)"); then
 			log "Janus package not available, building from sources…"
-			is_dry_run || signaling_build_janus && log "Would have built janus now…"
+			is_dry_run "Would have built janus now…" || signaling_build_janus
 		fi
 
 		# Installing:
