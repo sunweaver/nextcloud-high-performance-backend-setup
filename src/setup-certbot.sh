@@ -192,7 +192,7 @@ function certbot_write_secrets_to_file() {
 }
 
 function certbot_print_info() {
-	log "SSL certificate we're installed successfully and get refreshed" \
+	log "SSL certificate were installed successfully and get refreshed" \
 		"\nautomatically by Certbot."
 	log "Notifications regarding SSL-Certificates get sent to:"
 	log " - ${cyan}'$EMAIL_USER_ADDRESS'"
