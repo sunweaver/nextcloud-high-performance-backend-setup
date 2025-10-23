@@ -75,7 +75,7 @@ function install_signaling() {
 		#   - make
 		#   - protobuf-compiler
 		#   - wget
-		log "Installing Signaling dependencies..."
+		log "Installing Signaling build dependencies…"
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
 			apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
@@ -142,9 +142,9 @@ function install_signaling() {
 }
 
 function signaling_build_janus() {
-	log "Building janus…"
+	log "[Building Janus] Building janus…"
 
-	log "Installing necessary packages…"
+	log "[Building Janus] Installing necessary packages…"
 	APT_PARAMS="-y"
 	if [ "$UNATTENDED_INSTALL" == true ]; then
 		export DEBIAN_FRONTEND=noninteractive
@@ -152,65 +152,64 @@ function signaling_build_janus() {
 	fi
 	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts 2>&1 | tee -a $LOGFILE_PATH
 
-	log "Fetching latest Janus version from Debian sources API…"
+	log "[Building Janus] Fetching latest Janus version from Debian sources API…"
 	JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
-	log "API response: $JANUS_API_RESPONSE"
 
 	# Parse the JSON to get the latest version (first in the versions array)
 	JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
-	log "Latest Janus version: $JANUS_VERSION"
+	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
 
 	if [ -z "$JANUS_VERSION" ]; then
-		log "ERROR: Could not determine Janus version from API!"
+		log "[Building Janus] ERROR: Could not determine Janus version from API!"
 		exit 1
 	fi
 
-	log "Downloading Janus source package…"
+	log "[Building Janus] Downloading Janus source package…"
 	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
-	log "DSC URL: $JANUS_DSC_URL"
+	log "[Building Janus] DSC URL: $JANUS_DSC_URL"
 	is_dry_run || dget "$JANUS_DSC_URL" 2>&1 | tee -a $LOGFILE_PATH
 
 	# Extract base version without debian revision
 	JANUS_BASE_VERSION=$(echo "$JANUS_VERSION" | cut -d'-' -f1)
 	JANUS_SOURCE_DIR="janus-${JANUS_BASE_VERSION}"
-	log "Source directory: $JANUS_SOURCE_DIR"
+	log "[Building Janus] Source directory: $JANUS_SOURCE_DIR"
 
 	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
-		log "ERROR: Source directory $JANUS_SOURCE_DIR not found!"
+		log "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
 		exit 1
 	fi
 
-	log "Installing build dependencies…"
+	log "[Building Janus] Installing build dependencies…"
 	is_dry_run || cd "$JANUS_SOURCE_DIR" && mk-build-deps -i -r -t "apt-get -y" 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
 
-	log "Building Janus…"
+	log "[Building Janus] Building Janus…"
 	is_dry_run || cd "$JANUS_SOURCE_DIR" && debian/rules build 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
 
-	log "Creating Janus package…"
+	log "[Building Janus] Creating Janus package…"
 	is_dry_run || cd "$JANUS_SOURCE_DIR" && debian/rules binary 2>&1 | tee -a "$LOGFILE_PATH" && cd ..
 
-	log "Installing Janus package…"
+	log "[Building Janus] Installing Janus package…"
 	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
 	log "Package file: $JANUS_DEB_FILE"
 	is_dry_run || dpkg -i "$JANUS_DEB_FILE" 2>&1 | tee -a $LOGFILE_PATH
 
-	log "Installing any missing dependencies…"
+	log "[Building Janus] Installing any missing dependencies…"
 	is_dry_run || apt-get install $APT_PARAMS -f 2>&1 | tee -a $LOGFILE_PATH
 }
 
 function signaling_build_nats-server() {
-	log "Building nats-server…"
+	log "[Building nats-server] Building nats-server…"
 
 	LATEST_RELEASE="https://api.github.com/repos/nats-io/nats-server/releases/latest"
-	log "Latest nats-server release URL: '$LATEST_RELEASE'"
+	log "[Building nats-server] Latest nats-server release URL: '$LATEST_RELEASE'"
 
 	LATEST_RELEASE_TAG="$(curl -s "$LATEST_RELEASE" | grep 'tag_name' | cut -d\" -f4)"
-	log "Latest nats-server version is: '$LATEST_RELEASE_TAG'"
+	log "[Building nats-server] Latest nats-server version is: '$LATEST_RELEASE_TAG'"
 
-	log "Removing old sources…"
+	log "[Building nats-server] Removing old sources…"
 	rm -v nats-server-v*-linux-*.tar.gz | tee -a $LOGFILE_PATH || true
 
-	log "Downloading sources…"
+	log "[Building nats-server] Downloading sources…"
 	if [ "$(dpkg --print-architecture)" = "arm64" ]; then
 		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-arm64.tar.gz' |
 			grep 'browser_download_url' | cut -d\" -f4) |
@@ -221,23 +220,23 @@ function signaling_build_nats-server() {
 			tee -a $LOGFILE_PATH
 	fi
 
-	log "Extracting sources…"
+	log "[Building nats-server] Extracting sources…"
 	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-*.tar.gz" | tee -a $LOGFILE_PATH
 
-	log "Copying binary into /usr/local/bin/nats-server…"
+	log "[Building nats-server] Copying binary into /usr/local/bin/nats-server…"
 	cp --backup=numbered -v "nats-server-$LATEST_RELEASE_TAG-linux-*/nats-server" /usr/local/bin/nats-server | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
 	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.conf /etc/nats-server.conf || true
 
-	log "Creating 'nats' system account…"
+	log "[Building nats-server] Creating 'nats' system account…"
 	adduser --system --group nats || true
 }
 
 function signaling_build_coturn() {
-	log "Building coturn…"
+	log "[Building coturn] Building coturn…"
 
-	log "Installing necessary packages…"
+	log "[Building coturn] Installing necessary packages…"
 	APT_PARAMS="-y"
 	if [ "$UNATTENDED_INSTALL" == true ]; then
 		export DEBIAN_FRONTEND=noninteractive
@@ -245,47 +244,47 @@ function signaling_build_coturn() {
 	fi
 	is_dry_run || apt-get install $APT_PARAMS cmake libssl-dev libevent-dev git 2>&1 | tee -a $LOGFILE_PATH
 
-	log "Downloading sources…"
+	log "[Building coturn] Downloading sources…"
 	rm coturn-master.tar.gz | tee -a $LOGFILE_PATH || true
 	wget https://github.com/coturn/coturn/archive/refs/heads/master.tar.gz -O coturn-master.tar.gz | tee -a $LOGFILE_PATH
 
-	log "Extracting sources…"
+	log "[Building coturn] Extracting sources…"
 	tar -xvf coturn-master.tar.gz | tee -a $LOGFILE_PATH
 
-	log "Creating build directory…"
+	log "[Building coturn] Creating build directory…"
 	mkdir coturn-master/build | tee -a $LOGFILE_PATH || true
 
-	log "Run configure script which will make a Makefile for this system…"
+	log "[Building coturn] Run configure script which will make a Makefile for this system…"
 	cmake -S coturn-master -B coturn-master/build | tee -a $LOGFILE_PATH
 
-	log "Build & install coturn."
+	log "[Building coturn] Build & install coturn."
 	cmake --build coturn-master/build --target install | tee -a $LOGFILE_PATH
 
 	deploy_file "$TMP_DIR_PATH"/signaling/coturn.service /lib/systemd/system/coturn.service || true
 
 	chmod 755 /usr/local/bin/turnserver
 
-	log "Creating 'turnserver' account"
+	log "[Building coturn] Creating 'turnserver' account"
 	adduser --system --group --home /var/lib/turnserver turnserver || true
 }
 
 function signaling_build_nextcloud-spreed-signaling() {
-	log "Building nextcloud-spreed-signaling…"
+	log "[Building n-s-s] Building nextcloud-spreed-signaling…"
 
-	log "Downloading sources…"
+	log "[Building n-s-s] Downloading sources…"
 	rm n-s-s-master.tar.gz | tee -a $LOGFILE_PATH || true
 	wget https://github.com/strukturag/nextcloud-spreed-signaling/archive/refs/heads/master.tar.gz -O n-s-s-master.tar.gz | tee -a $LOGFILE_PATH
 
-	log "Extracting sources…"
+	log "[Building n-s-s] Extracting sources…"
 	tar -xvf n-s-s-master.tar.gz | tee -a $LOGFILE_PATH
 
-	log "Building sources…"
+	log "[Building n-s-s] Building sources…"
 	make -C nextcloud-spreed-signaling-master | tee -a $LOGFILE_PATH
 
-	log "Stopping potential running service…"
+	log "[Building n-s-s] Stopping potentially running service…"
 	systemctl stop nextcloud-spreed-signaling | tee -a $LOGFILE_PATH || true
 
-	log "Copying built binary into /usr/local/bin/nextcloud-spreed-signaling-server…"
+	log "[Building n-s-s] Copying built binary into /usr/local/bin/nextcloud-spreed-signaling-server…"
 	cp -v nextcloud-spreed-signaling-master/bin/signaling \
 		/usr/local/bin/nextcloud-spreed-signaling-server | tee -a $LOGFILE_PATH
 
@@ -293,11 +292,11 @@ function signaling_build_nextcloud-spreed-signaling() {
 		/lib/systemd/system/nextcloud-spreed-signaling.service || true
 
 	if [ ! -d /etc/nextcloud-spreed-signaling ]; then
-		log "Create '/etc/nextcloud-spreed-signaling' directory"
+		log "[Building n-s-s] Creating '/etc/nextcloud-spreed-signaling' directory"
 		mkdir /etc/nextcloud-spreed-signaling | tee -a $LOGFILE_PATH
 	fi
 
-	log "Creating '_signaling' account"
+	log "[Building n-s-s] Creating '_signaling' account"
 	# TODO: If bullseye support is dropped sometime then this fix can be dropped too.
 	# if adduser >= 3.122; then use --allow-bad-names
 	# if not; then use --force-badname
