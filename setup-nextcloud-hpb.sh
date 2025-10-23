@@ -383,6 +383,7 @@ function show_dialogs() {
 
 	# For UNATTENDED_INSTALL, please fill SIGNALING_BUILD_FROM_SOURCES via settings.sh.
 	if [ "$UNATTENDED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
+
 		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
 			if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 				whiptail --title "Build from sources." --defaultno \
@@ -398,12 +399,11 @@ function show_dialogs() {
 			# Debian 12 (backports) and Debian 13 (provided first in Debian testing
 			# on 2023-10-22) and newer
 			if ! [[ -n "" ]]; then # Remove '!', if Debian catched up with its nextcloud-spreed-signaling package.
-				if whiptail --title "Build from sources?" --yesno \
-				        "Would you like to build and install the $(
-					)'nextcloud-spreed-signaling' package from sources $(
-					)to get the newest possible version? $(
-					)The alternative method, installing the Debian package,$(
-					)is not suggested. Because the package is rather old $(
+				if whiptail --title "Build from sources?" \
+					--yesno "Would you like to build and install Signaling $(
+					)packages from sources to get the newest possible version? $(
+					)The alternative method, installing the Debian packages, $(
+					)is not suggested. Because some packages are rather old $(
 					)currently, therefore we would highly suggest $(
 					)building from source e.g. 'yes' option." \
 					13 65 3>&1 1>&2 2>&3; then
@@ -411,25 +411,19 @@ function show_dialogs() {
 				fi
 			else
 				if whiptail --title "Build from sources?" --defaultno \
-					--yesno "Would you like to build and install the $(
-					)'nextcloud-spreed-signaling' package from sources $(
-					)to get the newest possible version? This is normally $(
-					)not required and we suggest using the existing Debian packages." \
+					--yesno "Would you like to build and install Signaling $(
+					)packages from sources to get the newest possible version? $(
+					)This is normally not required and we suggest using the $(
+					)existing Debian packages." \
 					13 65 3>&1 1>&2 2>&3; then
 					SIGNALING_BUILD_FROM_SOURCES=true
 				fi
 			fi
 		else
-			# Originally, this part was for running this script on Debian 10 which is not
-			# supported anymore.
-			#
-			# Nowadays, most probable reason for landing here is if people try this script
-			# on Debian testing and one of the required packages has been removed from
-			# testing due to release critical bugs.
 			whiptail --title "Build from sources?" \
-				--msgbox "The packages 'nextcloud-spreed-signaling' and $(
-				)'nats-server' are not available in the package archive. The $(
-				)packages will get built and installed from sources." 13 65
+				--msgbox "Some required Signaling packages are not available $(
+				)in the package archives. The required packages will get $(
+				)built and installed from sources." 13 65
 			SIGNALING_BUILD_FROM_SOURCES=true
 		fi
 	fi
@@ -544,6 +538,13 @@ function check_available_signaling_packages() {
 		log "Package 'coturn' is available."
 	else
 		log "Package 'coturn' is NOT available."
+		return 1
+	fi
+
+	if apt-cache show janus >/dev/null; then
+		log "Package 'janus' is available."
+	else
+		log "Package 'janus' is NOT available."
 		return 1
 	fi
 }
