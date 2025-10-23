@@ -145,6 +145,27 @@ function install_signaling() {
 function signaling_build_janus() {
 	log "[Building Janus] Building janus…"
 
+	# Check if janus is already installed
+	JANUS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/janus-built-version"
+
+	log "[Building Janus] Fetching latest Janus version from Debian sources API…"
+	JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
+
+	# Parse the JSON to get the latest version (first in the versions array)
+	JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
+	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
+
+	if [ -z "$JANUS_VERSION" ]; then
+		log "[Building Janus] ERROR: Could not determine Janus version from API!"
+		exit 1
+	fi
+
+	# Check if already built with this version
+	if [ -f "$JANUS_BUILD_MARKER" ] && [ "$(cat "$JANUS_BUILD_MARKER")" = "$JANUS_VERSION" ] && dpkg -l | grep -q "^ii.*janus"; then
+		log "[Building Janus] Janus $JANUS_VERSION is already built and installed. Skipping build."
+		return 0
+	fi
+
 	# Create temporary build directory
 	JANUS_BUILD_DIR=$(mktemp -d)
 	log "[Building Janus] Using temporary build directory: $JANUS_BUILD_DIR"
@@ -162,18 +183,6 @@ function signaling_build_janus() {
 
 	# Change to temporary build directory
 	cd "$JANUS_BUILD_DIR"
-
-	log "[Building Janus] Fetching latest Janus version from Debian sources API…"
-	JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
-
-	# Parse the JSON to get the latest version (first in the versions array)
-	JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
-	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
-
-	if [ -z "$JANUS_VERSION" ]; then
-		log "[Building Janus] ERROR: Could not determine Janus version from API!"
-		exit 1
-	fi
 
 	log "[Building Janus] Downloading Janus source package…"
 	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
@@ -214,16 +223,32 @@ function signaling_build_janus() {
 	# Clean up temporary build directory
 	log "[Building Janus] Cleaning up temporary build directory…"
 	rm -rf "$JANUS_BUILD_DIR"
+
+	# Mark this version as built
+	if ! is_dry_run; then
+		mkdir -p "$(dirname "$JANUS_BUILD_MARKER")"
+		echo "$JANUS_VERSION" > "$JANUS_BUILD_MARKER"
+		log "[Building Janus] Marked version $JANUS_VERSION as built in $JANUS_BUILD_MARKER"
+	fi
 }
 
 function signaling_build_nats-server() {
 	log "[Building nats-server] Building nats-server…"
+
+	# Check if nats-server is already installed
+	NATS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/nats-server-built-version"
 
 	LATEST_RELEASE="https://api.github.com/repos/nats-io/nats-server/releases/latest"
 	log "[Building nats-server] Latest nats-server release URL: '$LATEST_RELEASE'"
 
 	LATEST_RELEASE_TAG="$(curl -s "$LATEST_RELEASE" | grep 'tag_name' | cut -d\" -f4)"
 	log "[Building nats-server] Latest nats-server version is: '$LATEST_RELEASE_TAG'"
+
+	# Check if already built with this version
+	if [ -f "$NATS_BUILD_MARKER" ] && [ "$(cat "$NATS_BUILD_MARKER")" = "$LATEST_RELEASE_TAG" ] && [ -x /usr/local/bin/nats-server ]; then
+		log "[Building nats-server] nats-server $LATEST_RELEASE_TAG is already built and installed. Skipping build."
+		return 0
+	fi
 
 	log "[Building nats-server] Removing old sources…"
 	rm -v nats-server-v*-linux-*.tar.gz | tee -a $LOGFILE_PATH || true
@@ -250,10 +275,35 @@ function signaling_build_nats-server() {
 
 	log "[Building nats-server] Creating 'nats' system account…"
 	adduser --system --group nats || true
+
+	# Mark this version as built
+	if ! is_dry_run; then
+		mkdir -p "$(dirname "$NATS_BUILD_MARKER")"
+		echo "$LATEST_RELEASE_TAG" > "$NATS_BUILD_MARKER"
+		log "[Building nats-server] Marked version $LATEST_RELEASE_TAG as built in $NATS_BUILD_MARKER"
+	fi
 }
 
 function signaling_build_coturn() {
 	log "[Building coturn] Building coturn…"
+
+	# Check if coturn is already installed
+	COTURN_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/coturn-built-version"
+	COTURN_VERSION="master-$(date +%Y%m%d-%H%M%S)"  # Use timestamp-based version for master branch
+
+	# Check if already built recently (within last hour) and binary exists
+	if [ -f "$COTURN_BUILD_MARKER" ] && [ -x /usr/local/bin/turnserver ]; then
+		BUILT_TIMESTAMP="$(cat "$COTURN_BUILD_MARKER")"
+		BUILT_TIMESTAMP="${BUILT_TIMESTAMP#master-}"
+		CURRENT_TIMESTAMP="$(date +%s)"
+		BUILT_SECONDS="$(date -d "${BUILT_TIMESTAMP:0:8} ${BUILT_TIMESTAMP:9:2}:${BUILT_TIMESTAMP:11:2}:${BUILT_TIMESTAMP:13:2}" +%s 2>/dev/null || echo 0)"
+		HOURS_DIFF=$(( ($CURRENT_TIMESTAMP - $BUILT_SECONDS) / 3600 ))
+
+		if [ $HOURS_DIFF -lt 1 ]; then
+			log "[Building coturn] coturn built less than 1 hour ago and is installed. Skipping build."
+			return 0
+		fi
+	fi
 
 	log "[Building coturn] Installing necessary packages…"
 	APT_PARAMS="-y"
@@ -285,10 +335,35 @@ function signaling_build_coturn() {
 
 	log "[Building coturn] Creating 'turnserver' account"
 	adduser --system --group --home /var/lib/turnserver turnserver || true
+
+	# Mark this version as built
+	if ! is_dry_run; then
+		mkdir -p "$(dirname "$COTURN_BUILD_MARKER")"
+		echo "$COTURN_VERSION" > "$COTURN_BUILD_MARKER"
+		log "[Building coturn] Marked version $COTURN_VERSION as built in $COTURN_BUILD_MARKER"
+	fi
 }
 
 function signaling_build_nextcloud-spreed-signaling() {
 	log "[Building n-s-s] Building nextcloud-spreed-signaling…"
+
+	# Check if nextcloud-spreed-signaling is already installed
+	NSS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/nextcloud-spreed-signaling-built-version"
+	NSS_VERSION="master-$(date +%Y%m%d-%H%M%S)"  # Use timestamp-based version for master branch
+
+	# Check if already built recently (within last hour) and binary exists
+	if [ -f "$NSS_BUILD_MARKER" ] && [ -x /usr/local/bin/nextcloud-spreed-signaling-server ]; then
+		BUILT_TIMESTAMP="$(cat "$NSS_BUILD_MARKER")"
+		BUILT_TIMESTAMP="${BUILT_TIMESTAMP#master-}"
+		CURRENT_TIMESTAMP="$(date +%s)"
+		BUILT_SECONDS="$(date -d "${BUILT_TIMESTAMP:0:8} ${BUILT_TIMESTAMP:9:2}:${BUILT_TIMESTAMP:11:2}:${BUILT_TIMESTAMP:13:2}" +%s 2>/dev/null || echo 0)"
+		HOURS_DIFF=$(( ($CURRENT_TIMESTAMP - $BUILT_SECONDS) / 3600 ))
+
+		if [ $HOURS_DIFF -lt 1 ]; then
+			log "[Building n-s-s] nextcloud-spreed-signaling built less than 1 hour ago and is installed. Skipping build."
+			return 0
+		fi
+	fi
 
 	log "[Building n-s-s] Downloading sources…"
 	rm n-s-s-master.tar.gz | tee -a $LOGFILE_PATH || true
@@ -326,6 +401,13 @@ function signaling_build_nextcloud-spreed-signaling() {
 	fi
 	adduser --system --group --home /var/lib/nextcloud-spreed-signaling \
 		"$badname_option" _signaling || true
+
+	# Mark this version as built
+	if ! is_dry_run; then
+		mkdir -p "$(dirname "$NSS_BUILD_MARKER")"
+		echo "$NSS_VERSION" > "$NSS_BUILD_MARKER"
+		log "[Building n-s-s] Marked version $NSS_VERSION as built in $NSS_BUILD_MARKER"
+	fi
 }
 
 #function signaling_step1() {
@@ -551,6 +633,6 @@ function signaling_print_info() {
 
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		NC_SERVER_UNDERSCORE=$(echo "$NC_SERVER" | sed "s/\./_/g")
-		echo -e " - $NC_SERVER\t-> ${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
+		echo -e " - ${cyan}$NC_SERVER${blue}\t-> ${cyan}${SIGNALING_NC_SERVER_SECRETS["$NC_SERVER_UNDERSCORE"]}"
 	done
 }
