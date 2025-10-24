@@ -80,6 +80,12 @@ function nginx_step2() {
 
 	log "Replacing '<DNS_RESOLVER>' with '$DNS_RESOLVER'…"
 	sed -i "s|<DNS_RESOLVER>|$DNS_RESOLVER|g" "$TMP_DIR_PATH"/nginx/*
+
+	log "Replacing '<DEBIAN_VERSION>' with '$DEBIAN_VERSION_MAJOR'…"
+	sed -i "s|<DEBIAN_VERSION>|$DEBIAN_VERSION_MAJOR|g" "$TMP_DIR_PATH"/nginx/*
+
+	log "Replacing '<SCRIPT_VERSION>' with '$SETUP_VERSION'…"
+	sed -i "s|<SCRIPT_VERSION>|$SETUP_VERSION|g" "$TMP_DIR_PATH"/nginx/*
 }
 
 function nginx_step3() {
