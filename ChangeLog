@@ -1,6 +1,24 @@
 2025-10-27 Daniel Teichmann
 
-        * VERSION: Bump version to 1.3.2 (HEAD -> main)
+        * VERSION: Bump version to 1.3.3 (HEAD -> main)
+        * setup-nextcloud-hpb.sh: Fix old logging files being deleted too
+          late in the script (d6534b8)
+        * setup-signaling: Add janus .deb caching (30059ff)
+        * setup-signaling: Temporarily revert cache changes to janus building
+          system (78b3a96)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/209
+
+        * setup-nextcloud-hpb.sh: Fix color codes in log file and color still
+          being applied after script exit (326f399)
+        * setup-signaling run_with_progress(): Improve error handling and
+          logging (b98073a)
+        * setup-nextcloud-hpb: Do not print password of email user account in
+          logs (1a9216c)
+        * setup-signaling: Fix janus .deb non-existence would lead to script
+          random exit (b5ffd80)
+        * New release 1.3.2 (3752fd4) (tag: 1.3.2)
+        * VERSION: Bump version to 1.3.2 (d7cb619)
         * Add bug report issue templates (EN/DE) (0a89c36)
         * setup-signaling: Use run_with_progress() to build n-s-s (5e56297)
         * setup-signaling: Implement cache for Janus builds (6999d67)
