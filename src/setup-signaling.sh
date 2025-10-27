@@ -194,8 +194,8 @@ function signaling_build_janus() {
 		exit 1
 	fi
 
-	# Check if already built with this version
-	if [ -f "$JANUS_BUILD_MARKER" ] && [ "$(cat "$JANUS_BUILD_MARKER")" = "$JANUS_VERSION" ] && dpkg -l | grep -q "^ii.*janus"; then
+	# Check if already built with this version and binary exists
+	if [ -f "$JANUS_BUILD_MARKER" ] && [ "$(cat "$JANUS_BUILD_MARKER")" = "$JANUS_VERSION" ] && dpkg -l | grep -q "^ii  janus "; then
 		log "[Building Janus] Janus $JANUS_VERSION is already built and installed. Skipping build."
 		return 0
 	fi
