@@ -157,7 +157,7 @@ function signaling_build_janus() {
 	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
 
 	if [ -z "$JANUS_VERSION" ]; then
-		log "[Building Janus] ERROR: Could not determine Janus version from API!"
+		log_err "[Building Janus] ERROR: Could not determine Janus version from API!"
 		exit 1
 	fi
 
@@ -197,7 +197,7 @@ function signaling_build_janus() {
 	log "[Building Janus] Source directory: $JANUS_SOURCE_DIR"
 
 	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
-		log "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
+		log_err "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
 		exit 1
 	fi
 

@@ -10,7 +10,7 @@ function msmtp_do_preseed() {
     value="$4"
     is_dry_run ||
         echo $pkg $template $type "$value" | debconf-set-selections ||
-            log "Failed to preseed '$template'"
+            log_err "Failed to preseed '$template'"
 }
 
 function install_msmtp() {
@@ -226,8 +226,8 @@ function msmtp_print_info() {
         log "${yellow}   values via the dialog text input fields when re-running this script"
         log "${yellow}2. Re-run this setup script to configure and test msmtp.\n"
     else
-        log "${red}MSMTP configuration was completed, but the test email failed to send."
-        log "${red}This system cannot send emails until the issue is resolved.\n"
+        log_err "MSMTP configuration was completed, but the test email failed to send."
+        log_err "This system cannot send emails until the issue is resolved.\n"
 
         log "=== MSMTP Setup (FAILED) ==="
         log "E-Mails should be sent to: ${cyan}$EMAIL_USER_ADDRESS"
