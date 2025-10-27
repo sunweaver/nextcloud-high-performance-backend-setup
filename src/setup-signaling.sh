@@ -25,10 +25,14 @@ declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 
 # Helper function to run a command with animated progress dots
 # Usage: run_with_progress "Message" "command to run"
+# Supports error handling: run_with_progress "..." "..." || true
 function run_with_progress() {
 	local message="$1"
 	local command="$2"
 	local temp_log=$(mktemp)
+
+	# Log the command being executed (helpful for debugging)
+	echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running: $command" >> "$LOGFILE_PATH"
 
 	# Start the command in background, redirecting output to temp log
 	eval "$command" > "$temp_log" 2>&1 &
@@ -45,12 +49,26 @@ function run_with_progress() {
 	wait $pid
 	local exit_code=$?
 
-	printf " done\n${normal}"
+	# Show success or failure
+	if [ $exit_code -eq 0 ]; then
+		printf " ${green}✓${normal}\n"
+	else
+		printf " ${red}✗ FAILED${normal}\n"
 
-	# Append temp log to main log file
+		# Show last lines of output for context
+		log_err "Error output (last 15 lines):"
+		tail -n 15 "$temp_log" >&2
+		log_err "Full log available in: $LOGFILE_PATH"
+	fi
+
+	# Always append to log file
 	cat "$temp_log" >> "$LOGFILE_PATH"
+	echo "" >> "$LOGFILE_PATH"  # Add blank line separator
+
+	# Cleanup
 	rm -f "$temp_log"
 
+	# Return the exit code (allows || true pattern)
 	return $exit_code
 }
 
