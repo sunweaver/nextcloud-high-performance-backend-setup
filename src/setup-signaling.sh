@@ -226,7 +226,7 @@ function signaling_build_janus() {
 	local JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
 
 	# Parse the JSON to get the latest version (first in the versions array)
-	local JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
+	local JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | jq -r '.versions[0].version // empty')
 	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
 
 	if [ -z "$JANUS_VERSION" ]; then
@@ -234,14 +234,49 @@ function signaling_build_janus() {
 		exit 1
 	fi
 
+	# Define cache directory and .deb file location
+	local JANUS_CACHE_DIR="/var/lib/nextcloud-hpb-setup/cache"
+	local JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
+	local JANUS_CACHED_DEB="$JANUS_CACHE_DIR/$JANUS_DEB_FILE"
+
 	# Check if already built with this version
 	if should_skip_build "$JANUS_BUILD_MARKER" "$JANUS_VERSION" "/usr/bin/janus"; then
 		log "[Building Janus] Janus $JANUS_VERSION is already built and installed. Skipping build."
 		return 0
 	fi
 
+	# Check if cached .deb exists and install from cache
+	if [[ -f "$JANUS_CACHED_DEB" ]]; then
+		log "[Building Janus] Found cached package: $JANUS_CACHED_DEB"
+		log "[Building Janus] Installing from cache…"
+
+		APT_PARAMS="-y"
+		if [ "$UNATTENDED_INSTALL" == true ]; then
+			export DEBIAN_FRONTEND=noninteractive
+			APT_PARAMS="-qqy"
+		fi
+
+		if ! is_dry_run; then
+			run_with_progress "[Building Janus] Installing cached package" "apt install $APT_PARAMS '$JANUS_CACHED_DEB'"
+
+			# Verify installation succeeded
+			if ! dpkg -l janus 2>/dev/null | grep -q "^ii"; then
+				log_err "[Building Janus] ERROR: Janus installation from cache failed! Proceeding with rebuild."
+				rm -f "$JANUS_CACHED_DEB"
+			else
+				# Mark this version as built
+				mkdir -p "$(dirname "$JANUS_BUILD_MARKER")"
+				echo "$JANUS_VERSION" > "$JANUS_BUILD_MARKER"
+				log "[Building Janus] Successfully installed from cache."
+				return 0
+			fi
+		else
+			return 0
+		fi
+	fi
+
 	if [[ -f "$JANUS_BUILD_MARKER" ]]; then
-		log "[Building Janus] Previous build marker found: $(cat "$JANUS_BUILD_MARKER"). Proceeding with build."
+		log "[Building Janus] Previous build marker found: $(cat "$JANUS_BUILD_MARKER"). Proceeding with build because version is too old."
 	else
 		log "[Building Janus] No previous build marker found. Proceeding with build."
 	fi
@@ -301,7 +336,6 @@ function signaling_build_janus() {
 
 	# Install the package
 	log "[Building Janus] Installing Janus package…"
-	local JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
 	log "[Building Janus] Package file: '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'"
 
 	# Verify the .deb file exists
@@ -320,6 +354,11 @@ function signaling_build_janus() {
 			cd "$ORIGINAL_DIR"
 			exit 1
 		fi
+
+		# Copy .deb to cache directory
+		log "[Building Janus] Caching built package to $JANUS_CACHED_DEB"
+		mkdir -p "$JANUS_CACHE_DIR"
+		cp -v "$JANUS_BUILD_DIR/$JANUS_DEB_FILE" "$JANUS_CACHED_DEB" | tee -a "$LOGFILE_PATH"
 	fi
 
 	# Return to original directory
@@ -331,6 +370,8 @@ function signaling_build_janus() {
 		echo "$JANUS_VERSION" > "$JANUS_BUILD_MARKER"
 		log "[Building Janus] Marked version $JANUS_VERSION as built in $JANUS_BUILD_MARKER"
 	fi
+
+	rm -rf "$JANUS_BUILD_DIR" | tee -a "$LOGFILE_PATH"
 
 	log "[Building Janus] Janus build completed."
 }
