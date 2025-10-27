@@ -23,6 +23,29 @@ declare -A SIGNALING_NC_SERVER_SESSIONLIMIT     # Associative array
 declare -A SIGNALING_NC_SERVER_MAXSTREAMBITRATE # Associative array
 declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 
+# Helper function to check if a package needs rebuilding based on version
+# Usage: should_skip_build "marker_file" "current_version" "binary_path"
+# Returns 0 (true) if build should be skipped, 1 (false) if build is needed
+function should_skip_build() {
+	local marker_file="$1"
+	local current_version="$2"
+	local binary_path="$3"
+
+	# Binary must exist
+	[[ ! -x "$binary_path" ]] && return 1
+
+	# No marker = must build
+	[[ ! -f "$marker_file" ]] && return 1
+
+	local built_version="$(cat "$marker_file")"
+
+	# Simple comparison: if marker content equals current version, skip
+	[[ "$built_version" = "$current_version" ]] && return 0
+
+	# Different version = must build
+	return 1
+}
+
 # Helper function to run a command with animated progress dots
 # Usage: run_with_progress "Message" "command to run"
 # Supports error handling: run_with_progress "..." "..." || true
@@ -101,39 +124,40 @@ function install_signaling() {
 
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 
-		# # Remove old packages.
-		# log "Purging old Signaling packages..."
-		# APT_PACKAGES="nextcloud-spreed-signaling janus"
-		# if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
-		# 	APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
-		# fi
+		# Remove old packages.
+		log "Purging old Signaling packages..."
+		APT_PACKAGES="nextcloud-spreed-signaling janus"
+		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
+			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
+		fi
 
-		# for pkg in $APT_PACKAGES; do
-		# 	if is_dry_run; then
-		# 		log "Would purge package: $pkg now…"
-		# 		continue
-		# 	fi
+		for pkg in $APT_PACKAGES; do
+			if is_dry_run; then
+				log "Would purge package: $pkg now…"
+				continue
+			fi
 
-		# 	log "Purging package: $pkg"
-		# 	apt purge $APT_PARAMS "$pkg" 2>&1 | tee -a "$LOGFILE_PATH" || true
-		# done
+			log "Purging package: $pkg"
+			apt purge $APT_PARAMS "$pkg" 2>&1 | tee -a "$LOGFILE_PATH" || true
+		done
 
 		# Installing:
 		#   - build-essential
 		#   - curl
 		#   - golang-go
+		#   - jq
 		#   - make
 		#   - protobuf-compiler
 		#   - wget
 		log "Installing Signaling build dependencies…"
 		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
 			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-			is_dry_run || apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+			is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 		elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
 			is_dry_run || apt-get install $APT_PARAMS -t bookworm-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-			is_dry_run || apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
+			is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
 		else
-			is_dry_run || apt-get install $APT_PARAMS wget curl protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
+			is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
 		fi
 
 		is_dry_run "Would have built nextcloud-spreed-signaling now…" || signaling_build_nextcloud-spreed-signaling
@@ -144,17 +168,7 @@ function install_signaling() {
 			is_dry_run "Would have built nats-server now…" || signaling_build_nats-server
 		fi
 
-		# Check if Janus package is available, if not build it from sources
-		JANUS_POLICY_OUTPUT="$(apt-cache policy janus 2>/dev/null)"
-		if echo "$JANUS_POLICY_OUTPUT" | grep "Candidate:" | grep -q "(none)"; then
-			log "Janus package not available, building from sources…"
-			is_dry_run "Would have built janus now…" || signaling_build_janus
-		else
-			log "Janus package available, skipping build."
-		fi
-
 		# Installing:
-		# - janus (if available, otherwise already built)
 		# - ssl-cert
 		# - nats-server (Always built from sources for Debian 11)
 		# - coturn      (Always built from sources for Debian 11)
@@ -163,9 +177,17 @@ function install_signaling() {
 			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 		else
 			is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
-			if ! apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -q "(none)"; then
-				is_dry_run || apt-get install $APT_PARAMS janus 2>&1 | tee -a $LOGFILE_PATH
-			fi
+		fi
+
+		# Installing:
+		# - janus (if available, otherwise already built)
+		JANUS_POLICY_OUTPUT="$(apt-cache policy janus 2>/dev/null)"
+		if echo "$JANUS_POLICY_OUTPUT" | grep "Candidate:" | grep -q "(none)"; then
+			log "Janus package not available from repositories, building from sources…"
+			is_dry_run "Would have built janus now…" || signaling_build_janus
+		else
+			log "Janus package is available, installing from repositories…"
+			is_dry_run || apt-get install $APT_PARAMS janus 2>&1 | tee -a $LOGFILE_PATH
 		fi
 
 		log "Reloading systemd."
@@ -194,47 +216,42 @@ function install_signaling() {
 	log "Signaling install completed."
 }
 
-# Check for cached Janus build and verify its integrity
-# Returns: path to valid cached build directory or empty string
-function signaling_check_janus_cache() {
-	local janus_version="$1"
-	local build_dir_marker="/var/lib/nextcloud-hpb-setup/janus-build-dir"
+function signaling_build_janus() {
+	log "[Building Janus] Building janus…"
 
-	if [ ! -f "$build_dir_marker" ]; then
+	# Check if janus is already installed
+	local JANUS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/janus-built-version"
+
+	log "[Building Janus] Fetching latest Janus version from Debian sources API…"
+	local JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
+
+	# Parse the JSON to get the latest version (first in the versions array)
+	local JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
+	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
+
+	if [ -z "$JANUS_VERSION" ]; then
+		log_err "[Building Janus] ERROR: Could not determine Janus version from API!"
+		exit 1
+	fi
+
+	# Check if already built with this version
+	if should_skip_build "$JANUS_BUILD_MARKER" "$JANUS_VERSION" "/usr/bin/janus"; then
+		log "[Building Janus] Janus $JANUS_VERSION is already built and installed. Skipping build."
 		return 0
 	fi
 
-	local cached_build_dir="$(cat "$build_dir_marker")"
-	local janus_deb_file="janus_${janus_version}_$(dpkg --print-architecture).deb"
-
-	if [ -d "$cached_build_dir" ] && [ -f "$cached_build_dir/$janus_deb_file" ]; then
-		log "[Building Janus] Found cached build directory: $cached_build_dir"
-		log "[Building Janus] Verifying package integrity…"
-
-		# Verify the .deb file is valid
-		if dpkg-deb --info "$cached_build_dir/$janus_deb_file" &>/dev/null; then
-			log "[Building Janus] Cached package is valid, reusing it."
-			echo "$cached_build_dir"
-			return 0
-		else
-			log "[Building Janus] Cached package is corrupted, will rebuild."
-			rm -rf "$cached_build_dir"
-		fi
+	if [[ -f "$JANUS_BUILD_MARKER" ]]; then
+		log "[Building Janus] Previous build marker found: $(cat "$JANUS_BUILD_MARKER"). Proceeding with build."
 	else
-		log "[Building Janus] Cached build directory not found or incomplete, will rebuild."
-		[ -d "$cached_build_dir" ] && rm -rf "$cached_build_dir"
+		log "[Building Janus] No previous build marker found. Proceeding with build."
 	fi
 
-	echo ""
-	return 0
-}
+	# Store original directory
+	ORIGINAL_DIR=$(pwd)
 
-# Build Janus from sources
-# Args: $1 = janus_version, $2 = build_dir
-function signaling_do_janus_build() {
-	local janus_version="$1"
-	local build_dir="$2"
-	local original_dir="$(pwd)"
+	# Create temporary build directory
+	JANUS_BUILD_DIR=$(mktemp -d)
+	log "[Building Janus] Using build directory: $JANUS_BUILD_DIR"
 
 	log "[Building Janus] Installing necessary packages…"
 	APT_PARAMS="-y"
@@ -245,10 +262,10 @@ function signaling_do_janus_build() {
 	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts equivs 2>&1 | tee -a $LOGFILE_PATH
 
 	# Change to temporary build directory
-	cd "$build_dir"
+	cd "$JANUS_BUILD_DIR"
 
 	log "[Building Janus] Downloading Janus source package…"
-	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${janus_version}.dsc"
+	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
 	log "[Building Janus] DSC URL: $JANUS_DSC_URL"
 	if is_dry_run; then
 		log "Would've downloaded $JANUS_DSC_URL."
@@ -257,13 +274,13 @@ function signaling_do_janus_build() {
 	fi
 
 	# Extract base version without debian revision
-	JANUS_BASE_VERSION=$(echo "$janus_version" | cut -d'-' -f1)
-	JANUS_SOURCE_DIR="janus-${JANUS_BASE_VERSION}"
+	local JANUS_BASE_VERSION=$(echo "$JANUS_VERSION" | cut -d'-' -f1)
+	local JANUS_SOURCE_DIR="janus-${JANUS_BASE_VERSION}"
 	log "[Building Janus] Source directory: $JANUS_SOURCE_DIR"
 
 	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
 		log_err "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
-		cd "$original_dir"
+		cd "$ORIGINAL_DIR"
 		exit 1
 	fi
 
@@ -282,78 +299,24 @@ function signaling_do_janus_build() {
 		run_with_progress "[Building Janus] Creating package" "cd '$JANUS_SOURCE_DIR' && debian/rules binary && cd .."
 	fi
 
-	# Save the build directory location for future reuse
-	if ! is_dry_run; then
-		local build_dir_marker="/var/lib/nextcloud-hpb-setup/janus-build-dir"
-		mkdir -p "$(dirname "$build_dir_marker")"
-		echo "$build_dir" > "$build_dir_marker"
-		log "[Building Janus] Saved build directory path to $build_dir_marker"
-	fi
-
-	cd "$original_dir"
-}
-
-function signaling_build_janus() {
-	log "[Building Janus] Building janus…"
-
-	# Check if janus is already installed
-	JANUS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/janus-built-version"
-
-	log "[Building Janus] Fetching latest Janus version from Debian sources API…"
-	JANUS_API_RESPONSE=$(curl -s "https://sources.debian.org/api/src/janus/")
-
-	# Parse the JSON to get the latest version (first in the versions array)
-	JANUS_VERSION=$(echo "$JANUS_API_RESPONSE" | grep -oP '"version":"[^"]*"' | head -n 1 | cut -d'"' -f4)
-	log "[Building Janus] Latest Janus version: $JANUS_VERSION"
-
-	if [ -z "$JANUS_VERSION" ]; then
-		log_err "[Building Janus] ERROR: Could not determine Janus version from API!"
-		exit 1
-	fi
-
-	# Check if already built with this version and binary exists
-	if [ -f "$JANUS_BUILD_MARKER" ] && [ "$(cat "$JANUS_BUILD_MARKER")" = "$JANUS_VERSION" ] && dpkg -l | grep -q "^ii  janus "; then
-		log "[Building Janus] Janus $JANUS_VERSION is already built and installed. Skipping build."
-		return 0
-	fi
-
-	# Store original directory
-	ORIGINAL_DIR=$(pwd)
-
-	# Check for cached build
-	JANUS_BUILD_DIR="$(signaling_check_janus_cache "$JANUS_VERSION")"
-	# Create new build directory if no valid cache exists
-	if [ -z "$JANUS_BUILD_DIR" ]; then
-		JANUS_BUILD_DIR=$(mktemp -d)
-		log "[Building Janus] Using new build directory: $JANUS_BUILD_DIR"
-		signaling_do_janus_build "$JANUS_VERSION" "$JANUS_BUILD_DIR"
-	fi
-
 	# Install the package
-	cd "$JANUS_BUILD_DIR"
-
 	log "[Building Janus] Installing Janus package…"
-	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
-	log "[Building Janus] Package file: $JANUS_DEB_FILE"
+	local JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
+	log "[Building Janus] Package file: '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'"
 
 	# Verify the .deb file exists
-	if [ ! -f "$JANUS_BUILD_DIR/$JANUS_DEB_FILE" ]; then
-		log_err "[Building Janus] ERROR: Package file not found: $JANUS_BUILD_DIR/$JANUS_DEB_FILE"
+	if [ ! -s "$JANUS_BUILD_DIR/$JANUS_DEB_FILE" ]; then
+		log_err "[Building Janus] ERROR: Package file not found: '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'"
 		cd "$ORIGINAL_DIR"
 		exit 1
 	fi
 
 	if ! is_dry_run; then
-		APT_PARAMS="-y"
-		if [ "$UNATTENDED_INSTALL" == true ]; then
-			export DEBIAN_FRONTEND=noninteractive
-			APT_PARAMS="-qqy"
-		fi
-		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS './$JANUS_DEB_FILE'"
+		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'"
 
 		# Verify installation succeeded
-		if ! dpkg -l | grep -q "^ii  janus "; then
-			log_err "[Building Janus] ERROR: Janus installation failed!"
+		if ! dpkg -l janus 2>/dev/null | grep -q "^ii"; then
+			log_err "[Building Janus] ERROR: Janus installation failed! Package is not registered in dpkg after installation."
 			cd "$ORIGINAL_DIR"
 			exit 1
 		fi
@@ -369,7 +332,7 @@ function signaling_build_janus() {
 		log "[Building Janus] Marked version $JANUS_VERSION as built in $JANUS_BUILD_MARKER"
 	fi
 
-	log "[Building Janus] Build directory preserved at: $JANUS_BUILD_DIR"
+	log "[Building Janus] Janus build completed."
 }
 
 function signaling_build_nats-server() {
@@ -429,20 +392,22 @@ function signaling_build_coturn() {
 
 	# Check if coturn is already installed
 	COTURN_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/coturn-built-version"
-	COTURN_VERSION="master-$(date +%Y%m%d-%H%M%S)"  # Use timestamp-based version for master branch
 
-	# Check if already built recently (within last hour) and binary exists
-	if [ -f "$COTURN_BUILD_MARKER" ] && [ -x /usr/local/bin/turnserver ]; then
-		BUILT_TIMESTAMP="$(cat "$COTURN_BUILD_MARKER")"
-		BUILT_TIMESTAMP="${BUILT_TIMESTAMP#master-}"
-		CURRENT_TIMESTAMP="$(date +%s)"
-		BUILT_SECONDS="$(date -d "${BUILT_TIMESTAMP:0:8} ${BUILT_TIMESTAMP:9:2}:${BUILT_TIMESTAMP:11:2}:${BUILT_TIMESTAMP:13:2}" +%s 2>/dev/null || echo 0)"
-		HOURS_DIFF=$(( ($CURRENT_TIMESTAMP - $BUILT_SECONDS) / 3600 ))
+	log "[Building coturn] Fetching latest commit hash from GitHub…"
+	COTURN_COMMIT=$(curl -s https://api.github.com/repos/coturn/coturn/commits/master | jq -r '.sha // empty' 2>/dev/null)
 
-		if [ $HOURS_DIFF -lt 1 ]; then
-			log "[Building coturn] coturn built less than 1 hour ago and is installed. Skipping build."
-			return 0
-		fi
+	if [ -z "$COTURN_COMMIT" ]; then
+		log_err "[Building coturn] ERROR: Could not fetch latest commit hash from GitHub!"
+		exit 1
+	fi
+
+	COTURN_VERSION="master-${COTURN_COMMIT:0:8}"
+	log "[Building coturn] Latest coturn version: $COTURN_VERSION"
+
+	# Check if already built with this version
+	if should_skip_build "$COTURN_BUILD_MARKER" "$COTURN_VERSION" "/usr/local/bin/turnserver"; then
+		log "[Building coturn] coturn $COTURN_VERSION is already built and installed. Skipping build."
+		return 0
 	fi
 
 	log "[Building coturn] Installing necessary packages…"
@@ -489,20 +454,22 @@ function signaling_build_nextcloud-spreed-signaling() {
 
 	# Check if nextcloud-spreed-signaling is already installed
 	NSS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/nextcloud-spreed-signaling-built-version"
-	NSS_VERSION="master-$(date +%Y%m%d-%H%M%S)"  # Use timestamp-based version for master branch
 
-	# Check if already built recently (within last hour) and binary exists
-	if [ -f "$NSS_BUILD_MARKER" ] && [ -x /usr/local/bin/nextcloud-spreed-signaling-server ]; then
-		BUILT_TIMESTAMP="$(cat "$NSS_BUILD_MARKER")"
-		BUILT_TIMESTAMP="${BUILT_TIMESTAMP#master-}"
-		CURRENT_TIMESTAMP="$(date +%s)"
-		BUILT_SECONDS="$(date -d "${BUILT_TIMESTAMP:0:8} ${BUILT_TIMESTAMP:9:2}:${BUILT_TIMESTAMP:11:2}:${BUILT_TIMESTAMP:13:2}" +%s 2>/dev/null || echo 0)"
-		HOURS_DIFF=$(( ($CURRENT_TIMESTAMP - $BUILT_SECONDS) / 3600 ))
+	log "[Building n-s-s] Fetching latest commit hash from GitHub…"
+	NSS_COMMIT=$(curl -s https://api.github.com/repos/strukturag/nextcloud-spreed-signaling/commits/master | jq -r '.sha // empty' 2>/dev/null)
 
-		if [ $HOURS_DIFF -lt 1 ]; then
-			log "[Building n-s-s] nextcloud-spreed-signaling built less than 1 hour ago and is installed. Skipping build."
-			return 0
-		fi
+	if [ -z "$NSS_COMMIT" ]; then
+		log_err "[Building n-s-s] ERROR: Could not fetch latest commit hash from GitHub!"
+		exit 1
+	fi
+
+	NSS_VERSION="master-${NSS_COMMIT:0:8}"
+	log "[Building n-s-s] Latest n-s-s version: $NSS_VERSION"
+
+	# Check if already built with this version
+	if should_skip_build "$NSS_BUILD_MARKER" "$NSS_VERSION" "/usr/local/bin/nextcloud-spreed-signaling-server"; then
+		log "[Building n-s-s] nextcloud-spreed-signaling $NSS_VERSION is already built and installed. Skipping build."
+		return 0
 	fi
 
 	log "[Building n-s-s] Downloading sources…"
