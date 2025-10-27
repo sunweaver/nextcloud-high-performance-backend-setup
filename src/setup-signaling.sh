@@ -473,14 +473,20 @@ function signaling_build_nextcloud-spreed-signaling() {
 	fi
 
 	log "[Building n-s-s] Downloading sources…"
-	rm n-s-s-master.tar.gz | tee -a $LOGFILE_PATH || true
-	wget https://github.com/strukturag/nextcloud-spreed-signaling/archive/refs/heads/master.tar.gz -O n-s-s-master.tar.gz | tee -a $LOGFILE_PATH
+	rm n-s-s-master.tar.gz 2>&1 | tee -a $LOGFILE_PATH || true
+	if ! is_dry_run; then
+		run_with_progress "[Building n-s-s] Downloading source archive" "wget https://github.com/strukturag/nextcloud-spreed-signaling/archive/refs/heads/master.tar.gz -O n-s-s-master.tar.gz"
+	fi
 
 	log "[Building n-s-s] Extracting sources…"
-	tar -xvf n-s-s-master.tar.gz | tee -a $LOGFILE_PATH
+	if ! is_dry_run; then
+		run_with_progress "[Building n-s-s] Extracting source archive" "tar -xf n-s-s-master.tar.gz"
+	fi
 
 	log "[Building n-s-s] Building sources…"
-	make -C nextcloud-spreed-signaling-master | tee -a $LOGFILE_PATH
+	if ! is_dry_run; then
+		run_with_progress "[Building n-s-s] Compiling (this may take several minutes)" "make -C nextcloud-spreed-signaling-master"
+	fi
 
 	log "[Building n-s-s] Stopping potentially running service…"
 	systemctl stop nextcloud-spreed-signaling | tee -a $LOGFILE_PATH || true
