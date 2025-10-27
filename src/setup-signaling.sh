@@ -83,22 +83,22 @@ function install_signaling() {
 
 	if [ "$SIGNALING_BUILD_FROM_SOURCES" = true ]; then
 
-		# Remove old packages.
-		log "Purging old Signaling packages..."
-		APT_PACKAGES="nextcloud-spreed-signaling janus"
-		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
-			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
-		fi
+		# # Remove old packages.
+		# log "Purging old Signaling packages..."
+		# APT_PACKAGES="nextcloud-spreed-signaling janus"
+		# if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
+		# 	APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
+		# fi
 
-		for pkg in $APT_PACKAGES; do
-			if is_dry_run; then
-				log "Would purge package: $pkg now…"
-				continue
-			fi
+		# for pkg in $APT_PACKAGES; do
+		# 	if is_dry_run; then
+		# 		log "Would purge package: $pkg now…"
+		# 		continue
+		# 	fi
 
-			log "Purging package: $pkg"
-			apt purge $APT_PARAMS "$pkg" 2>&1 | tee -a "$LOGFILE_PATH" || true
-		done
+		# 	log "Purging package: $pkg"
+		# 	apt purge $APT_PARAMS "$pkg" 2>&1 | tee -a "$LOGFILE_PATH" || true
+		# done
 
 		# Installing:
 		#   - build-essential
@@ -176,6 +176,105 @@ function install_signaling() {
 	log "Signaling install completed."
 }
 
+# Check for cached Janus build and verify its integrity
+# Returns: path to valid cached build directory or empty string
+function signaling_check_janus_cache() {
+	local janus_version="$1"
+	local build_dir_marker="/var/lib/nextcloud-hpb-setup/janus-build-dir"
+
+	if [ ! -f "$build_dir_marker" ]; then
+		return 0
+	fi
+
+	local cached_build_dir="$(cat "$build_dir_marker")"
+	local janus_deb_file="janus_${janus_version}_$(dpkg --print-architecture).deb"
+
+	if [ -d "$cached_build_dir" ] && [ -f "$cached_build_dir/$janus_deb_file" ]; then
+		log "[Building Janus] Found cached build directory: $cached_build_dir"
+		log "[Building Janus] Verifying package integrity…"
+
+		# Verify the .deb file is valid
+		if dpkg-deb --info "$cached_build_dir/$janus_deb_file" &>/dev/null; then
+			log "[Building Janus] Cached package is valid, reusing it."
+			echo "$cached_build_dir"
+			return 0
+		else
+			log "[Building Janus] Cached package is corrupted, will rebuild."
+			rm -rf "$cached_build_dir"
+		fi
+	else
+		log "[Building Janus] Cached build directory not found or incomplete, will rebuild."
+		[ -d "$cached_build_dir" ] && rm -rf "$cached_build_dir"
+	fi
+
+	echo ""
+	return 0
+}
+
+# Build Janus from sources
+# Args: $1 = janus_version, $2 = build_dir
+function signaling_do_janus_build() {
+	local janus_version="$1"
+	local build_dir="$2"
+	local original_dir="$(pwd)"
+
+	log "[Building Janus] Installing necessary packages…"
+	APT_PARAMS="-y"
+	if [ "$UNATTENDED_INSTALL" == true ]; then
+		export DEBIAN_FRONTEND=noninteractive
+		APT_PARAMS="-qqy"
+	fi
+	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts equivs 2>&1 | tee -a $LOGFILE_PATH
+
+	# Change to temporary build directory
+	cd "$build_dir"
+
+	log "[Building Janus] Downloading Janus source package…"
+	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${janus_version}.dsc"
+	log "[Building Janus] DSC URL: $JANUS_DSC_URL"
+	if is_dry_run; then
+		log "Would've downloaded $JANUS_DSC_URL."
+	else
+		run_with_progress "[Building Janus] Downloading source package" "dget --allow-unauthenticated '$JANUS_DSC_URL'"
+	fi
+
+	# Extract base version without debian revision
+	JANUS_BASE_VERSION=$(echo "$janus_version" | cut -d'-' -f1)
+	JANUS_SOURCE_DIR="janus-${JANUS_BASE_VERSION}"
+	log "[Building Janus] Source directory: $JANUS_SOURCE_DIR"
+
+	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
+		log_err "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
+		cd "$original_dir"
+		exit 1
+	fi
+
+	log "[Building Janus] Installing build dependencies…"
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Installing build dependencies" "cd '$JANUS_SOURCE_DIR' && mk-build-deps -i -r -t 'apt-get -y' && cd .."
+	fi
+
+	log "[Building Janus] Building Janus…"
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Compiling Janus (this may take several minutes)" "cd '$JANUS_SOURCE_DIR' && debian/rules build && cd .."
+	fi
+
+	log "[Building Janus] Creating Janus package…"
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Creating package" "cd '$JANUS_SOURCE_DIR' && debian/rules binary && cd .."
+	fi
+
+	# Save the build directory location for future reuse
+	if ! is_dry_run; then
+		local build_dir_marker="/var/lib/nextcloud-hpb-setup/janus-build-dir"
+		mkdir -p "$(dirname "$build_dir_marker")"
+		echo "$build_dir" > "$build_dir_marker"
+		log "[Building Janus] Saved build directory path to $build_dir_marker"
+	fi
+
+	cd "$original_dir"
+}
+
 function signaling_build_janus() {
 	log "[Building Janus] Building janus…"
 
@@ -200,76 +299,35 @@ function signaling_build_janus() {
 		return 0
 	fi
 
-	# Create temporary build directory
-	JANUS_BUILD_DIR=$(mktemp -d)
-	log "[Building Janus] Using temporary build directory: $JANUS_BUILD_DIR"
-
 	# Store original directory
 	ORIGINAL_DIR=$(pwd)
 
-	log "[Building Janus] Installing necessary packages…"
-	APT_PARAMS="-y"
-	if [ "$UNATTENDED_INSTALL" == true ]; then
-		export DEBIAN_FRONTEND=noninteractive
-		APT_PARAMS="-qqy"
+	# Check for cached build
+	JANUS_BUILD_DIR="$(signaling_check_janus_cache "$JANUS_VERSION")"
+	# Create new build directory if no valid cache exists
+	if [ -z "$JANUS_BUILD_DIR" ]; then
+		JANUS_BUILD_DIR=$(mktemp -d)
+		log "[Building Janus] Using new build directory: $JANUS_BUILD_DIR"
+		signaling_do_janus_build "$JANUS_VERSION" "$JANUS_BUILD_DIR"
 	fi
-	is_dry_run || apt-get install $APT_PARAMS build-essential fakeroot devscripts equivs 2>&1 | tee -a $LOGFILE_PATH
 
-	# Change to temporary build directory
+	# Install the package
 	cd "$JANUS_BUILD_DIR"
-
-	log "[Building Janus] Downloading Janus source package…"
-	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
-	log "[Building Janus] DSC URL: $JANUS_DSC_URL"
-	if is_dry_run; then
-		log "Would've downloaded $JANUS_DSC_URL."
-	else
-		run_with_progress "[Building Janus] Downloading source package" "dget --allow-unauthenticated '$JANUS_DSC_URL'"
-	fi
-
-	# Extract base version without debian revision
-	JANUS_BASE_VERSION=$(echo "$JANUS_VERSION" | cut -d'-' -f1)
-	JANUS_SOURCE_DIR="janus-${JANUS_BASE_VERSION}"
-	log "[Building Janus] Source directory: $JANUS_SOURCE_DIR"
-
-	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
-		log_err "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
-		exit 1
-	fi
-
-	log "[Building Janus] Installing build dependencies…"
-	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Installing build dependencies" "cd '$JANUS_SOURCE_DIR' && mk-build-deps -i -r -t 'apt-get -y' && cd .."
-	fi
-
-	log "[Building Janus] Building Janus…"
-	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Compiling Janus (this may take several minutes)" "cd '$JANUS_SOURCE_DIR' && debian/rules build && cd .."
-	fi
-
-	log "[Building Janus] Creating Janus package…"
-	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Creating package" "cd '$JANUS_SOURCE_DIR' && debian/rules binary && cd .."
-	fi
 
 	log "[Building Janus] Installing Janus package…"
 	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
-	log "Package file: $JANUS_DEB_FILE"
+	log "[Building Janus] Package file: $JANUS_DEB_FILE"
 	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Installing package" "dpkg -i '$JANUS_DEB_FILE'"
-	fi
-
-	log "[Building Janus] Installing any missing dependencies…"
-	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Installing missing dependencies" "apt-get install $APT_PARAMS -f"
+		APT_PARAMS="-y"
+		if [ "$UNATTENDED_INSTALL" == true ]; then
+			export DEBIAN_FRONTEND=noninteractive
+			APT_PARAMS="-qqy"
+		fi
+		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS '$JANUS_DEB_FILE'"
 	fi
 
 	# Return to original directory
 	cd "$ORIGINAL_DIR"
-
-	# Clean up temporary build directory
-	log "[Building Janus] Cleaning up temporary build directory…"
-	rm -rf "$JANUS_BUILD_DIR"
 
 	# Mark this version as built
 	if ! is_dry_run; then
@@ -277,6 +335,8 @@ function signaling_build_janus() {
 		echo "$JANUS_VERSION" > "$JANUS_BUILD_MARKER"
 		log "[Building Janus] Marked version $JANUS_VERSION as built in $JANUS_BUILD_MARKER"
 	fi
+
+	log "[Building Janus] Build directory preserved at: $JANUS_BUILD_DIR"
 }
 
 function signaling_build_nats-server() {
