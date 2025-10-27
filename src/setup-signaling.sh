@@ -97,9 +97,11 @@ function install_signaling() {
 
 		# Check if Janus package is available, if not build it from sources
 		JANUS_POLICY_OUTPUT="$(apt-cache policy janus 2>/dev/null)"
-		if ! (echo "$JANUS_POLICY_OUTPUT" | grep -q "Candidate:" && echo "$JANUS_POLICY_OUTPUT" | grep -qv "(none)"); then
+		if echo "$JANUS_POLICY_OUTPUT" | grep "Candidate:" | grep -q "(none)"; then
 			log "Janus package not available, building from sources…"
 			is_dry_run "Would have built janus now…" || signaling_build_janus
+		else
+			log "Janus package available, skipping build."
 		fi
 
 		# Installing:
@@ -112,7 +114,7 @@ function install_signaling() {
 			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
 		else
 			is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
-			if apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
+			if ! apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -q "(none)"; then
 				is_dry_run || apt-get install $APT_PARAMS janus 2>&1 | tee -a $LOGFILE_PATH
 			fi
 		fi
