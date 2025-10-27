@@ -740,19 +740,20 @@ function main() {
 	#if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then fi
 	#if [ "$SHOULD_INSTALL_MSMTP" = true ]; then fi
 
+	SERVICE_ERRORS=()
 	if ! is_dry_run; then
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
 			log "Enabling and restarting service '$i'…"
-			if ! systemctl unmask "$i" | tee -a $LOGFILE_PATH; then
-				log_err "Something went wrong while unmasking service '$i'…"
+			if ! systemctl unmask "$i" 2>&1 | tee -a $LOGFILE_PATH; then
+				SERVICE_ERRORS+=("Failed to unmask service '$i'")
 			fi
 
-			if ! service "$i" stop | tee -a $LOGFILE_PATH; then
-				log_err "Something went wrong while stopping service '$i'…"
+			if ! service "$i" stop 2>&1 | tee -a $LOGFILE_PATH; then
+				SERVICE_ERRORS+=("Failed to stop service '$i'")
 			fi
 
-			if ! systemctl enable --now "$i" | tee -a $LOGFILE_PATH; then
-				log_err "Something went wrong while enabling/starting service '$i'…"
+			if ! systemctl enable --now "$i" 2>&1 | tee -a $LOGFILE_PATH; then
+				SERVICE_ERRORS+=("Failed to enable/start service '$i'")
 			fi
 			sleep 0.25s
 		done
@@ -815,6 +816,19 @@ function main() {
 	# fi
 	if [ "$SHOULD_INSTALL_MSMTP" = true ]; then
 		msmtp_write_secrets_to_file "$SECRETS_FILE_PATH"
+	fi
+
+	# Display service errors summary if any occurred
+	if [ ${#SERVICE_ERRORS[@]} -gt 0 ]; then
+		log ""
+		log "======================================================================"
+		log_err "The following service management errors occurred:"
+		for error in "${SERVICE_ERRORS[@]}"; do
+			log_err "  - $error"
+		done
+		log_err "Please check the services manually using 'systemctl status <service-name>'"
+		log "======================================================================"
+		log ""
 	fi
 
 	log "\nThank you for using this script.\n"
