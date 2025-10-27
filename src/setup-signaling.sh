@@ -565,6 +565,9 @@ function signaling_step5() {
 	deploy_file "$TMP_DIR_PATH"/signaling/nginx-signaling-upstream-servers.conf /etc/nginx/snippets/signaling-upstream-servers.conf || true
 	deploy_file "$TMP_DIR_PATH"/signaling/nginx-signaling-forwarding.conf /etc/nginx/snippets/signaling-forwarding.conf || true
 
+	# Ensure /etc/janus directory exists
+	is_dry_run || mkdir -p /etc/janus
+
 	if [ "$(dpkg --print-architecture)" = "arm64" ]; then
 		deploy_file "$TMP_DIR_PATH"/signaling/janus_aarch64.jcfg /etc/janus/janus.jcfg || true
 	elif [ "$(dpkg --print-architecture)" = "ppc64el" ]; then
