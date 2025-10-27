@@ -23,6 +23,37 @@ declare -A SIGNALING_NC_SERVER_SESSIONLIMIT     # Associative array
 declare -A SIGNALING_NC_SERVER_MAXSTREAMBITRATE # Associative array
 declare -A SIGNALING_NC_SERVER_MAXSCREENBITRATE # Associative array
 
+# Helper function to run a command with animated progress dots
+# Usage: run_with_progress "Message" "command to run"
+function run_with_progress() {
+	local message="$1"
+	local command="$2"
+	local temp_log=$(mktemp)
+
+	# Start the command in background, redirecting output to temp log
+	eval "$command" > "$temp_log" 2>&1 &
+	local pid=$!
+
+	# Show animated progress
+	printf "%s" "${blue}$message"
+	while kill -0 $pid 2>/dev/null; do
+		printf "."
+		sleep 0.5
+	done
+
+	# Wait for the process to finish and get exit code
+	wait $pid
+	local exit_code=$?
+
+	printf " done\n${normal}"
+
+	# Append temp log to main log file
+	cat "$temp_log" >> "$LOGFILE_PATH"
+	rm -f "$temp_log"
+
+	return $exit_code
+}
+
 function install_signaling() {
 	announce_installation "Installing Signaling"
 	log "Installing Signaling…"
@@ -190,8 +221,11 @@ function signaling_build_janus() {
 	log "[Building Janus] Downloading Janus source package…"
 	JANUS_DSC_URL="http://deb.debian.org/debian/pool/main/j/janus/janus_${JANUS_VERSION}.dsc"
 	log "[Building Janus] DSC URL: $JANUS_DSC_URL"
-	is_dry_run "Would've downloaded $JANUS_DSC_URL." || \
-		dget --allow-unauthenticated "$JANUS_DSC_URL" 2>&1 | tee -a $LOGFILE_PATH
+	if is_dry_run; then
+		log "Would've downloaded $JANUS_DSC_URL."
+	else
+		run_with_progress "[Building Janus] Downloading source package" "dget --allow-unauthenticated '$JANUS_DSC_URL'"
+	fi
 
 	# Extract base version without debian revision
 	JANUS_BASE_VERSION=$(echo "$JANUS_VERSION" | cut -d'-' -f1)
@@ -204,21 +238,31 @@ function signaling_build_janus() {
 	fi
 
 	log "[Building Janus] Installing build dependencies…"
-	is_dry_run || (cd "$JANUS_SOURCE_DIR" && mk-build-deps -i -r -t "apt-get -y" 2>&1 | tee -a "$LOGFILE_PATH" && cd ..)
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Installing build dependencies" "cd '$JANUS_SOURCE_DIR' && mk-build-deps -i -r -t 'apt-get -y' && cd .."
+	fi
 
 	log "[Building Janus] Building Janus…"
-	is_dry_run || (cd "$JANUS_SOURCE_DIR" && debian/rules build 2>&1 | tee -a "$LOGFILE_PATH" && cd ..)
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Compiling Janus (this may take several minutes)" "cd '$JANUS_SOURCE_DIR' && debian/rules build && cd .."
+	fi
 
 	log "[Building Janus] Creating Janus package…"
-	is_dry_run || (cd "$JANUS_SOURCE_DIR" && debian/rules binary 2>&1 | tee -a "$LOGFILE_PATH" && cd ..)
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Creating package" "cd '$JANUS_SOURCE_DIR' && debian/rules binary && cd .."
+	fi
 
 	log "[Building Janus] Installing Janus package…"
 	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
 	log "Package file: $JANUS_DEB_FILE"
-	is_dry_run || dpkg -i "$JANUS_DEB_FILE" 2>&1 | tee -a $LOGFILE_PATH
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Installing package" "dpkg -i '$JANUS_DEB_FILE'"
+	fi
 
 	log "[Building Janus] Installing any missing dependencies…"
-	is_dry_run || apt-get install $APT_PARAMS -f 2>&1 | tee -a $LOGFILE_PATH
+	if ! is_dry_run; then
+		run_with_progress "[Building Janus] Installing missing dependencies" "apt-get install $APT_PARAMS -f"
+	fi
 
 	# Return to original directory
 	cd "$ORIGINAL_DIR"
