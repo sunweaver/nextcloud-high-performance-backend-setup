@@ -317,13 +317,28 @@ function signaling_build_janus() {
 	log "[Building Janus] Installing Janus package…"
 	JANUS_DEB_FILE="janus_${JANUS_VERSION}_$(dpkg --print-architecture).deb"
 	log "[Building Janus] Package file: $JANUS_DEB_FILE"
+
+	# Verify the .deb file exists
+	if [ ! -f "$JANUS_BUILD_DIR/$JANUS_DEB_FILE" ]; then
+		log_err "[Building Janus] ERROR: Package file not found: $JANUS_BUILD_DIR/$JANUS_DEB_FILE"
+		cd "$ORIGINAL_DIR"
+		exit 1
+	fi
+
 	if ! is_dry_run; then
 		APT_PARAMS="-y"
 		if [ "$UNATTENDED_INSTALL" == true ]; then
 			export DEBIAN_FRONTEND=noninteractive
 			APT_PARAMS="-qqy"
 		fi
-		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS '$JANUS_DEB_FILE'"
+		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS './$JANUS_DEB_FILE'"
+
+		# Verify installation succeeded
+		if ! dpkg -l | grep -q "^ii  janus "; then
+			log_err "[Building Janus] ERROR: Janus installation failed!"
+			cd "$ORIGINAL_DIR"
+			exit 1
+		fi
 	fi
 
 	# Return to original directory
