@@ -7,7 +7,7 @@ function unattendedupgrades_do_preseed() {
 	value="$4"
 	is_dry_run ||
 		echo $pkg $template $type "$value" | debconf-set-selections ||
-		log "Failed to load preseed '$template'"
+		log_err "Failed to load preseed '$template'"
 }
 
 function unattendedupgrades_do_reconfigure() {
@@ -15,7 +15,7 @@ function unattendedupgrades_do_reconfigure() {
 	log "Silently running dpkg-reconfigure on package $package…"
 	is_dry_run || dpkg -l $package 1>/dev/null 2>/dev/null && {
 		dpkg-reconfigure -fnoninteractive -pcritical $package &&
-			log "Reconfigure DONE" || log "Reconfigure FAILED"
+			log "Reconfigure DONE" || log_err "Reconfigure FAILED"
 	}
 }
 

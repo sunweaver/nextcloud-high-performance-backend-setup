@@ -33,8 +33,8 @@ SETUP_VERSION=$(cat VERSION | head -n 1 | tr '\n' ' ')
 function show_dialogs() {
 	if [ "$LOGFILE_PATH" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing LOGFILE_PATH!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing LOGFILE_PATH!"
 			exit 1
 		fi
 
@@ -51,7 +51,7 @@ function show_dialogs() {
 
 	if [ "$DRY_RUN" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm missing DRY_RUN!"
+			log_err "Can't continue since this is a non-interactive installation and I'm missing DRY_RUN!"
 			exit 1
 		fi
 
@@ -67,8 +67,8 @@ function show_dialogs() {
 
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing NEXTCLOUD_SERVER_FQDNS!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing NEXTCLOUD_SERVER_FQDNS!"
 			exit 1
 		fi
 
@@ -87,8 +87,8 @@ function show_dialogs() {
 
 	if [ "$SERVER_FQDN" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing SERVER_FQDN!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing SERVER_FQDN!"
 			exit 1
 		fi
 
@@ -158,8 +158,8 @@ function show_dialogs() {
 
 	if [ "$TMP_DIR_PATH" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing TMP_DIR_PATH!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing TMP_DIR_PATH!"
 			exit 1
 		fi
 
@@ -175,8 +175,8 @@ function show_dialogs() {
 
 	if [ "$SECRETS_FILE_PATH" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing SECRETS_FILE_PATH!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing SECRETS_FILE_PATH!"
 			exit 1
 		fi
 
@@ -193,8 +193,8 @@ function show_dialogs() {
 	# - E-Mail stuff below -
 	if [ "$EMAIL_USER_ADDRESS" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing EMAIL_USER_ADDRESS!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing EMAIL_USER_ADDRESS!"
 			exit 1
 		fi
 
@@ -212,8 +212,8 @@ function show_dialogs() {
 
 	if [ "$EMAIL_USER_PASSWORD" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing EMAIL_USER_PASSWORD!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing EMAIL_USER_PASSWORD!"
 			exit 1
 		fi
 
@@ -228,8 +228,8 @@ function show_dialogs() {
 
 	if [ "$EMAIL_USER_USERNAME" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing EMAIL_USER_USERNAME!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing EMAIL_USER_USERNAME!"
 			exit 1
 		fi
 
@@ -245,8 +245,8 @@ function show_dialogs() {
 
 	if [ "$EMAIL_SERVER_HOST" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing EMAIL_SERVER_HOST!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing EMAIL_SERVER_HOST!"
 			exit 1
 		fi
 
@@ -260,8 +260,8 @@ function show_dialogs() {
 
 	if [ "$EMAIL_SERVER_PORT" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
-			log "Can't continue since this is a non-interactive installation and I'm" \
-				"missing EMAIL_SERVER_PORT!"
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing EMAIL_SERVER_PORT!"
 			exit 1
 		fi
 
@@ -375,8 +375,13 @@ if test -t 1; then
 fi
 
 function log() {
-	echo -e "$@" >> $LOGFILE_PATH
+	echo -e "$@" >> "$LOGFILE_PATH"
 	echo -e "${blue}$@${normal}"
+}
+
+function log_err() {
+	echo -e "$@" >> "$LOGFILE_PATH"
+	echo -e "${red}✗ Error: $@${normal}"
 }
 
 function generate_dhparam_file() {
@@ -434,7 +439,7 @@ function deploy_file() {
 
 function check_root_perm() {
 	if [[ $(id -u) -ne 0 ]]; then
-		log "Please run the this (setup-nextcloud-hpb) script as root."
+		log_err "Please run the this (setup-nextcloud-hpb) script as root."
 		exit 1
 	fi
 }
@@ -442,12 +447,12 @@ function check_root_perm() {
 function check_debian_system() {
 	# File exists and not empty
 	if ! [ -s /etc/os-release ]; then
-		log "Couldn't read /etc/os-release! What kind of OS is this?"
+		log_err "Couldn't read /etc/os-release! What kind of OS is this?"
 		exit 1
 	else
 		source /etc/os-release
 		if [ "$ID" != "debian" ]; then
-			log "This host does not run Debian. Wrong distribution!"
+			log_err "This host does not run Debian. Wrong distribution!"
 			exit 1
 		fi
 		if [ -z "$VERSION_ID" ] && [[ "$VERSION_CODENAME" =~ "sid" ]]; then
@@ -456,7 +461,7 @@ function check_debian_system() {
 			VERSION_ID=999
 		fi
 		if dpkg --compare-versions $VERSION_ID lt $DEBIAN_VERSION_ATLEAST; then
-			log "Debian version '$VERSION_ID' not supported (too old)!"
+			log_err "Debian version '$VERSION_ID' not supported (too old)!"
 			exit 1
 		fi
 
@@ -470,28 +475,28 @@ function check_available_signaling_packages() {
 	if apt-cache policy nextcloud-spreed-signaling 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'nextcloud-spreed-signaling' is available."
 	else
-		log "${red}Package 'nextcloud-spreed-signaling' is NOT available, we are forced to build from sources."
+		log_err "Package 'nextcloud-spreed-signaling' is NOT available, we are forced to build from sources."
 		return 1
 	fi
 
 	if apt-cache policy nats-server 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'nats-server' is available."
 	else
-		log "${red}Package 'nats-server' is NOT available, we are forced to build from sources."
+		log_err "Package 'nats-server' is NOT available, we are forced to build from sources."
 		return 1
 	fi
 
 	if apt-cache policy coturn 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'coturn' is available."
 	else
-		log "${red}Package 'coturn' is NOT available, we are forced to build from sources."
+		log_err "Package 'coturn' is NOT available, we are forced to build from sources."
 		return 1
 	fi
 
 	if apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'janus' is available."
 	else
-		log "${red}Package 'janus' is NOT available, we are forced to build from sources."
+		log_err "Package 'janus' is NOT available, we are forced to build from sources."
 		return 1
 	fi
 }
@@ -608,7 +613,7 @@ function main() {
 			3>&1 1>&2 2>&3 || true)
 
 		if [ -z "$CHOICES" ]; then
-			log "No service was selected (user hit Cancel or unselected all options) Exiting…"
+			log_err "No service was selected (user hit Cancel or unselected all options) Exiting…"
 			exit 0
 		else
 			for CHOICE in $CHOICES; do
@@ -632,7 +637,7 @@ function main() {
 					SHOULD_INSTALL_MSMTP=true
 					;;
 				*)
-					log "Unsupported service $CHOICE!" >&2
+					log_err "Unsupported service $CHOICE!" >&2
 					exit 1
 					;;
 				esac
@@ -739,15 +744,15 @@ function main() {
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
 			log "Enabling and restarting service '$i'…"
 			if ! systemctl unmask "$i" | tee -a $LOGFILE_PATH; then
-				log "Something went wrong while unmasking service '$i'…"
+				log_err "Something went wrong while unmasking service '$i'…"
 			fi
 
 			if ! service "$i" stop | tee -a $LOGFILE_PATH; then
-				log "Something went wrong while stopping service '$i'…"
+				log_err "Something went wrong while stopping service '$i'…"
 			fi
 
 			if ! systemctl enable --now "$i" | tee -a $LOGFILE_PATH; then
-				log "Something went wrong while enabling/starting service '$i'…"
+				log_err "Something went wrong while enabling/starting service '$i'…"
 			fi
 			sleep 0.25s
 		done

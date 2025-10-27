@@ -150,11 +150,11 @@ function certbot_step2() {
 	generate_dhparam_file
 
 	if ! run_certbot_command && ! is_dry_run; then
-		log "Something wen't wrong while starting Certbot."
+		log_err "Something went wrong while starting Certbot."
 
 		if [ "$UNATTENDED_INSTALL" != true ]; then
-			log "Maybe the error is in the nextcloud-hpb.conf" \
-				"file (please read the error message above).\n"
+			log_err "Maybe the error is in the nextcloud-hpb.conf" \
+			        "file (please read the error message above).\n"
 			read -p "Do you wish to delete this file:$(
 			)'/etc/nginx/sites-enabled/nextcloud-hbp.conf'? [YyNn]" -n 1 -r && echo
 			if [[ $REPLY =~ ^[YyJj]$ ]]; then
