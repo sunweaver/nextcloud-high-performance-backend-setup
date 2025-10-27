@@ -1,6 +1,38 @@
+2025-10-27 Daniel Teichmann
+
+        * VERSION: Bump version to 1.3.2 (HEAD -> main)
+        * Add bug report issue templates (EN/DE) (0a89c36)
+        * setup-signaling: Use run_with_progress() to build n-s-s (5e56297)
+        * setup-signaling: Implement cache for Janus builds (6999d67)
+        * setup-signaling: Fix bug where janus-build-deps would interfere
+          with build marker system (8f1653d)
+        * setup-signaling: Make build progress output more user-friendly
+          (9d05e6f)
+        * settings.sh: Adjust log file path to use absolute path. (3aac8ee)
+        * setup-signaling: Fix bug where janus would not be built on Debian
+          13 (8c906cf)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/205
+
+        * signaling: Ensure /etc/janus directory exists before deploying
+          config files (14f8e8b)
+        * Improved error logging in service management: Add summary of errors
+          when services cannot be enabled, stopped, or started.
+          (5b779b9)
+        * Improved error logging in scripts: log() replaced with log_err() to
+          more clearly indicate errors. (7d7953a)
+
+2025-10-24 Daniel Teichmann
+
+        * setup-nginx index.html: Show Debian major version and current
+          script version. (d7b28a1)
+        * setup-collabora: Fix issue where exact '/collabora' path would not
+          be proxied to coolwsd. (8fd1a6a)
+
 2025-10-23 Daniel Teichmann
 
-        * VERSION: Bump version to 1.3.1. (HEAD -> main)
+        * New release 1.3.1 (508b413) (tag: 1.3.1)
+        * VERSION: Bump version to 1.3.1. (ea77d16)
         * setup-certbot: Fix typo. (5dbf241)
         * setup-certbot: Fix new versions of Certbot using a slightly
           different error message for rate limits. (a6d1100)
