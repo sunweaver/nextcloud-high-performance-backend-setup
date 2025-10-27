@@ -224,7 +224,13 @@ function show_dialogs() {
 				10 65 "" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$EMAIL_USER_PASSWORD' for EMAIL_USER_PASSWORD".
+
+	if [[ -n "$EMAIL_USER_PASSWORD" ]]; then
+		# Do not expose password in log, mask it.
+		log "Using non-empty password for EMAIL_USER_PASSWORD".
+	else
+		log "No password set for EMAIL_USER_PASSWORD…"
+	fi
 
 	if [ "$EMAIL_USER_USERNAME" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
