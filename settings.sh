@@ -42,7 +42,7 @@ SHOULD_INSTALL_MSMTP=true
 
 # Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
-LOGFILE_PATH="./setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
+LOGFILE_PATH="$(pwd)/setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 
 # Configuration gets copied and prepared here before copying them into place.
 # This prevents config being broken if something goes wrong.
