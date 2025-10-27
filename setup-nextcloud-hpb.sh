@@ -542,6 +542,11 @@ function announce_installation() {
 }
 
 function main() {
+	if [ -s "$LOGFILE_PATH" ]; then
+		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
+	fi
+
+	log "Starting script at: $(date)"
 	log "Nextcloud HPB setup script version: $SETUP_VERSION"
 
 	check_root_perm
@@ -663,12 +668,6 @@ function main() {
 	NEXTCLOUD_SERVER_FQDNS=($(echo "$NEXTCLOUD_SERVER_FQDNS" | tr ',' ' '))
 	log "Splitting Nextcloud server domains into:"
 	log "$(printf '\t- %s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}")"
-
-	if [ -s "$LOGFILE_PATH" ]; then
-		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
-	fi
-
-	log "$(date)"
 
 	is_dry_run &&
 		log "Running in dry-mode. This script won't actually do anything on" \
