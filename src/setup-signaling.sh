@@ -98,6 +98,7 @@ function run_with_progress() {
 function install_signaling() {
 	announce_installation "Installing Signaling"
 	log "Installing Signaling…"
+	local LANG=C # apt-cache policy should not output localized language
 
 	if [ "$DEBIAN_VERSION_MAJOR" = "12" ] ; then
 		log "Enabling bookworm-backports..."
