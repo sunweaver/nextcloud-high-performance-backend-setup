@@ -482,6 +482,7 @@ function check_debian_system() {
 
 function check_available_signaling_packages() {
 	log "Checking for packages availability…"
+	local LANG=C # apt-cache policy should not output localized language
 
 	if apt-cache policy nextcloud-spreed-signaling 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'nextcloud-spreed-signaling' is available."
