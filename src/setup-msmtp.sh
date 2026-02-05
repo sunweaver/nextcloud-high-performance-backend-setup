@@ -127,7 +127,7 @@ function msmtp_step3() {
     #log "Replacing '<EMAIL_USER_PASSWORD>' with '$EMAIL_USER_PASSWORD'…"
     log "Replacing '<EMAIL_USER_PASSWORD>…'"
     ESCAPED_EMAIL_USER_PASSWORD=$(printf '%s\n' "$EMAIL_USER_PASSWORD" | sed -e 's/[\/&]/\\&/g')
-    sed -i "s|<EMAIL_USER_PASSWORD>|$ESCAPED_EMAIL_USER_PASSWORD|g" "$TMP_DIR_PATH"/msmtp/*
+    perl -pi -e 's/<EMAIL_USER_PASSWORD>/$ENV{EMAIL_USER_PASSWORD}/g' "$TMP_DIR_PATH"/msmtp/*
 
     log "Replacing '<EMAIL_SERVER_HOST>' with '$EMAIL_SERVER_HOST'…"
     sed -i "s|<EMAIL_SERVER_HOST>|$EMAIL_SERVER_HOST|g" "$TMP_DIR_PATH"/msmtp/*
