@@ -63,7 +63,7 @@ function show_dialogs() {
 			DRY_RUN=true
 		fi
 	fi
-	log "Using '$DRY_RUN' for DRY_RUN".
+	log "Using '$DRY_RUN' for DRY_RUN."
 
 	if [ "$NEXTCLOUD_SERVER_FQDNS" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -83,7 +83,7 @@ function show_dialogs() {
 	fi
 	# Filter out HTTPS:// or HTTP://
 	NEXTCLOUD_SERVER_FQDNS=$(echo $NEXTCLOUD_SERVER_FQDNS | sed -r "s#https?\:\/\/##gi")
-	log "Using '$NEXTCLOUD_SERVER_FQDNS' for NEXTCLOUD_SERVER_FQDNS".
+	log "Using '$NEXTCLOUD_SERVER_FQDNS' for NEXTCLOUD_SERVER_FQDNS."
 
 	if [ "$SERVER_FQDN" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -103,57 +103,57 @@ function show_dialogs() {
 	fi
 	# Filter out HTTPS:// or HTTP://
 	SERVER_FQDN=$(echo $SERVER_FQDN | sed -r "s#https?\:\/\/##gi")
-	log "Using '$SERVER_FQDN' for SERVER_FQDN".
+	log "Using '$SERVER_FQDN' for SERVER_FQDN."
 
 	# - SSL Cert stuff below -
 	if [ "$DHPARAM_PATH" = "" ]; then
 		DHPARAM_PATH="/etc/certs/dhp/dhp.pem"
-		log "Using default path '$DHPARAM_PATH' for DHPARAM_PATH".
+		log "Using default path '$DHPARAM_PATH' for DHPARAM_PATH."
 	else
-		log "Using '$DHPARAM_PATH' for DHPARAM_PATH".
+		log "Using '$DHPARAM_PATH' for DHPARAM_PATH."
 	fi
 
 	if [ "$SSL_CERT_PATH_RSA" = "" ]; then
 		SSL_CERT_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/fullchain.pem"
-		log "Using default path '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA".
+		log "Using default path '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA."
 	else
-		log "Using '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA".
+		log "Using '$SSL_CERT_PATH_RSA' for SSL_CERT_PATH_RSA."
 	fi
 
 	if [ "$SSL_CERT_PATH_ECDSA" = "" ]; then
 		SSL_CERT_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/fullchain.pem"
-		log "Using default path '$SSL_CERT_PATH_ECDSA' for SSL_CERT_PATH_ECDSA".
+		log "Using default path '$SSL_CERT_PATH_ECDSA' for SSL_CERT_PATH_ECDSA."
 	else
-		log "Using '$SSL_CERT_PATH_ECDSA' for SSL_CERT_PATH_ECDSA".
+		log "Using '$SSL_CERT_PATH_ECDSA' for SSL_CERT_PATH_ECDSA."
 	fi
 
 	if [ "$SSL_CERT_KEY_PATH_RSA" = "" ]; then
 		SSL_CERT_KEY_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/privkey.pem"
-		log "Using default path '$SSL_CERT_KEY_PATH_RSA' for SSL_CERT_KEY_PATH_RSA".
+		log "Using default path '$SSL_CERT_KEY_PATH_RSA' for SSL_CERT_KEY_PATH_RSA."
 	else
-		log "Using '$SSL_CERT_KEY_PATH_RSA' for SSL_CERT_KEY_PATH_RSA".
+		log "Using '$SSL_CERT_KEY_PATH_RSA' for SSL_CERT_KEY_PATH_RSA."
 	fi
 
 	if [ "$SSL_CERT_KEY_PATH_ECDSA" = "" ]; then
 		SSL_CERT_KEY_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/privkey.pem"
-		log "Using default path '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA".
+		log "Using default path '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA."
 	else
-		log "Using '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA".
+		log "Using '$SSL_CERT_KEY_PATH_ECDSA' for SSL_CERT_KEY_PATH_ECDSA."
 	fi
 	# -----
 
 	if [ "$SSL_CHAIN_PATH_RSA" = "" ]; then
 		SSL_CHAIN_PATH_RSA="/etc/letsencrypt/live/$SERVER_FQDN-rsa/chain.pem"
-		log "Using default path '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA".
+		log "Using default path '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA."
 	else
-		log "Using '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA".
+		log "Using '$SSL_CHAIN_PATH_RSA' for SSL_CHAIN_PATH_RSA."
 	fi
 
 	if [ "$SSL_CHAIN_PATH_ECDSA" = "" ]; then
 		SSL_CHAIN_PATH_ECDSA="/etc/letsencrypt/live/$SERVER_FQDN-ecdsa/chain.pem"
-		log "Using default path '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA".
+		log "Using default path '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA."
 	else
-		log "Using '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA".
+		log "Using '$SSL_CHAIN_PATH_ECDSA' for SSL_CHAIN_PATH_ECDSA."
 	fi
 
 	if [ "$TMP_DIR_PATH" = "" ]; then
@@ -171,7 +171,7 @@ function show_dialogs() {
 				10 65 "./tmp" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$TMP_DIR_PATH' for TMP_DIR_PATH".
+	log "Using '$TMP_DIR_PATH' for TMP_DIR_PATH."
 
 	if [ "$SECRETS_FILE_PATH" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -188,7 +188,7 @@ function show_dialogs() {
 				10 65 "./nextcloud-hpb.secrets" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH".
+	log "Using '$SECRETS_FILE_PATH' for SECRETS_FILE_PATH."
 
 	# - E-Mail stuff below -
 	if [ "$EMAIL_USER_ADDRESS" = "" ]; then
@@ -208,7 +208,7 @@ function show_dialogs() {
 				10 65 "johndoe@example.com" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$EMAIL_USER_ADDRESS' for EMAIL_USER_ADDRESS".
+	log "Using '$EMAIL_USER_ADDRESS' for EMAIL_USER_ADDRESS."
 
 	if [ "$EMAIL_USER_PASSWORD" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -227,7 +227,7 @@ function show_dialogs() {
 
 	if [[ -n "$EMAIL_USER_PASSWORD" ]]; then
 		# Do not expose password in log, mask it.
-		log "Using non-empty password for EMAIL_USER_PASSWORD".
+		log "Using non-empty password for EMAIL_USER_PASSWORD."
 	else
 		log "No password set for EMAIL_USER_PASSWORD…"
 	fi
@@ -247,7 +247,7 @@ function show_dialogs() {
 				10 65 "$EMAIL_USER_ADDRESS" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$EMAIL_USER_USERNAME' for EMAIL_USER_USERNAME".
+	log "Using '$EMAIL_USER_USERNAME' for EMAIL_USER_USERNAME."
 
 	if [ "$EMAIL_SERVER_HOST" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -262,7 +262,7 @@ function show_dialogs() {
 				10 65 "mail.example.org" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$EMAIL_SERVER_HOST' for EMAIL_SERVER_HOST".
+	log "Using '$EMAIL_SERVER_HOST' for EMAIL_SERVER_HOST."
 
 	if [ "$EMAIL_SERVER_PORT" = "" ]; then
 		if [ "$UNATTENDED_INSTALL" = true ]; then
@@ -334,7 +334,7 @@ function show_dialogs() {
 	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
 
 	SIGNALING_BUILD_FROM_SOURCES="true"
-	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
+	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES."
 }
 
 # SUPPORT FOR COLORS! (If terminal supports it)
