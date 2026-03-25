@@ -242,7 +242,7 @@ function show_dialogs() {
 		EMAIL_USER_USERNAME=$(
 			whiptail --title "E-Mail SMTP username" \
 				--inputbox "Enter the username which msmtp will use to $(
-				)authenticate against the SMTP server.$(
+				)authenticate against the SMTP server. $(
 				)Often the username is equal to the email address." \
 				10 65 "$EMAIL_USER_ADDRESS" 3>&1 1>&2 2>&3
 		)
@@ -273,7 +273,9 @@ function show_dialogs() {
 
 		EMAIL_SERVER_PORT=$(
 			whiptail --title "E-Mail SMTP port" \
-				--inputbox "Enter the port on which the SMTP server is reachable." \
+				--inputbox "Enter the SMTP server port.$(
+				)\nRecommended: 587 (STARTTLS) or 465 (TLS/SSL). $(
+				)Fallback: 2525 (if 587 is blocked)." \
 				10 65 "587" 3>&1 1>&2 2>&3
 		)
 	fi
