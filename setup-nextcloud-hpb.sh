@@ -489,28 +489,28 @@ function check_available_signaling_packages() {
 	if apt-cache policy nextcloud-spreed-signaling 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'nextcloud-spreed-signaling' is available."
 	else
-		log_err "Package 'nextcloud-spreed-signaling' is NOT available, we are forced to build from sources."
+		log_err "Package 'nextcloud-spreed-signaling' is NOT available."
 		return 1
 	fi
 
 	if apt-cache policy nats-server 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'nats-server' is available."
 	else
-		log_err "Package 'nats-server' is NOT available, we are forced to build from sources."
+		log_err "Package 'nats-server' is NOT available."
 		return 1
 	fi
 
 	if apt-cache policy coturn 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'coturn' is available."
 	else
-		log_err "Package 'coturn' is NOT available, we are forced to build from sources."
+		log_err "Package 'coturn' is NOT available."
 		return 1
 	fi
 
 	if apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
 		log "Package 'janus' is available."
 	else
-		log_err "Package 'janus' is NOT available, we are forced to build from sources."
+		log_err "Package 'janus' is NOT available."
 		return 1
 	fi
 }
@@ -566,6 +566,7 @@ function main() {
 	if check_available_signaling_packages; then
 		SIGNALING_PACKAGES_AVAILABLE=true
 	else
+		log_warn "Some required Signaling packages are not available in the package archives. The required packages will get built and installed from sources."
 		SIGNALING_PACKAGES_AVAILABLE=false
 	fi
 
