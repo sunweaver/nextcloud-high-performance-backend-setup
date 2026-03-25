@@ -71,10 +71,6 @@ EMAIL_SERVER_HOST=""
 # Should the ssh service be disabled?
 #DISABLE_SSH_SERVER=false
 
-# Should nextcloud-spreed-signaling, nats-server and coturn be built and
-# installed from sources?
-SIGNALING_BUILD_FROM_SOURCES=""
-
 # DNS Resolver. Here a custom DNS server can be specified,
 # otherwise the one configured in resolv.conf is used
 DNS_RESOLVER=""

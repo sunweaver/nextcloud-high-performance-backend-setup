@@ -5,8 +5,6 @@
 
 #SIGNALING_SUNWEAVER_SOURCE_FILE="/etc/apt/sources.list.d/sunweaver.list"
 
-SIGNALING_BACKPORTS_SOURCE_FILE="/etc/apt/sources.list.d/debian-backports.list"
-
 SIGNALING_TURN_STATIC_AUTH_SECRET="$(openssl rand -hex 32)"
 SIGNALING_JANUS_API_KEY="$(openssl rand -base64 16)"
 SIGNALING_HASH_KEY="$(openssl rand -hex 16)"
@@ -100,20 +98,6 @@ function install_signaling() {
 	log "Installing Signaling…"
 	local LANG=C # apt-cache policy should not output localized language
 
-	if [ "$DEBIAN_VERSION_MAJOR" = "12" ] ; then
-		log "Enabling bookworm-backports..."
-		is_dry_run || cat <<-EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
-			# Added by nextcloud-high-performance-backend setup-script.
-			deb http://deb.debian.org/debian bookworm-backports main
-		EOL
-	fi
-	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-		log "Enabling bullseye-backports..."
-		is_dry_run || cat <<-EOL >$SIGNALING_BACKPORTS_SOURCE_FILE
-			# Added by nextcloud-high-performance-backend setup-script.
-			deb http://deb.debian.org/debian bullseye-backports main
-		EOL
-	fi
 	is_dry_run || apt update 2>&1 | tee -a $LOGFILE_PATH
 
 	APT_PARAMS="-y"
@@ -128,9 +112,6 @@ function install_signaling() {
 		# Remove old packages.
 		log "Purging old Signaling packages..."
 		APT_PACKAGES="nextcloud-spreed-signaling janus"
-		if [ "${DEBIAN_VERSION_MAJOR}" = "11" ]; then
-			APT_PACKAGES="${APT_PACKAGES} nats-server coturn"
-		fi
 
 		for pkg in $APT_PACKAGES; do
 			if is_dry_run; then
@@ -151,45 +132,17 @@ function install_signaling() {
 		#   - protobuf-compiler
 		#   - wget
 		log "Installing Signaling build dependencies…"
-		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-			is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
-		elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
-			is_dry_run || apt-get install $APT_PARAMS -t bookworm-backports golang-go 2>&1 | tee -a $LOGFILE_PATH
-			is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make 2>&1 | tee -a $LOGFILE_PATH
-		else
-			is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
-		fi
+		is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
 
 		is_dry_run "Would have built nextcloud-spreed-signaling now…" || signaling_build_nextcloud-spreed-signaling
 
-		# Only if Debian 11
-		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-			is_dry_run "Would have built coturn now…" || signaling_build_coturn
-			is_dry_run "Would have built nats-server now…" || signaling_build_nats-server
-		fi
-
 		# Installing:
 		# - ssl-cert
-		# - nats-server (Always built from sources for Debian 11)
-		# - coturn      (Always built from sources for Debian 11)
-		if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-			is_dry_run || apt-get install $APT_PARAMS ssl-cert 2>&1 | tee -a $LOGFILE_PATH
-			is_dry_run || apt-get install $APT_PARAMS -t bullseye-backports janus 2>&1 | tee -a $LOGFILE_PATH
-		else
-			is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
-		fi
+		# - nats-server
+		# - coturn
+		is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
 
-		# Installing:
-		# - janus (if available, otherwise already built)
-		JANUS_POLICY_OUTPUT="$(apt-cache policy janus 2>/dev/null)"
-		if echo "$JANUS_POLICY_OUTPUT" | grep "Candidate:" | grep -q "(none)"; then
-			log "Janus package not available from repositories, building from sources…"
-			is_dry_run "Would have built janus now…" || signaling_build_janus
-		else
-			log "Janus package is available, installing from repositories…"
-			is_dry_run || apt-get install $APT_PARAMS janus 2>&1 | tee -a $LOGFILE_PATH
-		fi
+		is_dry_run "Would have built janus now…" || signaling_build_janus
 
 		log "Reloading systemd."
 		systemctl daemon-reload | tee -a $LOGFILE_PATH
@@ -377,120 +330,6 @@ function signaling_build_janus() {
 	log "[Building Janus] Janus build completed."
 }
 
-function signaling_build_nats-server() {
-	log "[Building nats-server] Building nats-server…"
-
-	# Check if nats-server is already installed
-	NATS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/nats-server-built-version"
-
-	LATEST_RELEASE="https://api.github.com/repos/nats-io/nats-server/releases/latest"
-	log "[Building nats-server] Latest nats-server release URL: '$LATEST_RELEASE'"
-
-	LATEST_RELEASE_TAG="$(curl -s "$LATEST_RELEASE" | grep 'tag_name' | cut -d\" -f4)"
-	log "[Building nats-server] Latest nats-server version is: '$LATEST_RELEASE_TAG'"
-
-	# Check if already built with this version
-	if [ -f "$NATS_BUILD_MARKER" ] && [ "$(cat "$NATS_BUILD_MARKER")" = "$LATEST_RELEASE_TAG" ] && [ -x /usr/local/bin/nats-server ]; then
-		log "[Building nats-server] nats-server $LATEST_RELEASE_TAG is already built and installed. Skipping build."
-		return 0
-	fi
-
-	log "[Building nats-server] Removing old sources…"
-	rm -v nats-server-v*-linux-*.tar.gz | tee -a $LOGFILE_PATH || true
-
-	log "[Building nats-server] Downloading sources…"
-	if [ "$(dpkg --print-architecture)" = "arm64" ]; then
-		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-arm64.tar.gz' |
-			grep 'browser_download_url' | cut -d\" -f4) |
-			tee -a $LOGFILE_PATH
-	else
-		wget $(curl -s "$LATEST_RELEASE" | grep 'linux-amd64.tar.gz' |
-			grep 'browser_download_url' | cut -d\" -f4) |
-			tee -a $LOGFILE_PATH
-	fi
-
-	log "[Building nats-server] Extracting sources…"
-	tar -xvf "nats-server-$LATEST_RELEASE_TAG-linux-*.tar.gz" | tee -a $LOGFILE_PATH
-
-	log "[Building nats-server] Copying binary into /usr/local/bin/nats-server…"
-	cp --backup=numbered -v "nats-server-$LATEST_RELEASE_TAG-linux-*/nats-server" /usr/local/bin/nats-server | tee -a $LOGFILE_PATH
-
-	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.service /lib/systemd/system/nats-server.service || true
-	deploy_file "$TMP_DIR_PATH"/signaling/nats-server.conf /etc/nats-server.conf || true
-
-	log "[Building nats-server] Creating 'nats' system account…"
-	adduser --system --group nats || true
-
-	# Mark this version as built
-	if ! is_dry_run; then
-		mkdir -p "$(dirname "$NATS_BUILD_MARKER")"
-		echo "$LATEST_RELEASE_TAG" > "$NATS_BUILD_MARKER"
-		log "[Building nats-server] Marked version $LATEST_RELEASE_TAG as built in $NATS_BUILD_MARKER"
-	fi
-}
-
-function signaling_build_coturn() {
-	log "[Building coturn] Building coturn…"
-
-	# Check if coturn is already installed
-	COTURN_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/coturn-built-version"
-
-	log "[Building coturn] Fetching latest commit hash from GitHub…"
-	COTURN_COMMIT=$(curl -s https://api.github.com/repos/coturn/coturn/commits/master | jq -r '.sha // empty' 2>/dev/null)
-
-	if [ -z "$COTURN_COMMIT" ]; then
-		log_err "[Building coturn] ERROR: Could not fetch latest commit hash from GitHub!"
-		exit 1
-	fi
-
-	COTURN_VERSION="master-${COTURN_COMMIT:0:8}"
-	log "[Building coturn] Latest coturn version: $COTURN_VERSION"
-
-	# Check if already built with this version
-	if should_skip_build "$COTURN_BUILD_MARKER" "$COTURN_VERSION" "/usr/local/bin/turnserver"; then
-		log "[Building coturn] coturn $COTURN_VERSION is already built and installed. Skipping build."
-		return 0
-	fi
-
-	log "[Building coturn] Installing necessary packages…"
-	APT_PARAMS="-y"
-	if [ "$UNATTENDED_INSTALL" == true ]; then
-		export DEBIAN_FRONTEND=noninteractive
-		APT_PARAMS="-qqy"
-	fi
-	is_dry_run || apt-get install $APT_PARAMS cmake libssl-dev libevent-dev git 2>&1 | tee -a $LOGFILE_PATH
-
-	log "[Building coturn] Downloading sources…"
-	rm coturn-master.tar.gz | tee -a $LOGFILE_PATH || true
-	wget https://github.com/coturn/coturn/archive/refs/heads/master.tar.gz -O coturn-master.tar.gz | tee -a $LOGFILE_PATH
-
-	log "[Building coturn] Extracting sources…"
-	tar -xvf coturn-master.tar.gz | tee -a $LOGFILE_PATH
-
-	log "[Building coturn] Creating build directory…"
-	mkdir coturn-master/build | tee -a $LOGFILE_PATH || true
-
-	log "[Building coturn] Run configure script which will make a Makefile for this system…"
-	cmake -S coturn-master -B coturn-master/build | tee -a $LOGFILE_PATH
-
-	log "[Building coturn] Build & install coturn."
-	cmake --build coturn-master/build --target install | tee -a $LOGFILE_PATH
-
-	deploy_file "$TMP_DIR_PATH"/signaling/coturn.service /lib/systemd/system/coturn.service || true
-
-	chmod 755 /usr/local/bin/turnserver
-
-	log "[Building coturn] Creating 'turnserver' account"
-	adduser --system --group --home /var/lib/turnserver turnserver || true
-
-	# Mark this version as built
-	if ! is_dry_run; then
-		mkdir -p "$(dirname "$COTURN_BUILD_MARKER")"
-		echo "$COTURN_VERSION" > "$COTURN_BUILD_MARKER"
-		log "[Building coturn] Marked version $COTURN_VERSION as built in $COTURN_BUILD_MARKER"
-	fi
-}
-
 function signaling_build_nextcloud-spreed-signaling() {
 	log "[Building n-s-s] Building nextcloud-spreed-signaling…"
 
@@ -594,16 +433,7 @@ function signaling_step3() {
 		APT_PARAMS="-qqy"
 	fi
 
-	if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-		# Nope, always build from sources. This function should never be called in the first place.
-		exit 1;
-	elif [ "$DEBIAN_VERSION_MAJOR" = "12" ]; then
-		# Special case, please install 'nextcloud-spreed-signaling' from bookworm-backports.
-		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert 2>&1 | tee -a $LOGFILE_PATH
-		is_dry_run || apt-get install $APT_PARAMS -t bookworm-backports nextcloud-spreed-signaling nextcloud-spreed-signaling-client 2>&1 | tee -a $LOGFILE_PATH
-	else
-		is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert nextcloud-spreed-signaling nextcloud-spreed-signaling-client 2>&1 | tee -a $LOGFILE_PATH
-	fi
+	is_dry_run || apt-get install $APT_PARAMS janus nats-server coturn ssl-cert nextcloud-spreed-signaling nextcloud-spreed-signaling-client 2>&1 | tee -a $LOGFILE_PATH
 }
 
 function signaling_step4() {

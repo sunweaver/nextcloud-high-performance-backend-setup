@@ -25,8 +25,7 @@ EMAIL_USER_USERNAME="" # Ask user
 EMAIL_SERVER_HOST=""   # Ask user
 EMAIL_SERVER_PORT=""   # Ask user
 DISABLE_SSH_SERVER=false
-SIGNALING_BUILD_FROM_SOURCES="" # Ask user
-DEBIAN_VERSION_ATLEAST="11"
+DEBIAN_VERSION_ATLEAST="13"
 
 SETUP_VERSION=$(cat VERSION | head -n 1 | tr '\n' ' ')
 
@@ -308,52 +307,7 @@ function show_dialogs() {
 	fi
 	log "Using '$DISABLE_SSH_SERVER' for DISABLE_SSH_SERVER."
 
-	# For UNATTENDED_INSTALL, please fill SIGNALING_BUILD_FROM_SOURCES via settings.sh.
-	if [ "$UNATTENDED_INSTALL" != true ] && [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
-
-		if [ "$SIGNALING_PACKAGES_AVAILABLE" = true ]; then
-			if [ "$DEBIAN_VERSION_MAJOR" = "11" ]; then
-				whiptail --title "Build from sources." --defaultno \
-				    --msgbox "The package 'nextcloud-spreed-signaling' is not available $(
-					)in this version of Debian (Debian 11). Also 'nats-server' and $(
-					)'coturn' in Debian 11 are rather old and buggy. To avoid these $(
-					)problems the packages will be built and installed from sources." \
-				    13 65 3>&1 1>&2 2>&3
-				SIGNALING_BUILD_FROM_SOURCES=true
-			fi
-
-			# A working version of nextcloud-spreed-signaling is available since
-			# Debian 12 (backports) and Debian 13 (provided first in Debian testing
-			# on 2023-10-22) and newer
-			if ! [[ -n "" ]]; then # Remove '!', if Debian catched up with its nextcloud-spreed-signaling package.
-				if whiptail --title "Build from sources?" \
-					--yesno "Would you like to build and install Signaling $(
-					)packages from sources to get the newest possible version? $(
-					)The alternative method, installing the Debian packages, $(
-					)is not suggested. Because some packages are rather old $(
-					)currently, therefore we would highly suggest $(
-					)building from source e.g. 'yes' option." \
-					13 65 3>&1 1>&2 2>&3; then
-					SIGNALING_BUILD_FROM_SOURCES=true
-				fi
-			else
-				if whiptail --title "Build from sources?" --defaultno \
-					--yesno "Would you like to build and install Signaling $(
-					)packages from sources to get the newest possible version? $(
-					)This is normally not required and we suggest using the $(
-					)existing Debian packages." \
-					13 65 3>&1 1>&2 2>&3; then
-					SIGNALING_BUILD_FROM_SOURCES=true
-				fi
-			fi
-		else
-			whiptail --title "Build from sources?" \
-				--msgbox "Some required Signaling packages are not available $(
-				)in the package archives. The required packages will get $(
-				)built and installed from sources." 13 65
-			SIGNALING_BUILD_FROM_SOURCES=true
-		fi
-	fi
+	SIGNALING_BUILD_FROM_SOURCES="true"
 	log "Using '$SIGNALING_BUILD_FROM_SOURCES' for SIGNALING_BUILD_FROM_SOURCES".
 }
 
@@ -482,39 +436,6 @@ function check_debian_system() {
 	fi
 }
 
-function check_available_signaling_packages() {
-	log "Checking for packages availability…"
-	local LANG=C # apt-cache policy should not output localized language
-
-	if apt-cache policy nextcloud-spreed-signaling 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
-		log "Package 'nextcloud-spreed-signaling' is available."
-	else
-		log_err "Package 'nextcloud-spreed-signaling' is NOT available."
-		return 1
-	fi
-
-	if apt-cache policy nats-server 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
-		log "Package 'nats-server' is available."
-	else
-		log_err "Package 'nats-server' is NOT available."
-		return 1
-	fi
-
-	if apt-cache policy coturn 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
-		log "Package 'coturn' is available."
-	else
-		log_err "Package 'coturn' is NOT available."
-		return 1
-	fi
-
-	if apt-cache policy janus 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
-		log "Package 'janus' is available."
-	else
-		log_err "Package 'janus' is NOT available."
-		return 1
-	fi
-}
-
 # Executes command only if NOT in dry-run mode.
 # Usage: is_dry_run "Description of what would happen" || actual_command
 # If in dry-run mode: logs the description and returns success (allows || to skip command)
@@ -559,16 +480,6 @@ function main() {
 	export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 	check_debian_system
-
-	# We need to test if nextcloud-signaling-spreed, coturn, nats-server and
-	# janus are available in the apt sources configured on this system in order
-	# to pre-select the right answer in the dialog later on.
-	if check_available_signaling_packages; then
-		SIGNALING_PACKAGES_AVAILABLE=true
-	else
-		log_warn "Some required Signaling packages are not available in the package archives. The required packages will get built and installed from sources."
-		SIGNALING_PACKAGES_AVAILABLE=false
-	fi
 
 	# Load Settings (hopefully vars above get overwritten!)
 	SETTINGS_FILE="$1"
