@@ -18,6 +18,10 @@ function install_msmtp() {
     log "Checking requirements for msmtp…"
 
     local show_error=""
+    if [[ -z "$EMAIL_USE_STARTTLS" ]]; then
+        show_error="The email SMTP option (EMAIL_USE_STARTTLS) is missing."
+    fi
+
     if [[ -z "$EMAIL_USER_ADDRESS" ]]; then
         show_error="The email address (EMAIL_USER_ADDRESS) is missing."
         # show_error="Es fehlt die E-Mail Adresse (EMAIL_USER_ADDRESS)."
@@ -118,6 +122,9 @@ function msmtp_step3() {
 
     # Don't actually *log* passwords! (Or do for debugging…)
 
+    log "Replacing '<EMAIL_USE_STARTTLS>' with '$EMAIL_USE_STARTTLS'…"
+    sed -i "s|<EMAIL_USE_STARTTLS>|$EMAIL_USE_STARTTLS|g" "$TMP_DIR_PATH"/msmtp/*
+
     log "Replacing '<EMAIL_USER_ADDRESS>' with '$EMAIL_USER_ADDRESS'…"
     sed -i "s|<EMAIL_USER_ADDRESS>|$EMAIL_USER_ADDRESS|g" "$TMP_DIR_PATH"/msmtp/*
 
@@ -202,6 +209,7 @@ function msmtp_write_secrets_to_file() {
     echo -e "E-Mail account password: $EMAIL_USER_PASSWORD" >>$1
     echo -e "E-Mail server host: $EMAIL_SERVER_HOST" >>$1
     echo -e "E-Mail server port: $EMAIL_SERVER_PORT" >>$1
+    echo -e "E-Mail use STARTTLS: $EMAIL_USE_STARTTLS" >>$1
 }
 
 function msmtp_print_info() {
@@ -216,6 +224,7 @@ function msmtp_print_info() {
         log "E-Mail account password: ${cyan}*****"
         log "E-Mail server host: ${cyan}$EMAIL_SERVER_HOST"
         log "E-Mail server port: ${cyan}$EMAIL_SERVER_PORT"
+        log "E-Mail use STARTTLS: ${cyan}$EMAIL_USE_STARTTLS"
     elif [ "$MSMTP_TEST_SUCCESS" = skipped ]; then
         log "${yellow}MSMTP installation was skipped due to missing or incomplete configuration.\n"
 
@@ -235,7 +244,7 @@ function msmtp_print_info() {
         log "E-Mail account password: ${cyan}*****"
         log "E-Mail server host: ${cyan}$EMAIL_SERVER_HOST"
         log "E-Mail server port: ${cyan}$EMAIL_SERVER_PORT"
-
+        log "E-Mail use STARTTLS: ${cyan}$EMAIL_USE_STARTTLS"
         log "\n${yellow}ACTION REQUIRED:"
         log "${yellow}1. Verify your email server settings"
         log "${yellow}2. Ensure your email server (${cyan}$EMAIL_SERVER_HOST${yellow}) is reachable"

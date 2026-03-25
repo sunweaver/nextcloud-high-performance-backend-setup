@@ -19,6 +19,7 @@ DHPARAM_PATH=""            # Will be auto filled, if not overriden by settings f
 LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
 TMP_DIR_PATH="./tmp"
 SECRETS_FILE_PATH=""   # Ask user
+EMAIL_USE_STARTTLS=""  # Ask user
 EMAIL_USER_ADDRESS=""  # Ask user
 EMAIL_USER_PASSWORD="" # Ask user
 EMAIL_USER_USERNAME="" # Ask user
@@ -278,7 +279,32 @@ function show_dialogs() {
 				10 65 "587" 3>&1 1>&2 2>&3
 		)
 	fi
-	log "Using '$EMAIL_SERVER_PORT' for EMAIL_SERVER_PORT".
+	log "Using '$EMAIL_SERVER_PORT' for EMAIL_SERVER_PORT."
+
+	if [ "$EMAIL_USE_STARTTLS" = "" ]; then
+		if [ "$UNATTENDED_INSTALL" = true ]; then
+			log_err "Can't continue since this is a non-interactive installation and I'm" \
+			        "missing EMAIL_USE_STARTTLS!"
+			exit 1
+		fi
+
+		# Default to "No" unless the user selected port 587
+		DEFAULT_NO_OPT="--defaultno"
+		if [ "$EMAIL_SERVER_PORT" = "587" ]; then
+			DEFAULT_NO_OPT=""
+		fi
+
+		if whiptail --title "E-Mail SMTP STARTTLS option" \
+			$DEFAULT_NO_OPT \
+			--yesno "Enable STARTTLS to secure your SMTP connection?\n\n"$(
+			)"Note: When using STARTTLS, the required port is almost always 587." \
+			13 75 3>&1 1>&2 2>&3; then
+			EMAIL_USE_STARTTLS="true"
+		else
+			EMAIL_USE_STARTTLS="false"
+		fi
+	fi
+	log "Using '$EMAIL_USE_STARTTLS' for EMAIL_USE_STARTTLS"
 	# -----
 
 	CERTBOT_AGREE_TOS=""

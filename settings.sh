@@ -53,6 +53,8 @@ TMP_DIR_PATH="./tmp"
 # Leave empty, if you wish that the user will be asked about this.
 SECRETS_FILE_PATH=""
 
+# Use STARTTLS to connect to the SMTP server. If false, SSL/TLS will be used.
+EMAIL_USE_STARTTLS=""
 # This email address gets passed on to the services the user whiches to install.
 # The services (like Certbot) can send email notification for important info.
 # Leave empty, if you wish that the user will be asked about this.
@@ -65,8 +67,9 @@ EMAIL_USER_USERNAME=""
 # The SMTP server to send the emails to.
 EMAIL_SERVER_HOST=""
 # The port on which we will try to connect to the SMTP server.
-#EMAIL_SERVER_PORT="25"
 #EMAIL_SERVER_PORT="587"
+#EMAIL_SERVER_PORT="465"
+#EMAIL_SERVER_PORT="2525"
 
 # Should the ssh service be disabled?
 #DISABLE_SSH_SERVER=false
