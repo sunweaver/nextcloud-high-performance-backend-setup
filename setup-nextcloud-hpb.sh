@@ -283,7 +283,7 @@ function show_dialogs() {
 	# -----
 
 	CERTBOT_AGREE_TOS=""
-	LETSENCRYPT_TOS_URL="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
+	LETSENCRYPT_TOS_URL="https://community.letsencrypt.org/tos"
 	if [ "$UNATTENDED_INSTALL" != true ]; then
 		if whiptail --title "Letsencrypt - Terms of Service" \
 			--yesno "Do you want to silently accept Letsencrypt's Terms of $(
