@@ -28,6 +28,12 @@ EMAIL_SERVER_PORT=""   # Ask user
 DISABLE_SSH_SERVER=false
 DEBIAN_VERSION_ATLEAST="13"
 
+# External IP lookup endpoints (can be overridden via settings file)
+EXTERNAL_IP_PRIMARY_ENDPOINT="https://ident.me"
+EXTERNAL_IP_FALLBACK_ENDPOINT="https://tnedi.me"
+EXTERNAL_IPV4=""
+EXTERNAL_IPV6=""
+
 SETUP_VERSION=$(cat VERSION | head -n 1 | tr '\n' ' ')
 
 function show_dialogs() {
@@ -477,6 +483,43 @@ function is_dry_run() {
 	fi
 }
 
+# Helper function to fetch external IP address with fallback mirrors
+# Usage: fetch_external_ip_with_fallback 4  # for IPv4
+#        fetch_external_ip_with_fallback 6  # for IPv6
+# Returns: the public IP address (stdout)
+# Exits with 1 if both endpoints fail
+function fetch_external_ip_with_fallback() {
+	local family="$1"
+	local wget_flag="-4"
+	local label="IPv4"
+	local result=""
+	local primary_endpoint="${EXTERNAL_IP_PRIMARY_ENDPOINT:-https://ident.me}"
+	local fallback_endpoint="${EXTERNAL_IP_FALLBACK_ENDPOINT:-https://tnedi.me}"
+
+	if [ "$family" = "6" ]; then
+		wget_flag="-6"
+		label="IPv6"
+	fi
+
+	result=$(wget "$wget_flag" "$primary_endpoint" -O - -o /dev/null 2>/dev/null | tr -d '[:space:]')
+
+	if [ -n "$result" ]; then
+		echo "$result"
+		return 0
+	fi
+
+	log_err "[External IP] Failed to fetch $label from $primary_endpoint, trying fallback endpoint $fallback_endpoint…"
+	result=$(wget "$wget_flag" "$fallback_endpoint" -O - -o /dev/null 2>/dev/null | tr -d '[:space:]')
+
+	if [ -n "$result" ]; then
+		echo "$result"
+		return 0
+	fi
+
+	log_err "[External IP] ERROR: Failed to fetch $label from both $primary_endpoint and $fallback_endpoint."
+	return 1
+}
+
 function announce_installation() {
 	local software_name="$1"
 	local box_width=$((${#software_name} + 4))
@@ -621,6 +664,14 @@ function main() {
 	fi
 
 	show_dialogs
+
+	log "Using '$EXTERNAL_IP_PRIMARY_ENDPOINT' for EXTERNAL_IP_PRIMARY_ENDPOINT."
+	log "Using '$EXTERNAL_IP_FALLBACK_ENDPOINT' for EXTERNAL_IP_FALLBACK_ENDPOINT."
+	log "Detecting external IPv4 and IPv6 addresses…"
+	EXTERNAL_IPV4=$(fetch_external_ip_with_fallback 4) || log_err "Could not detect EXTERNAL_IPV4."
+	EXTERNAL_IPV6=$(fetch_external_ip_with_fallback 6) || log_err "Could not detect EXTERNAL_IPV6."
+	log "Using '$EXTERNAL_IPV4' for EXTERNAL_IPV4."
+	log "Using '$EXTERNAL_IPV6' for EXTERNAL_IPV6."
 
 	# Transform Nextcloud server URLs into array.
 	# Change comma (,) to whitespace
