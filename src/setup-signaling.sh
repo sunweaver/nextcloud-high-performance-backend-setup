@@ -534,13 +534,11 @@ function signaling_step4() {
 	log "Replacing '<DHPARAM_PATH>' with '$DHPARAM_PATH'…"
 	sed -i "s|<DHPARAM_PATH>|$DHPARAM_PATH|g" "$TMP_DIR_PATH"/signaling/*
 
-	EXTERN_IPv4=$(wget -4 https://ident.me -O - -o /dev/null || true)
-	log "Replacing '<SIGNALING_COTURN_EXTERN_IPV4>' with '$EXTERN_IPv4'…"
-	sed -i "s|<SIGNALING_COTURN_EXTERN_IPV4>|$EXTERN_IPv4|g" "$TMP_DIR_PATH"/signaling/*
+	log "Replacing '<SIGNALING_COTURN_EXTERN_IPV4>' with '$EXTERNAL_IPV4'…"
+	sed -i "s|<SIGNALING_COTURN_EXTERN_IPV4>|$EXTERNAL_IPV4|g" "$TMP_DIR_PATH"/signaling/*
 
-	EXTERN_IPv6=$(wget -6 https://ident.me -O - -o /dev/null || true)
-	log "Replacing '<SIGNALING_COTURN_EXTERN_IPV6>' with '$EXTERN_IPv6'…"
-	sed -i "s|<SIGNALING_COTURN_EXTERN_IPV6>|$EXTERN_IPv6|g" "$TMP_DIR_PATH"/signaling/*
+	log "Replacing '<SIGNALING_COTURN_EXTERN_IPV6>' with '$EXTERNAL_IPV6'…"
+	sed -i "s|<SIGNALING_COTURN_EXTERN_IPV6>|$EXTERNAL_IPV6|g" "$TMP_DIR_PATH"/signaling/*
 }
 
 function signaling_step5() {
