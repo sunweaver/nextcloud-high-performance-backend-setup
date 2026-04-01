@@ -374,7 +374,7 @@ function log() {
 function log_err() {
 	# Strip ANSI color codes before writing to log file
 	echo -e "$@" | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> "$LOGFILE_PATH"
-	echo -e "${red}✗ Error: $@${normal}"
+	echo -e "${red}✗ Error: $@${normal}" >&2
 }
 
 function generate_dhparam_file() {
