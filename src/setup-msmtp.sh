@@ -122,6 +122,11 @@ function msmtp_step3() {
 
     # Don't actually *log* passwords! (Or do for debugging…)
 
+    if [[ "$EMAIL_USE_STARTTLS" == "true" ]]; then
+        EMAIL_USE_STARTTLS="tls_starttls on"
+    else
+        EMAIL_USE_STARTTLS="tls_starttls off"
+    fi
     log "Replacing '<EMAIL_USE_STARTTLS>' with '$EMAIL_USE_STARTTLS'…"
     sed -i "s|<EMAIL_USE_STARTTLS>|$EMAIL_USE_STARTTLS|g" "$TMP_DIR_PATH"/msmtp/*
 
