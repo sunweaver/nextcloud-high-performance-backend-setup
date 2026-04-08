@@ -491,6 +491,24 @@ function announce_installation() {
 	sleep 1
 }
 
+# Replaces a placeholder in one or more files with an arbitrary value
+# Supports all characters except NUL bytes. Useful for passwords.
+function replace_placeholder_in_files() {
+    local placeholder="$1"
+    local replacement="$2"
+
+    shift 2
+
+    PLACEHOLDER="$placeholder" REPLACEMENT="$replacement" \
+        perl -0777 -i -pe '
+            BEGIN {
+                $placeholder = $ENV{PLACEHOLDER};
+                $replacement = $ENV{REPLACEMENT};
+            }
+            s/\Q$placeholder\E/$replacement/g;
+        ' -- "$@"
+}
+
 function main() {
 	if [ -s "$LOGFILE_PATH" ]; then
 		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
