@@ -1,6 +1,61 @@
+2026-04-08 Daniel Teichmann
+
+        * VERSION: Bump version to 1.3.5 (HEAD -> main)
+        * src/setup-signaling.sh coturn: Do not fail if IPv6 address could
+          not be found. (3bd27f9)
+
+2026-04-01 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Provide alternative to ident.me backends
+          (tnedi.me); Move EXTERNAL_IPVX stuff into main file.
+          (02d8994)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/216
+
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/236
+
+        * setup-nextcloud-hpb.sh: Output log_err into stderr. (3e4677c)
+
+2026-04-08 Daniel Teichmann
+
+        * src/setup-msmtp.sh: Use new replace_placeholder_in_files() function
+          to replace password. (03467aa)
+        * src/setup-msmtp.sh: EMAIL_USE_STARTTLS use real 'tls_starttls'
+          option instead of 'true'. (c18d4e5)
+
+2026-04-01 Daniel Teichmann
+
+        * data/certbot/deploy-hook-certbot.sh: Do reload/restart services if
+          they use SSL certificates. (92f3bc6)
+
+2026-03-25 Daniel Teichmann
+
+        * setup-nextcloud-hpb.sh: Fix punctuation typos. (a596c3c)
+        * MSMTP: Add new option to enable STARTTLS. (719814d)
+        * Drop support for Debian 11 and Debian 12. (b4e29d6)
+        * setup-nextcloud-hpb.sh: Update LetsEncrypt TermsOfService URL.
+          (0a9387a)
+        * setup-nextcloud-hpb.sh: Improve availability log messages from
+          signaling's multiple apt-packages. (79064f5)
+        * setup-nextcloud-hpb.sh: Improve MSMTP dialogs. (b48044e)
+
+2026-02-05 Daniel Teichmann
+
+        * MSMTP: Fix password replacement. (Password can contain '\', '|' and
+          '/' at the same time now) (32eb042)
+          Fixes:
+          https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/196
+
+2026-01-16 vsessink
+
+        * setup-signaling: apt-cache policy language change (7249c49)
+        * apt-cache policy language change (ff5ef8f)
+
 2025-10-27 Daniel Teichmann
 
-        * VERSION: Bump version to 1.3.3 (HEAD -> main)
+        * New release 1.3.3 (48599f4) (tag: 1.3.3)
+        * VERSION: Bump version to 1.3.3 (aaa8069)
         * setup-nextcloud-hpb.sh: Fix old logging files being deleted too
           late in the script (d6534b8)
         * setup-signaling: Add janus .deb caching (30059ff)
