@@ -383,6 +383,16 @@ function log_err() {
 	echo -e "${red}✗ Error: $@${normal}" >&2
 }
 
+function usage() {
+	cat >&2 <<EOF
+Usage: $0 [settings-file]
+Example: $0 settings.sh
+
+Documentation:
+  https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki
+EOF
+}
+
 function generate_dhparam_file() {
 	if [ "$BUILT_DHPARAM_FILE" == "true" ]; then
 		# Skip if we already generated dhparam file.
@@ -605,11 +615,19 @@ function main() {
 
 	# Load Settings (hopefully vars above get overwritten!)
 	SETTINGS_FILE="$1"
-	if [ -s "$SETTINGS_FILE" ]; then
+	if [ -z "$SETTINGS_FILE" ]; then
+		log "No settings file specified using defaults or asking user for input."
+	elif [ ! -e "$SETTINGS_FILE" ]; then
+		log_err "Settings file '$SETTINGS_FILE' does not exist."
+		usage
+		exit 1
+	elif [ ! -r "$SETTINGS_FILE" ]; then
+		log_err "Settings file '$SETTINGS_FILE' is not readable."
+		usage
+		exit 1
+	else
 		log "Loading settings file '$SETTINGS_FILE'…"
 		source "$SETTINGS_FILE"
-	else
-		log "No settings file specified using defaults or asking user for input."
 	fi
 
 	### INSTALL DEPENDENCIES
