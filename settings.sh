@@ -39,6 +39,13 @@ SHOULD_INSTALL_NGINX=true
 SHOULD_INSTALL_CERTBOT=true
 SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 SHOULD_INSTALL_MSMTP=true
+# Docker platform support
+SHOULD_INSTALL_DOCKER=false
+
+# Comma-separated list of Docker-managed services.
+# Available services:
+#   - harp: HaRP (Nextcloud AppAPI HaProxy Reverse Proxy)[https://github.com/nextcloud/HaRP]
+DOCKER_SERVICES="harp"
 
 # Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
