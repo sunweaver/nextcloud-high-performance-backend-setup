@@ -778,12 +778,15 @@ function main() {
 
 	scripts=('src/setup-ufw.sh' 'src/setup-collabora.sh'
 		'src/setup-signaling.sh' 'src/setup-nginx.sh' 'src/setup-certbot.sh'
-		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh')
+		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh' 'src/setup-docker.sh')
 	for script in "${scripts[@]}"; do
 		log "Sourcing '$script'."
 		source "$script"
 	done
 
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then install_docker; else
+		log "Won't install Docker platform."
+	fi
 	if [ "$SHOULD_INSTALL_UFW" = true ]; then install_ufw; else
 		log "Won't install UFW."
 	fi
@@ -824,6 +827,9 @@ function main() {
 	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		SERVICES_TO_ENABLE+=("coturn" "nats-server" "nextcloud-spreed-signaling" "janus")
 	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+		SERVICES_TO_ENABLE+=("docker")
+	fi
 	#if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then fi
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
 		SERVICES_TO_ENABLE+=("nginx")
@@ -863,6 +869,10 @@ function main() {
 		signaling_print_info
 		log "======================================================================"
 	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+		docker_print_info
+		log "======================================================================"
+	fi
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		certbot_print_info
 		log "======================================================================"
@@ -895,6 +905,9 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
+	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+		docker_write_secrets_to_file "$SECRETS_FILE_PATH"
 	fi
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
