@@ -2,9 +2,8 @@
 
 set -eo pipefail
 
-# Sane defaults (Don't override these settings here!)
-# Can be overridden by specifying a settings file as first parameter.
-# See settings.sh
+# Sane defaults (Don't manually override these settings here!)
+# Manual edits can be done by editing settings.sh and '$ ./setup-nextcloud-hpb.sh settings.sh'.
 DRY_RUN=false
 UNATTENDED_INSTALL=false
 NEXTCLOUD_SERVER_FQDNS=""  # Ask user
@@ -16,17 +15,17 @@ SSL_CERT_PATH_ECDSA=""     # Will be auto filled, if not overriden by settings f
 SSL_CERT_KEY_PATH_ECDSA="" # Will be auto filled, if not overriden by settings file.
 SSL_CHAIN_PATH_ECDSA=""    # Will be auto filled, if not overriden by settings file.
 DHPARAM_PATH=""            # Will be auto filled, if not overriden by settings file.
-LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
-TMP_DIR_PATH="./tmp"
-SECRETS_FILE_PATH=""   # Ask user
+LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log" # Lookup in order: settings.sh, this, finally ask user if not set.
+TMP_DIR_PATH="./tmp"                                               # Lookup in order: settings.sh, this, finally ask user if not set.
+SECRETS_FILE_PATH="./nextcloud-hpb.secrets"                        # Lookup in order: settings.sh, this, finally ask user if not set.
 EMAIL_USE_STARTTLS=""  # Ask user
 EMAIL_USER_ADDRESS=""  # Ask user
 EMAIL_USER_PASSWORD="" # Ask user
 EMAIL_USER_USERNAME="" # Ask user
 EMAIL_SERVER_HOST=""   # Ask user
 EMAIL_SERVER_PORT=""   # Ask user
-DISABLE_SSH_SERVER=false
-DEBIAN_VERSION_ATLEAST="13"
+DISABLE_SSH_SERVER=""  # Ask user
+DEBIAN_VERSION_ATLEAST="13" # Hardcoded requirement. This script is NOT SUPPORTED FOR DEBIAN 12 OR OLDER anymore!
 
 # External IP lookup endpoints (can be overridden via settings file)
 EXTERNAL_IP_PRIMARY_ENDPOINT="https://ident.me"

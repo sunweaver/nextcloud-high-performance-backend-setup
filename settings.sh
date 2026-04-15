@@ -51,7 +51,7 @@ TMP_DIR_PATH="./tmp"
 
 # Secrets, passwords and configuration gets saved in this file.
 # Leave empty, if you wish that the user will be asked about this.
-SECRETS_FILE_PATH=""
+SECRETS_FILE_PATH="./nextcloud-hpb.secrets"
 
 # Use Let's Encrypt staging certificates for Certbot.
 CERTBOT_SSL_USE_STAGING_CERTS=false
@@ -75,7 +75,7 @@ EMAIL_SERVER_HOST=""
 #EMAIL_SERVER_PORT="2525"
 
 # Should the ssh service be disabled?
-#DISABLE_SSH_SERVER=false
+DISABLE_SSH_SERVER="false"
 
 # DNS Resolver. Here a custom DNS server can be specified,
 # otherwise the one configured in resolv.conf is used
