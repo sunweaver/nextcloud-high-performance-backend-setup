@@ -140,7 +140,7 @@ function certbot_step1() {
 			apt-get install -y "${packages_to_install[@]}" 2>&1 | tee -a $LOGFILE_PATH
 		fi
 	else
-		log "Would have installed '${packages_to_install[@]}' via APT now."
+		log "Would've installed '${packages_to_install[@]}' via APT now."
 	fi
 }
 
@@ -167,16 +167,18 @@ function certbot_step2() {
 	fi
 
 	log "Making SSL certificates available for 'ssl-cert' group."
-	is_dry_run || chmod 2750 /etc/letsencrypt/archive
-	is_dry_run || chmod 2750 /etc/letsencrypt/live
-	is_dry_run || find /etc/letsencrypt/archive -type d -exec chmod 2750 {} +
-	is_dry_run || find /etc/letsencrypt/live -type d -exec chmod 2750 {} +
-	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/archive
-	is_dry_run || chown -R :ssl-cert /etc/letsencrypt/live
-	is_dry_run || find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
+	is_dry_run "Would've adjusted permissions and group ownership for '/etc/letsencrypt'." || {
+		chmod 2750 /etc/letsencrypt/archive
+		chmod 2750 /etc/letsencrypt/live
+		find /etc/letsencrypt/archive -type d -exec chmod 2750 {} +
+		find /etc/letsencrypt/live -type d -exec chmod 2750 {} +
+		chown -R :ssl-cert /etc/letsencrypt/archive
+		chown -R :ssl-cert /etc/letsencrypt/live
+		find /etc/letsencrypt/archive -name "privkey*.pem" -exec chmod 640 {} +
+	}
 
 	deploy_file "$TMP_DIR_PATH"/certbot/deploy-hook-certbot.sh /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh || true
-	is_dry_run || chmod 750 /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh
+	is_dry_run "Would've set permissions on '/etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh'." || chmod 750 /etc/letsencrypt/renewal-hooks/deploy/deploy-hook-certbot.sh
 }
 
 # arg: $1 is secret file path
