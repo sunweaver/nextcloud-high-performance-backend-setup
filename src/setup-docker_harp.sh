@@ -98,14 +98,14 @@ function install_harp() {
 			continue
 		fi
 
-		if ! is_dry_run && ! harp_preflight_port_free "$instance_port" "$instance_id" "exapps"; then
+		if ! is_dry_run && ! harp_preflight_port_free "$instance_port" "$instance_id" "exapps" "$project_name"; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
 			HARP_SETUP_ERRORS+=("compose deploy: local exapps port '$instance_port' already in use for '$instance_id'")
 			DOCKER_SETUP_ERRORS+=("compose deploy: exapps port conflict '$instance_port' for '$instance_id'")
 			continue
 		fi
 
-		if ! is_dry_run && ! harp_preflight_port_free "$instance_frp_port" "$instance_id" "frp"; then
+		if ! is_dry_run && ! harp_preflight_port_free "$instance_frp_port" "$instance_id" "frp" "$project_name"; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
 			HARP_SETUP_ERRORS+=("compose deploy: local frp port '$instance_frp_port' already in use for '$instance_id'")
 			DOCKER_SETUP_ERRORS+=("compose deploy: frp port conflict '$instance_frp_port' for '$instance_id'")
@@ -293,9 +293,20 @@ function harp_preflight_port_free() {
 	local port="$1"
 	local instance_id="$2"
 	local role="$3"
+	local project_name="$4"
 
 	if command -v ss >/dev/null 2>&1; then
 		if ss -ltn "sport = :$port" 2>/dev/null | tail -n +2 | grep -q .; then
+			# Allow re-runs when the occupied port belongs to the same compose project.
+			if command -v docker >/dev/null 2>&1; then
+				if docker ps \
+					--filter "label=com.docker.compose.project=$project_name" \
+					--format '{{.Ports}}' 2>/dev/null | grep -q "127.0.0.1:$port->"; then
+					log "Port '$port' for '$instance_id' ($role) is already bound by compose project '$project_name'; allowing reuse."
+					return 0
+				fi
+			fi
+
 			log_err "Port preflight failed for '$instance_id' ($role): local TCP port '$port' is already in use."
 			return 1
 		fi
