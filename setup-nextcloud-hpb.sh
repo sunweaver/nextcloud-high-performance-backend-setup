@@ -25,6 +25,7 @@ EMAIL_USER_USERNAME="" # Ask user
 EMAIL_SERVER_HOST=""   # Ask user
 EMAIL_SERVER_PORT=""   # Ask user
 DISABLE_SSH_SERVER=""  # Ask user
+DOCKER_SERVICES=""     # Ask user
 DEBIAN_VERSION_ATLEAST="13" # Hardcoded requirement. This script is NOT SUPPORTED FOR DEBIAN 12 OR OLDER anymore!
 
 # External IP lookup endpoints (can be overridden via settings file)
@@ -551,6 +552,41 @@ function replace_placeholder_in_files() {
         ' -- "$@"
 }
 
+function parse_docker_service_selection() {
+	SHOULD_INSTALL_HARP=false
+
+	if [ "$SHOULD_INSTALL_DOCKER" != true ]; then
+		DOCKER_SERVICES=""
+		log "Using '$SHOULD_INSTALL_DOCKER' for SHOULD_INSTALL_DOCKER."
+		log "Docker support disabled. Skipping Docker service selection."
+		return 0
+	fi
+
+	DOCKER_SERVICES=$(echo "$DOCKER_SERVICES" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]' | sed -r 's/,+/,/g; s/^,+//; s/,+$//')
+
+	if [ -z "$DOCKER_SERVICES" ]; then
+		log_err "SHOULD_INSTALL_DOCKER is true but DOCKER_SERVICES is empty."
+		exit 1
+	fi
+
+	DOCKER_SERVICE_LIST=($(echo "$DOCKER_SERVICES" | tr ',' ' '))
+	for DOCKER_SERVICE in "${DOCKER_SERVICE_LIST[@]}"; do
+		case "$DOCKER_SERVICE" in
+		"harp")
+			SHOULD_INSTALL_HARP=true
+			;;
+		*)
+			log_err "Unsupported Docker service '$DOCKER_SERVICE'. Supported values: harp"
+			exit 1
+			;;
+		esac
+	done
+
+	log "Using '$SHOULD_INSTALL_DOCKER' for SHOULD_INSTALL_DOCKER."
+	log "Using '$DOCKER_SERVICES' for DOCKER_SERVICES."
+	log "Resolved '$SHOULD_INSTALL_HARP' for SHOULD_INSTALL_HARP."
+}
+
 function main() {
 	if [ -s "$LOGFILE_PATH" ]; then
 		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
@@ -620,13 +656,17 @@ function main() {
 		SHOULD_INSTALL_NGINX=false
 		SHOULD_INSTALL_UNATTENDEDUPGRADES=false
 		SHOULD_INSTALL_MSMTP=false
+		SHOULD_INSTALL_DOCKER=false
+		SHOULD_INSTALL_HARP=false
+		DOCKER_SERVICES=""
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
 			--checklist "Use the space bar key to select/deselect the services $(
 			)you want to install.\n\nThe following services/packages will also be $(
-			)installed: Certbot Nginx ssl-cert ufw unattended-upgrades" 15 90 2 \
+			)installed: Certbot Nginx ssl-cert ufw unattended-upgrades" 16 100 3 \
 			"1" "Install Collabora (coolwsd, code-brand)" ON \
 			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
+			"3" "Enable Docker support (required for HaRP)" OFF \
 			3>&1 1>&2 2>&3 || true)
 
 		if [ -z "$CHOICES" ]; then
@@ -653,6 +693,10 @@ function main() {
 					SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 					SHOULD_INSTALL_MSMTP=true
 					;;
+				"3")
+					log "Docker support selected."
+					SHOULD_INSTALL_DOCKER=true
+					;;
 				*)
 					log_err "Unsupported service $CHOICE!" >&2
 					exit 1
@@ -660,7 +704,35 @@ function main() {
 				esac
 			done
 		fi
+
+		if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+			DOCKER_CHOICES=$(whiptail --title "Select Docker services" --separate-output \
+				--checklist "Select Docker-managed services to install.\n\n$(
+				)This script currently supports HaRP only." 12 100 1 \
+				"1" "Install HaRP (Nextcloud AppAPI HaProxy Reverse Proxy)" ON \
+				3>&1 1>&2 2>&3 || true)
+
+			if [ -z "$DOCKER_CHOICES" ]; then
+				log_err "Docker support selected but no Docker service was selected. Exiting…"
+				exit 1
+			fi
+
+			for DOCKER_CHOICE in $DOCKER_CHOICES; do
+				case "$DOCKER_CHOICE" in
+				"1")
+					DOCKER_SERVICES="${DOCKER_SERVICES:+$DOCKER_SERVICES,}harp"
+					log "Docker service selected: HaRP."
+					;;
+				*)
+					log_err "Unsupported Docker service '$DOCKER_CHOICE'!" >&2
+					exit 1
+					;;
+				esac
+			done
+		fi
 	fi
+
+	parse_docker_service_selection
 
 	show_dialogs
 
