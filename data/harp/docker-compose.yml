@@ -1,0 +1,20 @@
+services:
+  harp:
+    image: ghcr.io/nextcloud/nextcloud-appapi-harp:release
+    container_name: <HARP_COMPOSE_PROJECT>-harp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:<HARP_PORT>:8780"
+      - "127.0.0.1:<HARP_FRP_PORT>:8782"
+    environment:
+      NC_INSTANCE_URL: "<NC_INSTANCE_URL>"
+      HP_SHARED_KEY: "<HP_SHARED_KEY>"
+      HP_EXAPPS_ADDRESS: "0.0.0.0:8780"
+      HP_FRP_ADDRESS: "0.0.0.0:8782"
+      HP_TRUSTED_PROXY_IPS: "127.0.0.1/32"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs:/certs
+    labels:
+      com.nextcloud.hpb.harp.instance_id: "<HARP_INSTANCE_ID>"
+      com.nextcloud.hpb.harp.compose_project: "<HARP_COMPOSE_PROJECT>"

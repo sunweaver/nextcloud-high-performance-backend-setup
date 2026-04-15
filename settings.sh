@@ -47,6 +47,9 @@ SHOULD_INSTALL_DOCKER=false
 #   - harp: HaRP (Nextcloud AppAPI HaProxy Reverse Proxy)[https://github.com/nextcloud/HaRP]
 DOCKER_SERVICES="harp"
 
+# Optional override for base port of  HaRP instances.
+#HARP_PORT_BASE="8780"
+
 # Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
 LOGFILE_PATH="$(pwd)/setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"

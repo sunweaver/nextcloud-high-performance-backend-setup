@@ -804,7 +804,8 @@ function main() {
 
 	scripts=('src/setup-ufw.sh' 'src/setup-collabora.sh'
 		'src/setup-signaling.sh' 'src/setup-nginx.sh' 'src/setup-certbot.sh'
-		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh' 'src/setup-docker.sh')
+		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh' 'src/setup-docker.sh'
+		'src/setup-docker_harp.sh')
 	for script in "${scripts[@]}"; do
 		log "Sourcing '$script'."
 		source "$script"
@@ -812,6 +813,9 @@ function main() {
 
 	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then install_docker; else
 		log "Won't install Docker platform."
+	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then install_harp; else
+		log "Won't install Docker HaRP."
 	fi
 	if [ "$SHOULD_INSTALL_UFW" = true ]; then install_ufw; else
 		log "Won't install UFW."
@@ -899,6 +903,10 @@ function main() {
 		docker_print_info
 		log "======================================================================"
 	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then
+		docker_harp_print_info
+		log "======================================================================"
+	fi
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		certbot_print_info
 		log "======================================================================"
@@ -938,6 +946,9 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
 		docker_write_secrets_to_file "$SECRETS_FILE_PATH"
+	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then
+		docker_harp_write_secrets_to_file "$SECRETS_FILE_PATH"
 	fi
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
