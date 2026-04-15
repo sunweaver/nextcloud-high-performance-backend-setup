@@ -861,5 +861,3 @@ function main() {
 
 # Execute main function.
 main "$1"
-
-set +eo pipefail
