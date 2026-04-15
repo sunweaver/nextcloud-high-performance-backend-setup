@@ -95,8 +95,10 @@ function nginx_step3() {
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
 	deploy_file "$TMP_DIR_PATH"/nginx/headers.conf /etc/nginx/snippets/headers.conf || true
 
-	is_dry_run || mkdir -p /var/www/html || true
-	is_dry_run || rm /var/www/html/index.nginx-debian.html || true
+	is_dry_run "Would've refreshed '/var/www/html' base files." || {
+		mkdir -p /var/www/html || true
+		rm /var/www/html/index.nginx-debian.html || true
+	}
 	deploy_file "$TMP_DIR_PATH"/nginx/index.html /var/www/html/index.html || true
 	deploy_file "$TMP_DIR_PATH"/nginx/robots.txt /var/www/html/robots.txt || true
 }
