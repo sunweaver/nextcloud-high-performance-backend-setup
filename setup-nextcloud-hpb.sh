@@ -721,6 +721,7 @@ function main() {
 					;;
 				"3")
 					log "Docker support selected."
+					SHOULD_INSTALL_CERTBOT=true
 					SHOULD_INSTALL_DOCKER=true
 					;;
 				*)
