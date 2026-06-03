@@ -325,12 +325,12 @@ function docker_harp_write_secrets_to_file() {
 		echo -e "HaRP port base: $HARP_PORT_BASE"
 		echo -e "HaRP naming policy: $HARP_CONTAINER_NAMING_POLICY"
 		for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+			deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
+			instance_frp_port="${HARP_INSTANCE_FRP_PORTS["$nc_server"]}"
 			instance_id="${HARP_INSTANCE_IDS["$nc_server"]}"
 			instance_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
-			instance_frp_port="${HARP_INSTANCE_FRP_PORTS["$nc_server"]}"
 			project_name="${HARP_INSTANCE_PROJECT_NAMES["$nc_server"]}"
 			shared_key="${HARP_INSTANCE_SHARED_KEYS["$nc_server"]}"
-			deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
 
 			echo -e "Instance domain: $nc_server"
 			echo -e "  Instance ID: $instance_id"
@@ -350,14 +350,16 @@ function docker_harp_print_info() {
 	log "HaRP naming policy: ${cyan}$HARP_CONTAINER_NAMING_POLICY"
 
 	for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+		deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
+		instance_frp_port="${HARP_INSTANCE_FRP_PORTS["$nc_server"]}"
 		instance_id="${HARP_INSTANCE_IDS["$nc_server"]}"
 		instance_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
-		instance_frp_port="${HARP_INSTANCE_FRP_PORTS["$nc_server"]}"
 		project_name="${HARP_INSTANCE_PROJECT_NAMES["$nc_server"]}"
-		deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
+		shared_key="${HARP_INSTANCE_SHARED_KEYS["$nc_server"]}"
 
 		if [ -n "$instance_id" ]; then
-			log "HaRP instance '$instance_id' for '$nc_server': project=${cyan}$project_name${normal}, exapps-port=${cyan}$instance_port${normal}, frp-port=${cyan}$instance_frp_port${normal}, status=${cyan}$deploy_status"
+			log "HaRP instance '$instance_id' for '$nc_server': project=${cyan}$project_name${blue}, exapps-port=${cyan}$instance_port${blue}, frp-port=${cyan}$instance_frp_port${blue}, status=${cyan}$deploy_status${normal}"
+			log "  - HP shared key: ${cyan}$shared_key${normal}"
 		fi
 	done
 
