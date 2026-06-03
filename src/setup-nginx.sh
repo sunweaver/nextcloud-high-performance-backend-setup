@@ -109,6 +109,11 @@ function nginx_step3() {
 
 	if [ "$SHOULD_INSTALL_HARP" == true ]; then
 		deploy_file "$TMP_DIR_PATH"/harp/nginx-harp-exapps.conf /etc/nginx/snippets/harp-exapps.conf || true
+		if is_dry_run; then
+			DOCKER_PHASE_PROXY_INTEGRATION_STATUS="dry-run (skipped)"
+		else
+			DOCKER_PHASE_PROXY_INTEGRATION_STATUS="completed"
+		fi
 	fi
 
 	is_dry_run "Would've refreshed '/var/www/html' base files." || {
