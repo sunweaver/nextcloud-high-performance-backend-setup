@@ -273,6 +273,15 @@ function signaling_build_janus() {
 		exit 1
 	fi
 
+	# Debian 13 (Trixie) compatibility:
+	# The current Janus source package requires debhelper-compat (= 14),
+	# which is currently unavailable on Debian 13.
+	if grep -q 'debhelper-compat (= 14)' "$JANUS_SOURCE_DIR/debian/control"; then
+		log "[Building Janus] Patching debhelper compatibility level for Debian 13..."
+		sed -i 's/debhelper-compat (= 14)/debhelper-compat (= 13)/' \
+			"$JANUS_SOURCE_DIR/debian/control"
+	fi
+
 	log "[Building Janus] Installing build dependencies…"
 	if ! is_dry_run; then
 		run_with_progress "[Building Janus] Installing build dependencies" "cd '$JANUS_SOURCE_DIR' && mk-build-deps -i -r -t 'apt-get -y' && cd .."
