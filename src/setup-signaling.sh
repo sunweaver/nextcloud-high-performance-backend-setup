@@ -61,14 +61,18 @@ function run_with_progress() {
 
 	# Show animated progress
 	printf "%s" "${blue}$message"
-	while kill -0 $pid 2>/dev/null; do
+	while kill -0 "$pid" 2>/dev/null; do
 		printf "."
 		sleep 0.5
 	done
 
-	# Wait for the process to finish and get exit code
-	wait $pid
-	local exit_code=$?
+	# Capture child status in an `if` condition so `set -e` does not exit early.
+	local exit_code=0
+	if wait "$pid"; then
+		exit_code=0
+	else
+		exit_code=$?
+	fi
 
 	# Show success or failure
 	if [ $exit_code -eq 0 ]; then
@@ -77,9 +81,9 @@ function run_with_progress() {
 		printf " ${red}✗ FAILED${normal}\n"
 
 		# Show last lines of output for context
-		log_err "Error output (last 15 lines):"
-		tail -n 15 "$temp_log" >&2
-		log_err "Full log available in: $LOGFILE_PATH"
+		printf "${red}✗ Error output (last 15 lines):${normal}\n\n"
+		tail -n 15 "$temp_log" >&2 || true
+		printf "\n${red}✗ Full log available in: ${green}${LOGFILE_PATH}${normal}\n"
 	fi
 
 	# Always append to log file
@@ -269,8 +273,7 @@ function signaling_build_janus() {
 
 	if [ ! -d "$JANUS_SOURCE_DIR" ]; then
 		log_err "[Building Janus] ERROR: Source directory $JANUS_SOURCE_DIR not found!"
-		cd "$ORIGINAL_DIR"
-		exit 1
+		cd "$ORIGINAL_DIR" && exit 1
 	fi
 
 	# Debian 13 (Trixie) debhelper compatibility:
@@ -279,14 +282,12 @@ function signaling_build_janus() {
 	DEBHELPER_VERSION="$(dpkg-query --show --showformat='${Version}' debhelper 2>/dev/null || true)"
 	if [ -z "$DEBHELPER_VERSION" ]; then
 		log_err "[Building Janus] ERROR: Could not determine installed debhelper version!"
-		cd "$ORIGINAL_DIR"
-		exit 1
+		cd "$ORIGINAL_DIR" && exit 1
 	fi
 	# Very unlikely (at this point) but you'd never know...
 	if dpkg --compare-versions "$DEBHELPER_VERSION" lt "13"; then
 		log_err "[Building Janus] ERROR: Installed debhelper is $DEBHELPER_VERSION, but this setup requires Debian 13+!"
-		cd "$ORIGINAL_DIR"
-		exit 1
+		cd "$ORIGINAL_DIR" && exit 1
 	fi
 	if dpkg --compare-versions "$DEBHELPER_VERSION" lt "14"; then
 		if grep -q 'debhelper-compat (= 14)' "$JANUS_SOURCE_DIR/debian/control"; then
@@ -298,17 +299,26 @@ function signaling_build_janus() {
 
 	log "[Building Janus] Installing build dependencies…"
 	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Installing build dependencies" "cd '$JANUS_SOURCE_DIR' && mk-build-deps -i -r -t 'apt-get -y' && cd .."
+		run_with_progress "[Building Janus] Installing build dependencies" "cd '$JANUS_SOURCE_DIR' && mk-build-deps -i -r -t 'apt-get -y' && cd .." || {
+			log_err "[Building Janus] ERROR: Failed to install build dependencies!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 	fi
 
 	log "[Building Janus] Building Janus…"
 	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Compiling Janus (this may take several minutes)" "cd '$JANUS_SOURCE_DIR' && debian/rules build && cd .."
+		run_with_progress "[Building Janus] Compiling Janus (this may take several minutes)" "cd '$JANUS_SOURCE_DIR' && debian/rules build && cd .." || {
+			log_err "[Building Janus] ERROR: Failed to compile Janus!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 	fi
 
 	log "[Building Janus] Creating Janus package…"
 	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Creating package" "cd '$JANUS_SOURCE_DIR' && debian/rules binary && cd .."
+		run_with_progress "[Building Janus] Creating package" "cd '$JANUS_SOURCE_DIR' && debian/rules binary && cd .." || {
+			log_err "[Building Janus] ERROR: Failed to create Janus package!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 	fi
 
 	# Install the package
@@ -318,18 +328,19 @@ function signaling_build_janus() {
 	# Verify the .deb file exists
 	if [ ! -s "$JANUS_BUILD_DIR/$JANUS_DEB_FILE" ]; then
 		log_err "[Building Janus] ERROR: Package file not found: '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'"
-		cd "$ORIGINAL_DIR"
-		exit 1
+		cd "$ORIGINAL_DIR" && exit 1
 	fi
 
 	if ! is_dry_run; then
-		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'"
+		run_with_progress "[Building Janus] Installing package" "apt install $APT_PARAMS '$JANUS_BUILD_DIR/$JANUS_DEB_FILE'" || {
+			log_err "[Building Janus] ERROR: Failed to install Janus package!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 
 		# Verify installation succeeded
 		if ! dpkg -l janus 2>/dev/null | grep -q "^ii"; then
 			log_err "[Building Janus] ERROR: Janus installation failed! Package is not registered in dpkg after installation."
-			cd "$ORIGINAL_DIR"
-			exit 1
+			cd "$ORIGINAL_DIR" && exit 1
 		fi
 
 		# Copy .deb to cache directory
@@ -356,6 +367,9 @@ function signaling_build_janus() {
 function signaling_build_nextcloud-spreed-signaling() {
 	log "[Building n-s-s] Building nextcloud-spreed-signaling…"
 
+	# Store original directory
+	ORIGINAL_DIR=$(pwd)
+
 	# Check if nextcloud-spreed-signaling is already installed
 	NSS_BUILD_MARKER="/var/lib/nextcloud-hpb-setup/nextcloud-spreed-signaling-built-version"
 
@@ -364,7 +378,7 @@ function signaling_build_nextcloud-spreed-signaling() {
 
 	if [ -z "$NSS_COMMIT" ]; then
 		log_err "[Building n-s-s] ERROR: Could not fetch latest commit hash from GitHub!"
-		exit 1
+		cd "$ORIGINAL_DIR" && exit 1
 	fi
 
 	NSS_VERSION="master-${NSS_COMMIT:0:8}"
@@ -379,17 +393,26 @@ function signaling_build_nextcloud-spreed-signaling() {
 	log "[Building n-s-s] Downloading sources…"
 	rm n-s-s-master.tar.gz 2>&1 | tee -a $LOGFILE_PATH || true
 	if ! is_dry_run; then
-		run_with_progress "[Building n-s-s] Downloading source archive" "wget https://github.com/strukturag/nextcloud-spreed-signaling/archive/refs/heads/master.tar.gz -O n-s-s-master.tar.gz"
+		run_with_progress "[Building n-s-s] Downloading source archive" "wget https://github.com/strukturag/nextcloud-spreed-signaling/archive/refs/heads/master.tar.gz -O n-s-s-master.tar.gz" || {
+			log_err "[Building n-s-s] ERROR: Failed to download source archive!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 	fi
 
 	log "[Building n-s-s] Extracting sources…"
 	if ! is_dry_run; then
-		run_with_progress "[Building n-s-s] Extracting source archive" "tar -xf n-s-s-master.tar.gz"
+		run_with_progress "[Building n-s-s] Extracting source archive" "tar -xf n-s-s-master.tar.gz" || {
+			log_err "[Building n-s-s] ERROR: Failed to extract source archive!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 	fi
 
 	log "[Building n-s-s] Building sources…"
 	if ! is_dry_run; then
-		run_with_progress "[Building n-s-s] Compiling (this may take several minutes)" "make -C nextcloud-spreed-signaling-master"
+		run_with_progress "[Building n-s-s] Compiling (this may take several minutes)" "make -C nextcloud-spreed-signaling-master" || {
+			log_err "[Building n-s-s] ERROR: Failed to compile!"
+			cd "$ORIGINAL_DIR" && exit 1
+		}
 	fi
 
 	log "[Building n-s-s] Stopping potentially running service…"
