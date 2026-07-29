@@ -16,7 +16,7 @@ function run_certbot_command() {
 	fi
 
 	arg_staging=""
-	if [ "$1" == "true" ]; then
+	if [ "$1" == "true" ] || [ "$CERTBOT_SSL_USE_STAGING_CERTS" == true ]; then
 		arg_staging="--staging --break-my-certs"
 	fi
 
