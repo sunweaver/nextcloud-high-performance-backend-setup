@@ -64,35 +64,79 @@ function collabora_step3() {
 		args_apt="-y"
 	fi
 
+	local deb822_sources_file="/etc/apt/sources.list.d/debian.sources"
+	local classic_sources_file="/etc/apt/sources.list"
+	local contrib_enabled=false
+
 	# Make 'contrib' available. Needed to install 'ttf-mscorefonts-installer' for Collabora.
 	#
 	# BUG: software-properties has issues migrating from sid to testing for about a year currently.
 	#      See https://github.com/sunweaver/nextcloud-high-performance-backend-setup/issues/190
 	if ! apt-cache policy software-properties-common 2>/dev/null | grep "Candidate:" | grep -qv "(none)"; then
-		is_dry_run || {
+		is_dry_run "Would've enabled apt 'contrib' via source-file edits." || {
 			# For deb822 sources (default in Debian 13)
-			sed -i 's/^Components: main$/& contrib/' /etc/apt/sources.list.d/debian.sources || true
+			if [ -f "$deb822_sources_file" ]; then
+				if grep -Eq '^Components:.*\bcontrib\b' "$deb822_sources_file"; then
+					log "'contrib' already present in deb822 sources file: '$deb822_sources_file'."
+					contrib_enabled=true
+				else
+					sed -i -E '/^Components:/ s/$/ contrib/' "$deb822_sources_file"
+					if grep -Eq '^Components:.*\bcontrib\b' "$deb822_sources_file"; then
+						log "Enabled 'contrib' in deb822 sources file: '$deb822_sources_file'."
+						contrib_enabled=true
+					else
+						log_err "Could not enable 'contrib' in deb822 sources file: '$deb822_sources_file'."
+					fi
+				fi
+			else
+				log "No deb822 source file at '$deb822_sources_file'."
+			fi
 
 			# For the classic sources.list
-			sed -r -i 's/^deb(.*main)$/deb\1 contrib/' /etc/apt/sources.list || true
-		} 2>&1 | tee -a $LOGFILE_PATH
+			if [ "$contrib_enabled" != true ] && [ -f "$classic_sources_file" ]; then
+				if grep -Eq '^deb .*\bcontrib\b' "$classic_sources_file"; then
+					log "'contrib' already present in classic sources file: '$classic_sources_file'."
+					contrib_enabled=true
+				else
+					sed -r -i '/^deb / s/(\bmain\b)([[:space:]]|$)/\1 contrib\2/' "$classic_sources_file"
+					if grep -Eq '^deb .*\bcontrib\b' "$classic_sources_file"; then
+						log "Enabled 'contrib' in classic sources file: '$classic_sources_file'."
+						contrib_enabled=true
+					else
+						log_err "Could not enable 'contrib' in classic sources file: '$classic_sources_file'."
+					fi
+				fi
+			elif [ "$contrib_enabled" != true ]; then
+				log "No classic source file at '$classic_sources_file'."
+			fi
+
+			if [ "$contrib_enabled" != true ]; then
+				log_err "Could not verify apt 'contrib' in local source files; continuing anyway."
+			fi
+		} 2>&1 | tee -a "$LOGFILE_PATH"
 	else
-		is_dry_run || {
+		is_dry_run "Would've enabled apt 'contrib' via apt-add-repository." || {
 			apt-get install "$args_apt" software-properties-common
 			apt-add-repository -y contrib
-		} 2>&1 | tee -a $LOGFILE_PATH
+		} 2>&1 | tee -a "$LOGFILE_PATH"
 	fi
 
 	# Update before trying to install from 'contrib'.
-	is_dry_run || {
-		apt update 2>&1 | tee -a $LOGFILE_PATH
+	is_dry_run "Would've updated apt package index." || {
+		apt-get update 2>&1 | tee -a "$LOGFILE_PATH"
 	}
 
 	# Install Microsoft Fonts.
-	is_dry_run || {
-		apt-get install "$args_apt" \
-		ttf-mscorefonts-installer \
-		2>&1 | tee -a $LOGFILE_PATH
+	is_dry_run "Would've installed package 'ttf-mscorefonts-installer'." || {
+		log_err "Installing 'ttf-mscorefonts-installer' package. This package requires accepting the EULA. The EULA will be accepted automatically."
+		log_err "If you do not want to accept the EULA purge the package 'ttf-mscorefonts-installer' after the installation."
+		echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+
+		if ! apt-get install "$args_apt" \
+			ttf-mscorefonts-installer \
+			2>&1 | tee -a "$LOGFILE_PATH"; then
+			log_err "Could not install 'ttf-mscorefonts-installer'; continuing without Microsoft fonts."
+		fi
 	}
 
 	# Install collabora packages.
@@ -103,7 +147,7 @@ function collabora_step3() {
 		collaboraofficebasis-fr collaboraoffice-dict-fr \
 		collaboraofficebasis-nl collaboraoffice-dict-nl \
 		collaboraofficebasis-es collaboraoffice-dict-es \
-		2>&1 | tee -a $LOGFILE_PATH
+		2>&1 | tee -a "$LOGFILE_PATH"
 	}
 }
 
