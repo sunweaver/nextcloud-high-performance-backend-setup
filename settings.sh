@@ -53,6 +53,9 @@ TMP_DIR_PATH="./tmp"
 # Leave empty, if you wish that the user will be asked about this.
 SECRETS_FILE_PATH=""
 
+# Use Let's Encrypt staging certificates for Certbot.
+CERTBOT_SSL_USE_STAGING_CERTS=false
+
 # Use STARTTLS to connect to the SMTP server. If false, SSL/TLS will be used.
 EMAIL_USE_STARTTLS=""
 # This email address gets passed on to the services the user whiches to install.
