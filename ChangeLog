@@ -1,6 +1,27 @@
+2026-07-29 Daniel Teichmann
+
+        * VERSION: Bump version to 1.3.6 (HEAD -> main)
+        * src/setup-collabora.sh: Fix bug where
+          '/etc/apt/sources.list.d/debian.sources' wouldn't be used
+          if '/etc/apt/sources.list' could not be found. (cfffa3c)
+        * src/setup-certbot.sh, settings.sh: Add
+          CERTBOT_SSL_USE_STAGING_CERTS option, which enables
+          developers to rapidly request certs without running into
+          rate limits. (98ebc43)
+        * src/setup-signaling.sh: Harden run_with_progress function to
+          actually forward non-zero exit code + handle failure cases
+          with error messages. (6b8c136)
+        * src/setup-signaling.sh: Harden Janus debian 13 debhelper compat
+          patch (d3ad8de)
+
+2026-07-10 vpoguru
+
+        * Fix Janus build on Debian 13 (Trixie) (73c80a0)
+
 2026-04-08 Daniel Teichmann
 
-        * VERSION: Bump version to 1.3.5 (HEAD -> main)
+        * New release 1.3.5 (3dc3db7) (tag: 1.3.5)
+        * VERSION: Bump version to 1.3.5 (cbc56bc)
         * src/setup-signaling.sh coturn: Do not fail if IPv6 address could
           not be found. (3bd27f9)
 
