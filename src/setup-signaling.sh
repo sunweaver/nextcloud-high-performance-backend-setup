@@ -273,14 +273,28 @@ function signaling_build_janus() {
 		exit 1
 	fi
 
-	# Debian 13 (Trixie) compatibility:
-	# The current Janus source package requires debhelper-compat (= 14),
-	# which is currently unavailable on Debian 13.
-	if grep -q 'debhelper-compat (= 14)' "$JANUS_SOURCE_DIR/debian/control"; then
-		log "[Building Janus] Patching debhelper compatibility level for Debian 13..."
-		sed -i 's/debhelper-compat (= 14)/debhelper-compat (= 13)/' \
-			"$JANUS_SOURCE_DIR/debian/control"
+	# Debian 13 (Trixie) debhelper compatibility:
+	# Compare the installed debhelper version against the Janus build requirement.
+	local DEBHELPER_VERSION
+	DEBHELPER_VERSION="$(dpkg-query --show --showformat='${Version}' debhelper 2>/dev/null || true)"
+	if [ -z "$DEBHELPER_VERSION" ]; then
+		log_err "[Building Janus] ERROR: Could not determine installed debhelper version!"
+		cd "$ORIGINAL_DIR"
+		exit 1
 	fi
+	# Very unlikely (at this point) but you'd never know...
+	if dpkg --compare-versions "$DEBHELPER_VERSION" lt "13"; then
+		log_err "[Building Janus] ERROR: Installed debhelper is $DEBHELPER_VERSION, but this setup requires Debian 13+!"
+		cd "$ORIGINAL_DIR"
+		exit 1
+	fi
+	if dpkg --compare-versions "$DEBHELPER_VERSION" lt "14"; then
+		if grep -q 'debhelper-compat (= 14)' "$JANUS_SOURCE_DIR/debian/control"; then
+			log "[Building Janus] Installed debhelper is $DEBHELPER_VERSION, patching Janus to debhelper-compat (= 13)..."
+			sed -i "s/debhelper-compat (= 14)/debhelper-compat (= 13)/" "$JANUS_SOURCE_DIR/debian/control"
+		fi
+	fi
+	# </debhelper compatibility>
 
 	log "[Building Janus] Installing build dependencies…"
 	if ! is_dry_run; then
