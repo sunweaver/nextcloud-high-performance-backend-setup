@@ -74,7 +74,7 @@ handle_certbot_rate_limit() {
 	local error_message_ratelimited_extra="$5"
 
 	if ! certbot_log_has_rate_limit_error; then
-		# No rate-limit error found in the last 50 lines of the log file, so we assume it's a different error.
+		# No rate-limit error found, assume it's a different error.
 		return 1
 	fi
 
@@ -88,9 +88,11 @@ handle_certbot_rate_limit() {
 	if [[ "$UNATTENDED_INSTALL" != true ]]; then
 		if whiptail --title "$error_title_ratelimited" --defaultno \
 			--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
-			# Recursively call this function
-			run_certbot_command "true"
-			return $?
+
+			# User accepted staging certificates.
+			# Set global flag and return '2' as a signal to retry the command.
+			CERTBOT_SSL_USE_STAGING_CERTS=true
+			return 2
 		fi
 	else
 		log "$error_message_ratelimited"
@@ -99,96 +101,95 @@ handle_certbot_rate_limit() {
 	return 1
 }
 
-# Warning: recursive function
-# $1 can enable staging certificates arguments for certbot if $1 = "true".
 run_certbot_command() {
-	local use_staging_request="$1"
-	local arg_dry_run=""
-	local arg_interactive=""
-	local arg_noninteractive=""
-	local arg_staging=""
-	local arg_agree_tos=""
-	local error_message_ratelimited=""
-	local error_message_ratelimited_extra=""
-	local error_title_ratelimited=""
-	local -a certbot_args=()
-
 	CERTBOT_LAST_ERROR_KIND=""
 
-	if is_dry_run; then
-		arg_dry_run="--dry-run"
-	fi
-
-	if [[ "$UNATTENDED_INSTALL" == true ]]; then
-		arg_interactive=""
-		arg_noninteractive="--non-interactive"
-		arg_agree_tos="--agree-tos"
-	else
-		arg_interactive="--force-interactive"
-		arg_noninteractive=""
-		arg_agree_tos="$CERTBOT_AGREE_TOS"
-	fi
-
-	if [[ "$use_staging_request" == "true" ]] || [[ "$CERTBOT_SSL_USE_STAGING_CERTS" == true ]]; then
-		arg_staging="--staging --break-my-certs"
-	fi
-
-	error_message_ratelimited=$(echo -e "You have issued too many certificates already $(
+	local error_message_ratelimited=$(echo -e "You have issued too many certificates already $(
 	)in the last 168 hours. You have to wait before you can issue another certificate.\n$(
 	)Please see https://letsencrypt.org/docs/rate-limits/")
 
-	error_message_ratelimited_extra=$(echo -e "\nIf you are currently testing: $(
+	local error_message_ratelimited_extra=$(echo -e "\nIf you are currently testing: $(
 	)Do you want to enable testing certificates?\n\n$(
 	)PROCEED WITH CAUTION! You will break your current SSL certificates if you $(
 	)choose to enable testing certificates.")
 
-	error_title_ratelimited="LetsEncrypt rate limit reached!"
+	local error_title_ratelimited="LetsEncrypt rate limit reached!"
 
-	#
-	# --- RSA certificate ---
-	#
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_noninteractive $arg_agree_tos $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
-		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
-		--chain-path "$SSL_CHAIN_PATH_RSA")
+	# --- Internal helper for issuing a single cert with an automatic retry loop ---
+	issue_cert_with_retry() {
+		local cert_suffix="$1"
+		local key_path="$2"
+		local cert_path="$3"
+		local chain_path="$4"
+		shift 4
+		local extra_args=("$@")
 
-	# Skip issuance when an existing matching certificate is not close to expiry.
-	if ! certbot_existing_matching_certificate_is_not_close_to_expiry "$SERVER_FQDN-rsa" "$SERVER_FQDN"; then
-		log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+		local cert_name="${SERVER_FQDN}-${cert_suffix}"
+		local -a certbot_args
 
-		if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
-			if ! handle_certbot_rate_limit "$SERVER_FQDN-rsa" "$SERVER_FQDN" \
-				"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
-				return 1
+		while true; do
+			if certbot_existing_matching_certificate_is_not_close_to_expiry "$cert_name" "$SERVER_FQDN"; then
+				log "Existing matching ${cert_suffix^^} certificate '$cert_name' is not close to expiry. Skipping issuance."
+				return 0
 			fi
-		fi
-	else
-		log "Existing matching RSA certificate '$SERVER_FQDN-rsa' is not close to expiry. Skipping issuance."
-	fi
 
-	#
-	# --- ECDSA certificate ---
-	#
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_noninteractive $arg_agree_tos $arg_dry_run
-		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
-		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
-		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
-		--chain-path "$SSL_CHAIN_PATH_ECDSA")
+			# Build array dynamically (avoids Bash empty word-splitting issues)
+			certbot_args=(certonly --nginx)
 
-	# Skip issuance when an existing matching certificate is not close to expiry.
-	if ! certbot_existing_matching_certificate_is_not_close_to_expiry "$SERVER_FQDN-ecdsa" "$SERVER_FQDN"; then
-		log "Executing Certbot using arguments: '${certbot_args[@]}'…"
-
-		if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
-			if ! handle_certbot_rate_limit "$SERVER_FQDN-ecdsa" "$SERVER_FQDN" \
-				"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
-				return 1
+			if is_dry_run; then
+				certbot_args+=(--dry-run)
 			fi
-		fi
-	else
-		log "Existing matching ECDSA certificate '$SERVER_FQDN-ecdsa' is not close to expiry. Skipping issuance."
-	fi
+
+			if [[ "$UNATTENDED_INSTALL" == true ]]; then
+				certbot_args+=(--non-interactive --agree-tos)
+			else
+				certbot_args+=(--force-interactive)
+				[[ -n "$CERTBOT_AGREE_TOS" ]] && certbot_args+=("$CERTBOT_AGREE_TOS")
+			fi
+
+			if [[ "$CERTBOT_SSL_USE_STAGING_CERTS" == true ]]; then
+				certbot_args+=(--staging --break-my-certs)
+			fi
+
+			certbot_args+=(
+				--key-path "$key_path"
+				--domains "$SERVER_FQDN"
+				--fullchain-path "$cert_path"
+				--email "$EMAIL_USER_ADDRESS"
+				--cert-name "$cert_name"
+				--chain-path "$chain_path"
+			)
+
+			# Append specific args like --rsa-key-size 4096 or --key-type ecdsa
+			certbot_args+=("${extra_args[@]}")
+
+			log "Executing Certbot using arguments: '${certbot_args[*]}'…"
+
+			if certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
+				return 0 # Success, break out of loop
+			fi
+
+			# Failed. Check if it was a rate limit.
+			handle_certbot_rate_limit "$cert_name" "$SERVER_FQDN" \
+				"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"
+
+			local rc=$?
+			if [[ $rc == 2 ]]; then
+				log "Retrying ${cert_suffix^^} certificate issuance with staging certificates enabled..."
+				continue # Retry this specific certificate with new flags
+			elif [[ $rc == 0 ]]; then
+				return 0 # Edge case: cert existed, abort retry loop as successful
+			else
+				return 1 # Fatal error, user denied staging or other error occurred
+			fi
+		done
+	}
+
+	# Issue RSA Certificate
+	issue_cert_with_retry "rsa" "$SSL_CERT_KEY_PATH_RSA" "$SSL_CERT_PATH_RSA" "$SSL_CHAIN_PATH_RSA" --rsa-key-size 4096 || return 1
+
+	# Issue ECDSA Certificate
+	issue_cert_with_retry "ecdsa" "$SSL_CERT_KEY_PATH_ECDSA" "$SSL_CERT_PATH_ECDSA" "$SSL_CHAIN_PATH_ECDSA" --key-type ecdsa || return 1
 
 	if ! is_dry_run; then
 		log "Executing Certbot deploy hook for the updated certificates…"
