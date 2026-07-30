@@ -1,22 +1,56 @@
 #!/bin/bash
 
+# args: $1 certificate name, $2 expected domain list, $3 title, $4 message, $5 extra message
+handle_certbot_rate_limit() {
+	local cert_name="$1"
+	local expected_domains="$2"
+	local error_title_ratelimited="$3"
+	local error_message_ratelimited="$4"
+	local error_message_ratelimited_extra="$5"
+	local error_ratelimited=""
+
+	error_ratelimited="$(tail -n 50 "$LOGFILE_PATH" | grep 'too many certificates')"
+	if [[ -z "$error_ratelimited" ]]; then
+		return 1
+	fi
+
+	if [[ "$UNATTENDED_INSTALL" != true ]]; then
+		if whiptail --title "$error_title_ratelimited" --defaultno \
+			--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
+			# Recursively call this function
+			run_certbot_command "true"
+			return $?
+		fi
+	else
+		log "$error_message_ratelimited"
+	fi
+
+	return 1
+}
+
 # Warning: recursive function
 # $1 can enable staging certificates arguments for certbot if $1 = "true".
 run_certbot_command() {
-	arg_dry_run=""
+	local use_staging_request="$1"
+	local arg_dry_run=""
+	local arg_interactive=""
+	local arg_staging=""
+	local error_message_ratelimited=""
+	local error_message_ratelimited_extra=""
+	local error_title_ratelimited=""
+	local -a certbot_args=()
+
 	if is_dry_run; then
 		arg_dry_run="--dry-run"
 	fi
 
-	arg_interactive=""
 	if [[ "$UNATTENDED_INSTALL" == true ]]; then
 		arg_interactive="--non-interactive --agree-tos"
 	else
 		arg_interactive="--force-interactive $CERTBOT_AGREE_TOS"
 	fi
 
-	arg_staging=""
-	if [[ "$1" == "true" ]] || [[ "$CERTBOT_SSL_USE_STAGING_CERTS" == true ]]; then
+	if [[ "$use_staging_request" == "true" ]] || [[ "$CERTBOT_SSL_USE_STAGING_CERTS" == true ]]; then
 		arg_staging="--staging --break-my-certs"
 	fi
 
@@ -40,25 +74,11 @@ run_certbot_command() {
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if ! certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
-		# Checking if Certbot reported rate limit error
-		# Let the user decide if they want staging certificates (for testing
-		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates')"
-		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENDED_INSTALL" != true ]; then
-				if whiptail --title "$error_title_ratelimited" --defaultno \
-					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
-					# Recursively call this function
-					run_certbot_command "true"
-					return 0
-				fi
-			else
-				log "$error_message_ratelimited"
-			fi
+	if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
+		if ! handle_certbot_rate_limit "$SERVER_FQDN-rsa" "$SERVER_FQDN" \
+			"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
+			return 1
 		fi
-
-		return 1
 	fi
 
 	# ECDSA certificate
@@ -70,25 +90,11 @@ run_certbot_command() {
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if ! certbot "${certbot_args[@]}" |& tee -a $LOGFILE_PATH; then
-		# Checking if Certbot reported rate limit error
-		# Let the user decide if they want staging certificates (for testing
-		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates')"
-		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENDED_INSTALL" != true ]; then
-				if whiptail --title "$error_title_ratelimited" --defaultno \
-					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
-					# Recursively call this function
-					run_certbot_command "true"
-					return 0
-				fi
-			else
-				log "$error_message_ratelimited"
-			fi
+	if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
+		if ! handle_certbot_rate_limit "$SERVER_FQDN-ecdsa" "$SERVER_FQDN" \
+			"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
+			return 1
 		fi
-
-		return 1
 	fi
 
 	# Force renewal of certificates
@@ -99,21 +105,9 @@ run_certbot_command() {
 	if certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
 		return 0
 	else
-		# Checking if Certbot reported rate limit error
-		# Let the user decide if they want staging certificates (for testing
-		# purposes for example).
-		error_ratelimited="$(tail $LOGFILE_PATH | grep 'too many certificates')"
-		if [ -n "$error_ratelimited" ]; then
-			if [ "$UNATTENDED_INSTALL" != true ]; then
-				if whiptail --title "$error_title_ratelimited" --defaultno \
-					--yesno "$error_message_ratelimited $error_message_ratelimited_extra" 16 65 3>&1 1>&2 2>&3; then
-					# Recursively call this function
-					run_certbot_command "true"
-					return 0
-				fi
-			else
-				log "$error_message_ratelimited"
-			fi
+		if handle_certbot_rate_limit "$SERVER_FQDN-rsa" "$SERVER_FQDN" \
+			"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
+			return 0
 		fi
 	fi
 }
