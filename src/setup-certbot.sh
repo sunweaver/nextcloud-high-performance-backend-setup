@@ -1,5 +1,62 @@
 #!/bin/bash
 
+normalize_domains() {
+	echo "$1" | tr ' ' '\n' | sed '/^$/d' | sort | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+}
+
+# args: $1 certificate name, $2 expected domain list (space separated)
+certbot_existing_matching_certificate_is_not_close_to_expiry() {
+	local cert_name="$1"
+	local expected_domains="$2"
+	local certbot_output=""
+	local expected_domains_normalized=""
+	local line=""
+	local current_cert_name=""
+	local current_domains=""
+	local current_domains_normalized=""
+	local valid_days_until_expiry=""
+	local minimum_days_until_expiry=30
+
+	certbot_output="$(certbot certificates 2>/dev/null || true)"
+	if [[ -z "$certbot_output" ]]; then
+		return 1
+	fi
+
+	expected_domains_normalized="$(normalize_domains "$expected_domains")"
+
+	while IFS= read -r line; do
+		if [[ "$line" =~ ^[[:space:]]*Certificate[[:space:]]Name:[[:space:]]*(.*)$ ]]; then
+			current_cert_name="${BASH_REMATCH[1]}"
+			# Reset parsed state to avoid carrying over data from previous cert blocks.
+			current_domains=""
+			current_domains_normalized=""
+			valid_days_until_expiry=""
+			continue
+		fi
+
+		if [[ "$line" =~ ^[[:space:]]*Domains:[[:space:]]*(.*)$ ]]; then
+			current_domains="${BASH_REMATCH[1]}"
+			continue
+		fi
+
+		# Note: If a certificate expires in less than 24 hours, Certbot outputs
+		# e.g. "(VALID: 23 hours)". This regex intentionally fails in that case,
+		# which is correct behavior since we require at least 30 days anyway.
+		if [[ "$line" =~ VALID:[[:space:]]*([0-9]+)[[:space:]]*days ]]; then
+			valid_days_until_expiry="${BASH_REMATCH[1]}"
+			current_domains_normalized="$(normalize_domains "$current_domains")"
+
+			if [[ "$valid_days_until_expiry" -gt "$minimum_days_until_expiry" ]] && \
+			   [[ "$current_cert_name" == "$cert_name" ]] && \
+			   [[ "$current_domains_normalized" == "$expected_domains_normalized" ]]; then
+				return 0
+			fi
+		fi
+	done <<<"$certbot_output"
+
+	return 1
+}
+
 # args: $1 certificate name, $2 expected domain list, $3 title, $4 message, $5 extra message
 handle_certbot_rate_limit() {
 	local cert_name="$1"
@@ -11,7 +68,13 @@ handle_certbot_rate_limit() {
 
 	error_ratelimited="$(tail -n 50 "$LOGFILE_PATH" | grep 'too many certificates')"
 	if [[ -z "$error_ratelimited" ]]; then
+		# No rate-limit error found in the last 50 lines of the log file, so we assume it's a different error.
 		return 1
+	fi
+
+	if certbot_existing_matching_certificate_is_not_close_to_expiry "$cert_name" "$expected_domains"; then
+		log "Rate-limit hit, but existing certificate '$cert_name' is still valid and not close to expiry. Keeping it unchanged."
+		return 0
 	fi
 
 	if [[ "$UNATTENDED_INSTALL" != true ]]; then
