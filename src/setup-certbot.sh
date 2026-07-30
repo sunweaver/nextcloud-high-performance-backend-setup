@@ -119,7 +119,7 @@ run_certbot_command() {
 
 	error_message_ratelimited=$(echo -e "You have issued too many certificates already $(
 	)in the last 168 hours. You have to wait before you can issue another certificate.\n$(
-	)Please see https://letsencrypt.org/docs/duplicate-certificate-limit/")
+	)Please see https://letsencrypt.org/docs/rate-limits/")
 
 	error_message_ratelimited_extra=$(echo -e "\nIf you are currently testing: $(
 	)Do you want to enable testing certificates?\n\n$(
