@@ -138,36 +138,50 @@ run_certbot_command() {
 
 	error_title_ratelimited="LetsEncrypt rate limit reached!"
 
-	# RSA certificate
+	#
+	# --- RSA certificate ---
+	#
 	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
 		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
 		--chain-path "$SSL_CHAIN_PATH_RSA")
 
-	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+	# Skip issuance when an existing matching certificate is not close to expiry.
+	if ! certbot_existing_matching_certificate_is_not_close_to_expiry "$SERVER_FQDN-rsa" "$SERVER_FQDN"; then
+		log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
-		if ! handle_certbot_rate_limit "$SERVER_FQDN-rsa" "$SERVER_FQDN" \
-			"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
-			return 1
+		if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
+			if ! handle_certbot_rate_limit "$SERVER_FQDN-rsa" "$SERVER_FQDN" \
+				"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
+				return 1
+			fi
 		fi
+	else
+		log "Existing matching RSA certificate '$SERVER_FQDN-rsa' is not close to expiry. Skipping issuance."
 	fi
 
-	# ECDSA certificate
+	#
+	# --- ECDSA certificate ---
+	#
 	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
 		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
 		--chain-path "$SSL_CHAIN_PATH_ECDSA")
 
-	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
+	# Skip issuance when an existing matching certificate is not close to expiry.
+	if ! certbot_existing_matching_certificate_is_not_close_to_expiry "$SERVER_FQDN-ecdsa" "$SERVER_FQDN"; then
+		log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
-	if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
-		if ! handle_certbot_rate_limit "$SERVER_FQDN-ecdsa" "$SERVER_FQDN" \
-			"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
-			return 1
+		if ! certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
+			if ! handle_certbot_rate_limit "$SERVER_FQDN-ecdsa" "$SERVER_FQDN" \
+				"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
+				return 1
+			fi
 		fi
+	else
+		log "Existing matching ECDSA certificate '$SERVER_FQDN-ecdsa' is not close to expiry. Skipping issuance."
 	fi
 
 	# Force renewal of certificates
