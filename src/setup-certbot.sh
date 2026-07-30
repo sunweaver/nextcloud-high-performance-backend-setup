@@ -1,7 +1,14 @@
 #!/bin/bash
 
+# Tracks the last certbot failure class for better user-facing follow-up messages.
+CERTBOT_LAST_ERROR_KIND=""
+
 normalize_domains() {
 	echo "$1" | tr ' ' '\n' | sed '/^$/d' | sort | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+}
+
+certbot_log_has_rate_limit_error() {
+	tail -n 50 "$LOGFILE_PATH" | grep -Eiq 'too many certificates|exact set of identifiers|rate limit'
 }
 
 # args: $1 certificate name, $2 expected domain list (space separated)
@@ -19,6 +26,7 @@ certbot_existing_matching_certificate_is_not_close_to_expiry() {
 
 	certbot_output="$(certbot certificates 2>/dev/null || true)"
 	if [[ -z "$certbot_output" ]]; then
+		# No certificates found, so we cannot verify if a matching certificate exists.
 		return 1
 	fi
 
@@ -64,13 +72,13 @@ handle_certbot_rate_limit() {
 	local error_title_ratelimited="$3"
 	local error_message_ratelimited="$4"
 	local error_message_ratelimited_extra="$5"
-	local error_ratelimited=""
 
-	error_ratelimited="$(tail -n 50 "$LOGFILE_PATH" | grep 'too many certificates')"
-	if [[ -z "$error_ratelimited" ]]; then
+	if ! certbot_log_has_rate_limit_error; then
 		# No rate-limit error found in the last 50 lines of the log file, so we assume it's a different error.
 		return 1
 	fi
+
+	CERTBOT_LAST_ERROR_KIND="rate_limit"
 
 	if certbot_existing_matching_certificate_is_not_close_to_expiry "$cert_name" "$expected_domains"; then
 		log "Rate-limit hit, but existing certificate '$cert_name' is still valid and not close to expiry. Keeping it unchanged."
@@ -102,6 +110,8 @@ run_certbot_command() {
 	local error_message_ratelimited_extra=""
 	local error_title_ratelimited=""
 	local -a certbot_args=()
+
+	CERTBOT_LAST_ERROR_KIND=""
 
 	if is_dry_run; then
 		arg_dry_run="--dry-run"
@@ -208,6 +218,11 @@ certbot_step2() {
 
 	if ! run_certbot_command && ! is_dry_run; then
 		log_err "Something went wrong while starting Certbot."
+
+		if [[ "$CERTBOT_LAST_ERROR_KIND" == "rate_limit" ]] || certbot_log_has_rate_limit_error; then
+			log_err "Certbot hit a Let's Encrypt rate limit."
+			exit 1
+		fi
 
 		if [[ "$UNATTENDED_INSTALL" != true ]]; then
 			log_err "Maybe the error is in the nextcloud-hpb.conf" \
