@@ -105,7 +105,9 @@ run_certbot_command() {
 	local use_staging_request="$1"
 	local arg_dry_run=""
 	local arg_interactive=""
+	local arg_noninteractive=""
 	local arg_staging=""
+	local arg_agree_tos=""
 	local error_message_ratelimited=""
 	local error_message_ratelimited_extra=""
 	local error_title_ratelimited=""
@@ -118,9 +120,13 @@ run_certbot_command() {
 	fi
 
 	if [[ "$UNATTENDED_INSTALL" == true ]]; then
-		arg_interactive="--non-interactive --agree-tos"
+		arg_interactive=""
+		arg_noninteractive="--non-interactive"
+		arg_agree_tos="--agree-tos"
 	else
-		arg_interactive="--force-interactive $CERTBOT_AGREE_TOS"
+		arg_interactive="--force-interactive"
+		arg_noninteractive=""
+		arg_agree_tos="$CERTBOT_AGREE_TOS"
 	fi
 
 	if [[ "$use_staging_request" == "true" ]] || [[ "$CERTBOT_SSL_USE_STAGING_CERTS" == true ]]; then
@@ -141,7 +147,7 @@ run_certbot_command() {
 	#
 	# --- RSA certificate ---
 	#
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_noninteractive $arg_agree_tos $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_RSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_RSA" --email "$EMAIL_USER_ADDRESS"
 		--rsa-key-size 4096 --cert-name "$SERVER_FQDN"-rsa
@@ -164,7 +170,7 @@ run_certbot_command() {
 	#
 	# --- ECDSA certificate ---
 	#
-	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_dry_run
+	certbot_args=(certonly --nginx $arg_staging $arg_interactive $arg_noninteractive $arg_agree_tos $arg_dry_run
 		--key-path "$SSL_CERT_KEY_PATH_ECDSA" --domains "$SERVER_FQDN"
 		--fullchain-path "$SSL_CERT_PATH_ECDSA" --email "$EMAIL_USER_ADDRESS"
 		--key-type ecdsa --cert-name "$SERVER_FQDN"-ecdsa
@@ -185,7 +191,7 @@ run_certbot_command() {
 	fi
 
 	# Force renewal of certificates
-	certbot_args=(renew --force-renewal $arg_staging $arg_interactive $arg_dry_run)
+	certbot_args=(renew --force-renewal $arg_staging $arg_noninteractive $arg_agree_tos $arg_dry_run)
 
 	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
 
