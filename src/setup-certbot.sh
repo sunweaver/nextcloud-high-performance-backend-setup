@@ -190,19 +190,14 @@ run_certbot_command() {
 		log "Existing matching ECDSA certificate '$SERVER_FQDN-ecdsa' is not close to expiry. Skipping issuance."
 	fi
 
-	# Force renewal of certificates
-	certbot_args=(renew --force-renewal $arg_staging $arg_noninteractive $arg_agree_tos $arg_dry_run)
-
-	log "Executing Certbot using arguments: '${certbot_args[@]}'…"
-
-	if certbot "${certbot_args[@]}" |& tee -a "$LOGFILE_PATH"; then
-		return 0
-	else
-		if handle_certbot_rate_limit "$SERVER_FQDN-rsa" "$SERVER_FQDN" \
-			"$error_title_ratelimited" "$error_message_ratelimited" "$error_message_ratelimited_extra"; then
-			return 0
+	if ! is_dry_run; then
+		log "Executing Certbot deploy hook for the updated certificates…"
+		if ! bash "$TMP_DIR_PATH"/certbot/deploy-hook-certbot.sh |& tee -a "$LOGFILE_PATH"; then
+			return 1
 		fi
 	fi
+
+	return 0
 }
 
 install_certbot() {
