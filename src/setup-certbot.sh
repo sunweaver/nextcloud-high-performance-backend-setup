@@ -156,7 +156,7 @@ certbot_step2() {
 			log_err "Maybe the error is in the nextcloud-hpb.conf" \
 			        "file (please read the error message above).\n"
 			read -p "Do you wish to delete this file:$(
-			)'/etc/nginx/sites-enabled/nextcloud-hbp.conf'? [YyNn]" -n 1 -r && echo
+			)'/etc/nginx/sites-enabled/nextcloud-hpb.conf'? [YyNn]" -n 1 -r && echo
 			if [[ $REPLY =~ ^[YyJj]$ ]]; then
 				rm -v "/etc/nginx/sites-enabled/nextcloud-hpb.conf" |& tee -a "$LOGFILE_PATH" || true
 				log "File got deleted. Please try again now."
