@@ -151,7 +151,6 @@ function docker_write_secrets_to_file() {
 
 function docker_print_info() {
 	log "=== Docker Platform Setup ==="
-	log "Docker support enabled: ${cyan}$SHOULD_INSTALL_DOCKER"
 	log "Docker services selected: ${cyan}$DOCKER_SERVICES"
 	log "Docker runtime user/group: ${cyan}$NCHPB_DOCKER_USER:$NCHPB_DOCKER_GROUP"
 	log "Docker runtime directory: ${cyan}$NCHPB_DOCKER_RUNTIME_DIR"
