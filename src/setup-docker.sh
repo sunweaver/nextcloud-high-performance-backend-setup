@@ -150,6 +150,11 @@ function docker_write_secrets_to_file() {
 }
 
 function docker_print_info() {
+	# Only show if Docker platform setup was not successful.
+	if [ ${#DOCKER_SETUP_ERRORS[@]} -eq 0 ]; then
+		return 0;
+	fi
+
 	log "=== Docker Platform Setup ==="
 	log "Docker services selected: ${cyan}$DOCKER_SERVICES"
 	log "Docker runtime user/group: ${cyan}$NCHPB_DOCKER_USER:$NCHPB_DOCKER_GROUP"
