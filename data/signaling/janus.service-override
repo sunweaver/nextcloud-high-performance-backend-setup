@@ -1,0 +1,8 @@
+[Unit]
+# Makes sure Janus does start with Coturn
+After=coturn.service
+Wants=coturn.service
+
+[Service]
+# Make sure that Coturn has time to boot up. Janus does not like it, if Coturn is not reachable.
+ExecStartPre=/bin/sleep 15
