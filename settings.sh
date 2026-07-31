@@ -47,11 +47,10 @@ SHOULD_INSTALL_DOCKER=false
 #   - harp: HaRP (Nextcloud AppAPI HaProxy Reverse Proxy)[https://github.com/nextcloud/HaRP]
 DOCKER_SERVICES="harp"
 
-# Optional overrides for base ports of HaRP instances and their external HTTP+HTTPS reverse-proxied ports.
-# 8780, 8782, 8784, ... (Instances 1, 2 and 3)
-# NOTE: Also grows with step width of 2 to match external HTTP port
+# Optional overrides for base ports of HaRP instances and their external HTTPS reverse-proxied port.
+# 8780, 8781, 8782, ... (Instances 1, 2 and 3)
 #HARP_PORT_BASE="8780"
-# 18780+18781, 18782+18783, 18784+18785, ... (Instances 1, 2 and 3 with HTTP+HTTPS)
+# 18780, 18781, 18782, ... (Instances 1, 2 and 3)
 #HARP_EXTERNAL_PORT_BASE="18780"
 
 # Logfile get created if UNATTENDED_INSTALL is true.

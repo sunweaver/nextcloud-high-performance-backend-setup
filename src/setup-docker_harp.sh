@@ -1,16 +1,17 @@
 #!/bin/bash
 
-HARP_PORT_BASE="${HARP_PORT_BASE:-8780}"                    # Default base port for internal HTTP HaRP container ports. Override in settings.sh if needed.
-HARP_EXTERNAL_PORT_BASE="${HARP_EXTERNAL_PORT_BASE:-18780}" # Default base port for external HTTP+HTTPS reverse-proxied HaRP ports. Each instance uses 2 ports (HTTP+HTTPS). Override in settings.sh if needed.
+HARP_PORT_BASE="${HARP_PORT_BASE:-8780}"                    # Default base port for internal HaRP container ports. Override in settings.sh if needed.
+HARP_EXTERNAL_PORT_BASE="${HARP_EXTERNAL_PORT_BASE:-18780}" # Default base port for external HTTPS reverse-proxied HaRP ports. Override in settings.sh if needed.
 HARP_BASE_DIR="$NCHPB_DOCKER_RUNTIME_DIR/harp"
 HARP_TEMPLATE_COMPOSE_PATH="$TMP_DIR_PATH/harp/docker-compose.yml"
+HARP_TEMPLATE_NGINX_CONF_PATH="$TMP_DIR_PATH/harp/harp-exapps.conf.template"
 
 # Explicitly document naming behavior for both compose-managed and HaRP-spawned containers.
 HARP_CONTAINER_NAMING_POLICY="Compose resources are prefixed via per-instance project name. HaRP-spawned containers use slug prefix when supported by upstream runtime, else instance labels/network scoping applies."
 
 declare -A HARP_INSTANCE_IDS
 declare -A HARP_INSTANCE_PORTS
-declare -A HARP_INSTANCE_FRP_PORTS
+declare -A HARP_INSTANCE_HTTPS_PORTS
 declare -A HARP_INSTANCE_SHARED_KEYS
 declare -A HARP_INSTANCE_PROJECT_NAMES
 declare -A HARP_INSTANCE_DEPLOY_STATUSES
@@ -29,41 +30,7 @@ function install_harp() {
 	DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="running"
 	DOCKER_PHASE_VERIFY_STATUS="running"
 
-	if ! [[ "$HARP_PORT_BASE" =~ ^[0-9]+$ ]]; then
-		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be numeric, got '$HARP_PORT_BASE'")
-		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
-		DOCKER_PHASE_VERIFY_STATUS="failed"
-		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_PORT_BASE '$HARP_PORT_BASE'")
-		log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE'."
-		return 0
-	fi
-
-	if [ "$HARP_PORT_BASE" -lt 1024 ] || [ "$HARP_PORT_BASE" -gt 65533 ]; then
-		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be between 1024 and 65533, got '$HARP_PORT_BASE'")
-		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
-		DOCKER_PHASE_VERIFY_STATUS="failed"
-		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_PORT_BASE range '$HARP_PORT_BASE'")
-		log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE'. Allowed range is 1024..65533."
-		return 0
-	fi
-
-	if [ "${#NEXTCLOUD_SERVER_FQDNS[@]}" -eq 0 ]; then
-		HARP_SETUP_ERRORS+=("compose deploy: NEXTCLOUD_SERVER_FQDNS is empty")
-		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
-		DOCKER_PHASE_VERIFY_STATUS="failed"
-		DOCKER_SETUP_ERRORS+=("compose deploy: missing Nextcloud instance domains")
-		log_err "No Nextcloud domains available for HaRP deployment."
-		return 0
-	fi
-
-	if [ ! -f "$HARP_TEMPLATE_COMPOSE_PATH" ]; then
-		HARP_SETUP_ERRORS+=("compose deploy: missing template '$HARP_TEMPLATE_COMPOSE_PATH'")
-		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
-		DOCKER_PHASE_VERIFY_STATUS="failed"
-		DOCKER_SETUP_ERRORS+=("compose deploy: missing HaRP compose template in tmp dir")
-		log_err "Missing HaRP template '$HARP_TEMPLATE_COMPOSE_PATH'."
-		return 0
-	fi
+	harp_config_sanity_check || return $?
 
 	for idx in "${!NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		local nc_server
@@ -71,8 +38,8 @@ function install_harp() {
 		local nc_server_slug
 		local instance_id
 		local instance_dir
-		local instance_port
-		local instance_frp_port
+		local local_port
+		local https_port
 		local nc_instance_url
 		local hp_shared_key
 		local project_name
@@ -81,13 +48,16 @@ function install_harp() {
 		instance_index=$((idx + 1))
 		nc_server_slug="$(echo "$nc_server" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
 		if [ -z "$nc_server_slug" ]; then
-			nc_server_slug="nc-instance"
+			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+			HARP_SETUP_ERRORS+=("compose deploy: failed to generate slug for '$nc_server'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: failed to generate slug for '$nc_server'")
+			continue
 		fi
 
 		instance_id="${nc_server_slug}-${instance_index}"
 		instance_dir="$HARP_BASE_DIR/$instance_id"
-		instance_port=$((HARP_PORT_BASE + idx))
-		instance_frp_port=$((instance_port + 2))
+		local_port=$((HARP_PORT_BASE + idx))
+		https_port=$((HARP_EXTERNAL_PORT_BASE + idx))
 		nc_instance_url="https://$nc_server"
 		hp_shared_key="$(openssl rand -hex 32)"
 		project_name="nchpb-harp-$instance_id"
@@ -99,32 +69,109 @@ function install_harp() {
 			continue
 		fi
 
-		if ! is_dry_run && ! harp_preflight_port_free "$instance_port" "$instance_id" "exapps" "$project_name"; then
+		if ! is_dry_run && ! harp_preflight_port_free "$local_port" "$instance_id" "exapps" "$project_name"; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
-			HARP_SETUP_ERRORS+=("compose deploy: local exapps port '$instance_port' already in use for '$instance_id'")
-			DOCKER_SETUP_ERRORS+=("compose deploy: exapps port conflict '$instance_port' for '$instance_id'")
-			continue
-		fi
-
-		if ! is_dry_run && ! harp_preflight_port_free "$instance_frp_port" "$instance_id" "frp" "$project_name"; then
-			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
-			HARP_SETUP_ERRORS+=("compose deploy: local frp port '$instance_frp_port' already in use for '$instance_id'")
-			DOCKER_SETUP_ERRORS+=("compose deploy: frp port conflict '$instance_frp_port' for '$instance_id'")
+			HARP_SETUP_ERRORS+=("compose deploy: local exapps port '$local_port' already in use for '$instance_id'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: exapps port conflict '$local_port' for '$instance_id'")
 			continue
 		fi
 
 		HARP_INSTANCE_IDS["$nc_server"]="$instance_id"
-		HARP_INSTANCE_PORTS["$nc_server"]="$instance_port"
-		HARP_INSTANCE_FRP_PORTS["$nc_server"]="$instance_frp_port"
+		HARP_INSTANCE_PORTS["$nc_server"]="$local_port"
+		HARP_INSTANCE_HTTPS_PORTS["$nc_server"]="$https_port"
 		HARP_INSTANCE_SHARED_KEYS["$nc_server"]="$hp_shared_key"
 		HARP_INSTANCE_PROJECT_NAMES["$nc_server"]="$project_name"
 
-		if is_dry_run "Would've prepared and deployed HaRP instance '$instance_id' for '$nc_server' on local exapps/frp ports '$instance_port/$instance_frp_port'."; then
+		HARP_SERVER_FQDN_ESC=$(printf '%s' "$SERVER_FQDN" | sed -e "$awk_escape_sed_replacement")
+		SSL_CERT_PATH_RSA_ESC=$(printf '%s' "$SSL_CERT_PATH_RSA" | sed -e "$awk_escape_sed_replacement")
+		SSL_CERT_KEY_PATH_RSA_ESC=$(printf '%s' "$SSL_CERT_KEY_PATH_RSA" | sed -e "$awk_escape_sed_replacement")
+		SSL_CHAIN_PATH_RSA_ESC=$(printf '%s' "$SSL_CHAIN_PATH_RSA" | sed -e "$awk_escape_sed_replacement")
+		SSL_CERT_PATH_ECDSA_ESC=$(printf '%s' "$SSL_CERT_PATH_ECDSA" | sed -e "$awk_escape_sed_replacement")
+		SSL_CERT_KEY_PATH_ECDSA_ESC=$(printf '%s' "$SSL_CERT_KEY_PATH_ECDSA" | sed -e "$awk_escape_sed_replacement")
+		SSL_CHAIN_PATH_ECDSA_ESC=$(printf '%s' "$SSL_CHAIN_PATH_ECDSA" | sed -e "$awk_escape_sed_replacement")
+		DHPARAM_PATH_ESC=$(printf '%s' "$DHPARAM_PATH" | sed -e "$awk_escape_sed_replacement")
+		DNS_RESOLVER_ESC=$(printf '%s' "$DNS_RESOLVER" | sed -e "$awk_escape_sed_replacement")
+		PROJECT_NAME_ESC=$(printf '%s' "$project_name" | sed -e "$awk_escape_sed_replacement")
+
+		rendered_nginx_conf_path="$TMP_DIR_PATH/harp/harp-exapps-${instance_index}.conf"
+		if ! cp "$HARP_TEMPLATE_NGINX_CONF_PATH" "$rendered_nginx_conf_path" 2>&1 | tee -a "$LOGFILE_PATH"; then
+			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+			HARP_SETUP_ERRORS+=("compose deploy: failed copying nginx template for '$instance_id'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: nginx template copy failed for '$instance_id'")
+			continue
+		fi
+
+		if ! sed -i "s|{{SERVER_FQDN}}|$HARP_SERVER_FQDN_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{SSL_CERT_PATH_RSA}}|$SSL_CERT_PATH_RSA_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{SSL_CERT_KEY_PATH_RSA}}|$SSL_CERT_KEY_PATH_RSA_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{SSL_CHAIN_PATH_RSA}}|$SSL_CHAIN_PATH_RSA_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{SSL_CERT_PATH_ECDSA}}|$SSL_CERT_PATH_ECDSA_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{SSL_CERT_KEY_PATH_ECDSA}}|$SSL_CERT_KEY_PATH_ECDSA_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{SSL_CHAIN_PATH_ECDSA}}|$SSL_CHAIN_PATH_ECDSA_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{DHPARAM_PATH}}|$DHPARAM_PATH_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{DNS_RESOLVER}}|$DNS_RESOLVER_ESC|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{HARP_HTTPS_PORT}}|$https_port|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{HARP_LOCAL_PORT}}|$local_port|g" "$rendered_nginx_conf_path" \
+			|| ! sed -i "s|{{PROJECT_NAME}}|$PROJECT_NAME_ESC|g" "$rendered_nginx_conf_path"; then
+			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+			HARP_SETUP_ERRORS+=("compose deploy: failed rendering nginx config for '$instance_id'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: nginx template substitution failed for '$instance_id'")
+			continue
+		fi
+
+		if grep -qE '\{\{[A-Z_]+\}\}' "$rendered_nginx_conf_path"; then
+			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+			HARP_SETUP_ERRORS+=("compose deploy: incomplete placeholder substitution in '$rendered_nginx_conf_path' for '$instance_id'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: incomplete nginx template substitution for '$instance_id'")
+			log_err "Incomplete placeholder substitution in '$rendered_nginx_conf_path' for '$instance_id'."
+			continue
+		fi
+
+		# Deploy to sites-available and symlink into sites-enabled.
+		is_dry_run "Would've created sites-available and sites-enabled dirs." || {
+			mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled || {
+				HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+				HARP_SETUP_ERRORS+=("compose deploy: failed creating nginx sites dirs for '$instance_id'")
+				DOCKER_SETUP_ERRORS+=("compose deploy: nginx sites dir creation failed for '$instance_id'")
+				continue
+			}
+		}
+
+		deploy_file "$rendered_nginx_conf_path" "/etc/nginx/sites-available/harp-exapps-${instance_index}.conf"
+
+		is_dry_run "Would've symlinked sites-enabled/harp-exapps-${instance_index}.conf." || {
+			ln -sf "/etc/nginx/sites-available/harp-exapps-${instance_index}.conf" "/etc/nginx/sites-enabled/harp-exapps-${instance_index}.conf" || {
+				HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+				HARP_SETUP_ERRORS+=("compose deploy: failed symlinking nginx vhost for '$instance_id'")
+				DOCKER_SETUP_ERRORS+=("compose deploy: nginx vhost symlink failed for '$instance_id'")
+				continue
+			}
+		}
+
+		# Open UFW for the public HTTPS port.
+		if ! ufw_allow_harp_ports "$https_port"; then
+			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+			HARP_SETUP_ERRORS+=("compose deploy: failed opening UFW port '$https_port' for '$instance_id'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: UFW port '$https_port' not opened for '$instance_id'")
+			continue
+		fi
+
+		is_dry_run "Would've validated nginx config with 'nginx -t'." || {
+			nginx -t 2>&1 | tee -a "$LOGFILE_PATH" || {
+				HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+				HARP_SETUP_ERRORS+=("compose deploy: nginx -t failed for '$instance_id'")
+				DOCKER_SETUP_ERRORS+=("compose deploy: nginx config invalid for '$instance_id'")
+				continue
+			}
+		}
+
+		# Set state even in dry-run mode
+		if is_dry_run "Would've prepared and deployed HaRP docker container for instance '$instance_id' (compose + verify, local exapps port '$local_port')."; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="dry-run (skipped)"
 			continue
 		fi
 
-		if ! harp_prepare_instance "$instance_dir" "$nc_instance_url" "$hp_shared_key" "$instance_port" "$instance_frp_port" "$project_name" "$instance_id"; then
+		if ! harp_prepare_instance "$instance_dir" "$nc_instance_url" "$hp_shared_key" "$local_port" "$project_name" "$instance_id"; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
 			HARP_SETUP_ERRORS+=("compose deploy: failed preparing instance '$instance_id' for '$nc_server'")
 			DOCKER_SETUP_ERRORS+=("compose deploy: failed preparing HaRP instance '$instance_id'")
@@ -138,7 +185,7 @@ function install_harp() {
 			continue
 		fi
 
-		if ! harp_verify_instance "$instance_dir" "$project_name" "$instance_port" "$hp_shared_key" "$instance_id"; then
+		if ! harp_verify_instance "$instance_dir" "$project_name" "$local_port" "$hp_shared_key" "$instance_id"; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
 			HARP_SETUP_ERRORS+=("verify: failed checks for instance '$instance_id' ('$nc_server')")
 			DOCKER_SETUP_ERRORS+=("verify: failed for HaRP instance '$instance_id'")
@@ -150,12 +197,13 @@ function install_harp() {
 		fi
 
 		HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="completed"
-		log "Deployed HaRP instance '$instance_id' for '$nc_server' on local exapps/frp ports '$instance_port/$instance_frp_port'."
+		log "Deployed HaRP instance '$instance_id' for '$nc_server' on local exapps port '$local_port' (public HTTPS port $https_port)."
 	done
 
 	if [ "$DRY_RUN" = true ]; then
 		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="dry-run (skipped)"
 		DOCKER_PHASE_VERIFY_STATUS="dry-run (skipped)"
+		DOCKER_PHASE_PROXY_INTEGRATION_STATUS="dry-run (skipped)"
 		log "HaRP deployment skipped due to dry-run mode."
 		return 0
 	fi
@@ -167,10 +215,81 @@ function install_harp() {
 	else
 		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="completed"
 		DOCKER_PHASE_VERIFY_STATUS="completed"
+		DOCKER_PHASE_PROXY_INTEGRATION_STATUS="completed"
 		log "HaRP deployment completed successfully."
 	fi
 
 	return 0
+}
+
+function harp_config_sanity_check() {
+	if ! [[ "$HARP_PORT_BASE" =~ ^[0-9]+$ ]]; then
+		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be numeric, got '$HARP_PORT_BASE'")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_PORT_BASE '$HARP_PORT_BASE'")
+		log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE'."
+		return 1
+	fi
+
+	if [ "$HARP_PORT_BASE" -lt 1024 ] || [ "$HARP_PORT_BASE" -gt 65533 ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be between 1024 and 65533, got '$HARP_PORT_BASE'")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_PORT_BASE range '$HARP_PORT_BASE'")
+		log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE'. Allowed range is 1024..65533."
+		return 1
+	fi
+
+	if ! [[ "$HARP_EXTERNAL_PORT_BASE" =~ ^[0-9]+$ ]]; then
+		HARP_SETUP_ERRORS+=("compose deploy: HARP_EXTERNAL_PORT_BASE must be numeric, got '$HARP_EXTERNAL_PORT_BASE'")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE'")
+		log_err "Invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE'."
+		return 1
+	fi
+
+	if [ "$HARP_EXTERNAL_PORT_BASE" -lt 1024 ] || [ "$HARP_EXTERNAL_PORT_BASE" -gt 65533 ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: HARP_EXTERNAL_PORT_BASE must be between 1024 and 65533, got '$HARP_EXTERNAL_PORT_BASE'")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_EXTERNAL_PORT_BASE range '$HARP_EXTERNAL_PORT_BASE'")
+		log_err "Invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE'. Allowed range is 1024..65533."
+		return 1
+	fi
+
+	# Upper-bound check: the LAST instance's HTTPS port must be <= 65535.
+	n_harp_instances=${#NEXTCLOUD_SERVER_FQDNS[@]}
+	if [ "$n_harp_instances" -gt 0 ]; then
+		last_https_port=$((HARP_EXTERNAL_PORT_BASE + n_harp_instances - 1))
+		if [ "$last_https_port" -gt 65535 ]; then
+			HARP_SETUP_ERRORS+=("compose deploy: HARP_EXTERNAL_PORT_BASE $HARP_EXTERNAL_PORT_BASE with $n_harp_instances instances yields last HTTPS port $last_https_port (exceeds 65535)")
+			DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+			DOCKER_PHASE_VERIFY_STATUS="failed"
+			DOCKER_SETUP_ERRORS+=("compose deploy: HARP_EXTERNAL_PORT_BASE upper-bound violated: $HARP_EXTERNAL_PORT_BASE + ($n_harp_instances-1) = $last_https_port > 65535")
+			log_err "Invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE' for $n_harp_instances instances: last HTTPS port $last_https_port > 65535."
+			return 1
+		fi
+	fi
+
+	if [ "${#NEXTCLOUD_SERVER_FQDNS[@]}" -eq 0 ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: NEXTCLOUD_SERVER_FQDNS is empty")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: missing Nextcloud instance domains")
+		log_err "No Nextcloud domains available for HaRP deployment."
+		return 1
+	fi
+
+	if [ ! -f "$HARP_TEMPLATE_COMPOSE_PATH" ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: missing template '$HARP_TEMPLATE_COMPOSE_PATH'")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: missing HaRP compose template in tmp dir")
+		log_err "Missing HaRP template '$HARP_TEMPLATE_COMPOSE_PATH'."
+		return 1
+	fi
 }
 
 function harp_prepare_instance() {
@@ -178,9 +297,8 @@ function harp_prepare_instance() {
 	local nc_instance_url="$2"
 	local hp_shared_key="$3"
 	local instance_port="$4"
-	local instance_frp_port="$5"
-	local project_name="$6"
-	local instance_id="$7"
+	local project_name="$5"
+	local instance_id="$6"
 	local compose_file_path="$instance_dir/docker-compose.yml"
 
 	install -d -m 0770 -o "$NCHPB_DOCKER_USER" -g "$NCHPB_DOCKER_GROUP" "$HARP_BASE_DIR" 2>&1 | tee -a "$LOGFILE_PATH"
@@ -190,18 +308,16 @@ function harp_prepare_instance() {
 
 	nc_instance_url_esc=$(printf '%s' "$nc_instance_url" | sed -e "$awk_escape_sed_replacement")
 	instance_port_esc=$(printf '%s' "$instance_port" | sed -e "$awk_escape_sed_replacement")
-	instance_frp_port_esc=$(printf '%s' "$instance_frp_port" | sed -e "$awk_escape_sed_replacement")
 	project_name_esc=$(printf '%s' "$project_name" | sed -e "$awk_escape_sed_replacement")
 	instance_id_esc=$(printf '%s' "$instance_id" | sed -e "$awk_escape_sed_replacement")
 
 	sed -i "s|<NC_INSTANCE_URL>|$nc_instance_url_esc|g" "$compose_file_path"
 	sed -i "s|<HARP_PORT>|$instance_port_esc|g" "$compose_file_path"
-	sed -i "s|<HARP_FRP_PORT>|$instance_frp_port_esc|g" "$compose_file_path"
 	sed -i "s|<HARP_COMPOSE_PROJECT>|$project_name_esc|g" "$compose_file_path"
 	sed -i "s|<HARP_INSTANCE_ID>|$instance_id_esc|g" "$compose_file_path"
 	replace_placeholder_in_files "<HP_SHARED_KEY>" "$hp_shared_key" "$compose_file_path"
 
-	if grep -q "<NC_INSTANCE_URL>\|<HARP_PORT>\|<HARP_FRP_PORT>\|<HARP_COMPOSE_PROJECT>\|<HARP_INSTANCE_ID>\|<HP_SHARED_KEY>" "$compose_file_path"; then
+	if grep -q "<NC_INSTANCE_URL>\|<HARP_PORT>\|<HARP_COMPOSE_PROJECT>\|<HARP_INSTANCE_ID>\|<HP_SHARED_KEY>" "$compose_file_path"; then
 		log_err "Placeholder substitution incomplete in '$compose_file_path'."
 		return 1
 	fi
@@ -324,20 +440,21 @@ function docker_harp_write_secrets_to_file() {
 	{
 		echo -e "=== Docker HaRP Setup ==="
 		echo -e "HaRP port base: $HARP_PORT_BASE"
+		echo -e "HaRP external port base: $HARP_EXTERNAL_PORT_BASE"
 		echo -e "HaRP naming policy: $HARP_CONTAINER_NAMING_POLICY"
 		for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 			deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
-			instance_frp_port="${HARP_INSTANCE_FRP_PORTS["$nc_server"]}"
+			https_port="${HARP_INSTANCE_HTTPS_PORTS["$nc_server"]}"
 			instance_id="${HARP_INSTANCE_IDS["$nc_server"]}"
-			instance_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
+			local_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
 			project_name="${HARP_INSTANCE_PROJECT_NAMES["$nc_server"]}"
 			shared_key="${HARP_INSTANCE_SHARED_KEYS["$nc_server"]}"
 
 			echo -e "Instance domain: $nc_server"
 			echo -e "  Instance ID: $instance_id"
 			echo -e "  Compose project: $project_name"
-			echo -e "  Local exapps port: $instance_port"
-			echo -e "  Local frp port: $instance_frp_port"
+			echo -e "  Local exapps port: $local_port"
+			echo -e "  Public HTTPS port: $https_port"
 			echo -e "  Deploy status: $deploy_status"
 			echo -e "  HP shared key: $shared_key"
 		done
@@ -348,17 +465,18 @@ function docker_harp_print_info() {
 	log "=== Docker HaRP Setup ==="
 	log "HaRP enabled: ${cyan}$SHOULD_INSTALL_HARP"
 	log "HaRP port base: ${cyan}$HARP_PORT_BASE"
+	log "HaRP external port base: ${cyan}$HARP_EXTERNAL_PORT_BASE"
 
 	for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
-		instance_frp_port="${HARP_INSTANCE_FRP_PORTS["$nc_server"]}"
+		https_port="${HARP_INSTANCE_HTTPS_PORTS["$nc_server"]}"
 		instance_id="${HARP_INSTANCE_IDS["$nc_server"]}"
-		instance_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
+		local_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
 		project_name="${HARP_INSTANCE_PROJECT_NAMES["$nc_server"]}"
 		shared_key="${HARP_INSTANCE_SHARED_KEYS["$nc_server"]}"
 
 		if [ -n "$instance_id" ]; then
-			log "HaRP instance '$instance_id' for '$nc_server': project=${cyan}$project_name${blue}, exapps-port=${cyan}$instance_port${blue}, frp-port=${cyan}$instance_frp_port${blue}, status=${cyan}$deploy_status${normal}"
+			log "HaRP instance '$instance_id' for '$nc_server': project=${cyan}$project_name${blue}, exapps-port=${cyan}$local_port${blue}, https-port=${cyan}$https_port${blue}, status=${cyan}$deploy_status${normal}"
 			log "  - HP shared key: ${cyan}$shared_key${normal}"
 		fi
 	done

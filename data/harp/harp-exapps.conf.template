@@ -1,25 +1,12 @@
-# This config provides a Nginx config for reverse-proxying HaRP with HTTP and HTTPS.
+# This config provides a Nginx config for reverse-proxying HaRP over HTTPS.
 # https://github.com/nextcloud/HaRP
 
-# idx   = {{IDX}}
-# LOCAL = {{HARP_PORT_BASE}}+2*idx            = {{HARP_PORT_BASE_PLUS_IDX_TIMES_2}}
-# HTTP  = {{HARP_EXTERNAL_PORT_BASE}}+2*idx   = {{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2}}
-# HTTPS = {{HARP_EXTERNAL_PORT_BASE}}+2*idx+1 = {{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2_PLUS_1}}
+# LOCAL = {{HARP_LOCAL_PORT}}   (container-exposed HaRP exapps port, bound to loopback)
+# HTTPS = {{HARP_HTTPS_PORT}}   (public HTTPS port)
 
 server {
-  listen 0.0.0.0:{{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2}};
-  listen [::]:{{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2}} ipv6only=on;
-  server_name {{SERVER_FQDN}};
-
-  return 301 https://$host:{{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2_PLUS_1}}$request_uri;
-
-  access_log  /var/log/nginx/HARP_{{PROJECT_NAME}}_access.log;
-  error_log   /var/log/nginx/HARP_{{PROJECT_NAME}}_error.log;
-}
-
-server {
-  listen 0.0.0.0:{{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2_PLUS_1}} ssl;
-  listen [::]:{{HARP_EXTERNAL_PORT_BASE_PLUS_IDX_TIMES_2_PLUS_1}} ipv6only=on ssl;
+  listen 0.0.0.0:{{HARP_HTTPS_PORT}} ssl;
+  listen [::]:{{HARP_HTTPS_PORT}} ipv6only=on ssl;
 
   ## Strong SSL Security
   # RSA certificates
@@ -62,7 +49,7 @@ server {
   error_log   /var/log/nginx/HARP_{{PROJECT_NAME}}_error.log;
 
   location /exapps/ {
-    proxy_pass http://127.0.0.1:{{HARP_PORT_BASE_PLUS_IDX_TIMES_2}};
+    proxy_pass http://127.0.0.1:{{HARP_LOCAL_PORT}};
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
