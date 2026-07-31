@@ -5,12 +5,10 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:<HARP_PORT>:8780"
-      - "127.0.0.1:<HARP_FRP_PORT>:8782"
     environment:
       NC_INSTANCE_URL: "<NC_INSTANCE_URL>"
       HP_SHARED_KEY: "<HP_SHARED_KEY>"
       HP_EXAPPS_ADDRESS: "0.0.0.0:8780"
-      HP_FRP_ADDRESS: "0.0.0.0:8782"
       HP_TRUSTED_PROXY_IPS: "127.0.0.1/32"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
