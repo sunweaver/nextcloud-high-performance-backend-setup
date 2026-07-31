@@ -1,6 +1,7 @@
 #!/bin/bash
 
-HARP_PORT_BASE="${HARP_PORT_BASE:-8780}" # Default base port for internal HTTP HaRP container ports. Override in settings.sh if needed.
+HARP_PORT_BASE="${HARP_PORT_BASE:-8780}"                    # Default base port for internal HTTP HaRP container ports. Override in settings.sh if needed.
+HARP_EXTERNAL_PORT_BASE="${HARP_EXTERNAL_PORT_BASE:-18780}" # Default base port for external HTTP+HTTPS reverse-proxied HaRP ports. Each instance uses 2 ports (HTTP+HTTPS). Override in settings.sh if needed.
 HARP_BASE_DIR="$NCHPB_DOCKER_RUNTIME_DIR/harp"
 HARP_TEMPLATE_COMPOSE_PATH="$TMP_DIR_PATH/harp/docker-compose.yml"
 
