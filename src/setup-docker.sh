@@ -70,9 +70,9 @@ function docker_step1() {
 		fi
 
 		# Use Debian distribution packages only.
-		apt-get install "$args_apt" docker.io docker-compose 2>&1 | tee -a "$LOGFILE_PATH"
+		apt-get install "$args_apt" docker.io docker-cli docker-compose 2>&1 | tee -a "$LOGFILE_PATH"
 	else
-		log "Would've installed Docker packages from Debian repositories: docker.io docker-compose"
+		log "Would've installed Docker packages from Debian repositories: docker.io docker-cli docker-compose"
 	fi
 }
 
