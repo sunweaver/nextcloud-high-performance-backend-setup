@@ -570,6 +570,18 @@ function replace_placeholder_in_files() {
         ' -- "$@"
 }
 
+function fill_dns_resolver_variable() {
+	# TODO: Extract /etc/resolv.conf's nameservers
+	# TODO: Make DNS_RESOLVER hold multiple DNS servers. (Rename to DNS_RESOLVERS)
+
+	if [ "$DNS_RESOLVER" = "" ]; then
+		DNS_RESOLVER="9.9.9.9"
+		log "Using default value '$DNS_RESOLVER' for DNS_RESOLVER".
+	else
+		log "Using '$DNS_RESOLVER' for DNS_RESOLVER".
+	fi
+}
+
 function parse_docker_service_selection() {
 	SHOULD_INSTALL_HARP=false
 
@@ -637,6 +649,8 @@ function main() {
 		log "Loading settings file '$SETTINGS_FILE'…"
 		source "$SETTINGS_FILE"
 	fi
+
+	fill_dns_resolver_variable
 
 	### INSTALL DEPENDENCIES
 	# Check 'whiptail' dependency
