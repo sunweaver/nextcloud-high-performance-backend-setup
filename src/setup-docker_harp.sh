@@ -347,7 +347,6 @@ function docker_harp_print_info() {
 	log "=== Docker HaRP Setup ==="
 	log "HaRP enabled: ${cyan}$SHOULD_INSTALL_HARP"
 	log "HaRP port base: ${cyan}$HARP_PORT_BASE"
-	log "HaRP naming policy: ${cyan}$HARP_CONTAINER_NAMING_POLICY"
 
 	for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
 		deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
