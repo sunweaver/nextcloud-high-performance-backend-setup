@@ -47,18 +47,6 @@ function nginx_step2() {
 	fi
 	sed -i "s|<INCLUDE_SNIPPET_COLLABORA>|$include_snippet_collabora|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
 
-	harp_location_include=""
-	if [ "$SHOULD_INSTALL_HARP" == true ]; then
-		# TODO(multi-instance): HARP_EXAPPS_PORT is hardcoded to base; per-host
-		# routing via 'map $host' is needed when multiple HaRP instances run.
-		local harp_exapps_port="${HARP_PORT_BASE:-8780}"
-		harp_location_include="# HaRP\n  include snippets/harp-exapps.conf;\n"
-		log "Replacing '<HARP_LOCATION_INCLUDE>' with '$harp_location_include' (port $harp_exapps_port)…"
-		sed -i "s|<HARP_EXAPPS_PORT>|$harp_exapps_port|g" "$TMP_DIR_PATH"/harp/nginx-harp-exapps.conf
-		log "Replaced '<HARP_EXAPPS_PORT>' with '$harp_exapps_port' in harp-exapps snippet."
-	fi
-	sed -i "s|<HARP_LOCATION_INCLUDE>|$harp_location_include|g" "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf
-
 	if [ "$DNS_RESOLVER" = "" ]; then
 		DNS_RESOLVER="9.9.9.9"
 		log "Using default value '$DNS_RESOLVER' for DNS_RESOLVER".
@@ -106,15 +94,6 @@ function nginx_step3() {
 
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
 	deploy_file "$TMP_DIR_PATH"/nginx/headers.conf /etc/nginx/snippets/headers.conf || true
-
-	if [ "$SHOULD_INSTALL_HARP" == true ]; then
-		deploy_file "$TMP_DIR_PATH"/harp/nginx-harp-exapps.conf /etc/nginx/snippets/harp-exapps.conf || true
-		if is_dry_run; then
-			DOCKER_PHASE_PROXY_INTEGRATION_STATUS="dry-run (skipped)"
-		else
-			DOCKER_PHASE_PROXY_INTEGRATION_STATUS="completed"
-		fi
-	fi
 
 	is_dry_run "Would've refreshed '/var/www/html' base files." || {
 		mkdir -p /var/www/html || true
