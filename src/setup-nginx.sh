@@ -52,7 +52,7 @@ function nginx_step2() {
 		# TODO(multi-instance): HARP_EXAPPS_PORT is hardcoded to base; per-host
 		# routing via 'map $host' is needed when multiple HaRP instances run.
 		local harp_exapps_port="${HARP_PORT_BASE:-8780}"
-		harp_location_include="  # HaRP\n  include snippets/harp-exapps.conf;\n"
+		harp_location_include="# HaRP\n  include snippets/harp-exapps.conf;\n"
 		log "Replacing '<HARP_LOCATION_INCLUDE>' with '$harp_location_include' (port $harp_exapps_port)…"
 		sed -i "s|<HARP_EXAPPS_PORT>|$harp_exapps_port|g" "$TMP_DIR_PATH"/harp/nginx-harp-exapps.conf
 		log "Replaced '<HARP_EXAPPS_PORT>' with '$harp_exapps_port' in harp-exapps snippet."
