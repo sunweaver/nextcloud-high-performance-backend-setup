@@ -147,9 +147,6 @@ function install_signaling() {
 		is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
 
 		is_dry_run "Would have built janus now…" || signaling_build_janus
-
-		log "Reloading systemd."
-		systemctl daemon-reload | tee -a $LOGFILE_PATH
 	else
 		# Skipped because, we don't need sunweaver's packages anymore.
 		# The packages arived in official Debian repositories.
@@ -162,14 +159,8 @@ function install_signaling() {
 	signaling_step4
 	signaling_step5
 
-	# Make sure janus is restartet 15 sec after system reboot, so that Coturn service has time to get up.
-	# Otherwise, janus will silently crash if Coturn is not available.
-	set +eo pipefail
-	crontab -l >cron_backup
-	echo "@reboot sleep 15 && systemctl restart janus > /dev/null 2>&1" >>cron_backup
-	crontab cron_backup
-	rm cron_backup
-	set -eo pipefail
+	log "Reloading systemd daemon."
+	is_dry_run "Would've reloaded systemd daemon state." || systemctl daemon-reload | tee -a "$LOGFILE_PATH"
 
 	log "Signaling install completed."
 }
@@ -484,6 +475,11 @@ function signaling_step3() {
 
 function signaling_step4() {
 	log "\n${green}Step 4: Prepare configuration"
+
+	# Override Janus service to ensure coturn is started first
+	is_dry_run || mkdir -p /etc/systemd/system/janus.service.d || true
+	deploy_file "$TMP_DIR_PATH"/signaling/janus.service-override \
+		/etc/systemd/system/janus.service.d/coturn-dependency_nc-hpb-setup-script.conf || true
 
 	# Make sure /etc/nginx/snippets/ is created
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
