@@ -377,6 +377,12 @@ function log() {
 	echo -e "${blue}$@${normal}"
 }
 
+function log_warn() {
+	# Strip ANSI color codes before writing to log file
+	echo -e "$@" | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> "$LOGFILE_PATH"
+	echo -e "${yellow}⚠ Warning: $@${normal}" >&2
+}
+
 function log_err() {
 	# Strip ANSI color codes before writing to log file
 	echo -e "$@" | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> "$LOGFILE_PATH"

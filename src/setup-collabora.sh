@@ -128,8 +128,8 @@ function collabora_step3() {
 
 	# Install Microsoft Fonts.
 	is_dry_run "Would've installed package 'ttf-mscorefonts-installer'." || {
-		log_err "Installing 'ttf-mscorefonts-installer' package. This package requires accepting the EULA. The EULA will be accepted automatically."
-		log_err "If you do not want to accept the EULA purge the package 'ttf-mscorefonts-installer' after the installation."
+		log_warn "Installing 'ttf-mscorefonts-installer' package. This package requires accepting the EULA. The EULA will be accepted automatically."
+		log_warn "If you do not want to accept the EULA purge the package 'ttf-mscorefonts-installer' after the installation."
 		echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
 		if ! apt-get install "$args_apt" \
