@@ -90,7 +90,9 @@ function nginx_step2() {
 
 function nginx_step3() {
 	log "Deploying config files…"
-	deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
+	is_dry_run "Would've created sites-available dir." || mkdir -p /etc/nginx/sites-available || true
+	deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-available/nextcloud-hpb.conf || true
+	is_dry_run "Would've symlinked nextcloud-hpb.conf into sites-enabled." || ln -sf /etc/nginx/sites-available/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
 
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
 	deploy_file "$TMP_DIR_PATH"/nginx/headers.conf /etc/nginx/snippets/headers.conf || true
