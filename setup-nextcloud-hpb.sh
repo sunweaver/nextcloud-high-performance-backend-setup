@@ -734,7 +734,8 @@ function main() {
 					SHOULD_INSTALL_MSMTP=true
 					;;
 				"3")
-					log "Docker support selected."
+					log "Docker support (certbot, nginx, ufw) will be installed."
+					SHOULD_INSTALL_UFW=true
 					SHOULD_INSTALL_CERTBOT=true
 					SHOULD_INSTALL_NGINX=true
 					SHOULD_INSTALL_DOCKER=true
@@ -827,14 +828,11 @@ function main() {
 		source "$script"
 	done
 
-	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then install_docker; else
-		log "Won't install Docker platform."
-	fi
-	if [ "$SHOULD_INSTALL_HARP" = true ]; then install_harp; else
-		log "Won't install Docker HaRP."
-	fi
 	if [ "$SHOULD_INSTALL_UFW" = true ]; then install_ufw; else
 		log "Won't install UFW."
+	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then install_docker; else
+		log "Won't install Docker platform."
 	fi
 	if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then install_collabora; else
 		log "Won't install Collabora."
@@ -847,6 +845,9 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then install_nginx; else
 		log "Won't install Nginx."
+	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then install_harp; else
+		log "Won't install Docker HaRP."
 	fi
 	if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then install_unattendedupgrades; else
 		log "Won't install unattended upgrades."

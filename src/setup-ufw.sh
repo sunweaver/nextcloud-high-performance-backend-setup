@@ -65,7 +65,7 @@ function ufw_step2() {
 
 # arg: $1 is https_port
 function ufw_allow_harp_ports() {
-	if [ "$SHOULD_INSTALL_HARP" != true ]; then
+	if [ "$SHOULD_INSTALL_HARP" != true ] || [ "$SHOULD_INSTALL_UFW" != true ]; then
 		return 0
 	fi
 
