@@ -223,6 +223,20 @@ function install_harp() {
 }
 
 function harp_config_sanity_check() {
+	# Reject duplicate NEXTCLOUD_SERVER_FQDNS entries (whitespace-trimmed, lowercased).
+	# The `|| true` guard keeps the pipeline from aborting under `set -eo pipefail`.
+	dups=$(printf '%s\n' "${NEXTCLOUD_SERVER_FQDNS[@]}" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr '[:upper:]' '[:lower:]' | sort | uniq -d | tr '\n' ' ' 2>/dev/null || true)
+	if [ -n "$dups" ]; then
+		for dup in $dups; do
+			HARP_SETUP_ERRORS+=("compose deploy: duplicate NEXTCLOUD_SERVER_FQDNS entry '$dup'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: duplicate Nextcloud instance domain '$dup'")
+		done
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		log_err "Duplicate Nextcloud instance domains detected: $dups"
+		return 1
+	fi
+
 	if ! [[ "$HARP_PORT_BASE" =~ ^[0-9]+$ ]]; then
 		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be numeric, got '$HARP_PORT_BASE'")
 		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
