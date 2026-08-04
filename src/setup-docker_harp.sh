@@ -246,12 +246,12 @@ function harp_config_sanity_check() {
 		return 1
 	fi
 
-	if [ "$HARP_PORT_BASE" -lt 1024 ] || [ "$HARP_PORT_BASE" -gt 65533 ]; then
-		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be between 1024 and 65533, got '$HARP_PORT_BASE'")
+	if [ "$HARP_PORT_BASE" -lt 1024 ] || [ "$HARP_PORT_BASE" -gt 65535 ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE must be between 1024 and 65535, got '$HARP_PORT_BASE'")
 		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
 		DOCKER_PHASE_VERIFY_STATUS="failed"
 		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_PORT_BASE range '$HARP_PORT_BASE'")
-		log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE'. Allowed range is 1024..65533."
+		log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE'. Allowed range is 1024..65535."
 		return 1
 	fi
 
@@ -264,12 +264,12 @@ function harp_config_sanity_check() {
 		return 1
 	fi
 
-	if [ "$HARP_EXTERNAL_PORT_BASE" -lt 1024 ] || [ "$HARP_EXTERNAL_PORT_BASE" -gt 65533 ]; then
-		HARP_SETUP_ERRORS+=("compose deploy: HARP_EXTERNAL_PORT_BASE must be between 1024 and 65533, got '$HARP_EXTERNAL_PORT_BASE'")
+	if [ "$HARP_EXTERNAL_PORT_BASE" -lt 1024 ] || [ "$HARP_EXTERNAL_PORT_BASE" -gt 65535 ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: HARP_EXTERNAL_PORT_BASE must be between 1024 and 65535, got '$HARP_EXTERNAL_PORT_BASE'")
 		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
 		DOCKER_PHASE_VERIFY_STATUS="failed"
 		DOCKER_SETUP_ERRORS+=("compose deploy: invalid HARP_EXTERNAL_PORT_BASE range '$HARP_EXTERNAL_PORT_BASE'")
-		log_err "Invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE'. Allowed range is 1024..65533."
+		log_err "Invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE'. Allowed range is 1024..65535."
 		return 1
 	fi
 
@@ -285,6 +285,31 @@ function harp_config_sanity_check() {
 			log_err "Invalid HARP_EXTERNAL_PORT_BASE '$HARP_EXTERNAL_PORT_BASE' for $n_harp_instances instances: last HTTPS port $last_https_port > 65535."
 			return 1
 		fi
+	fi
+
+	# Upper-bound check: the LAST instance's local exapps port must be <= 65535.
+	if [ "$n_harp_instances" -gt 0 ]; then
+		last_local_port=$((HARP_PORT_BASE + n_harp_instances - 1))
+		if [ "$last_local_port" -gt 65535 ]; then
+			HARP_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE $HARP_PORT_BASE with $n_harp_instances instances yields last local port $last_local_port (exceeds 65535)")
+			DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+			DOCKER_PHASE_VERIFY_STATUS="failed"
+			DOCKER_SETUP_ERRORS+=("compose deploy: HARP_PORT_BASE upper-bound violated: $HARP_PORT_BASE + ($n_harp_instances-1) = $last_local_port > 65535")
+			log_err "Invalid HARP_PORT_BASE '$HARP_PORT_BASE' for $n_harp_instances instances: last local port $last_local_port > 65535."
+			return 1
+		fi
+	fi
+
+	# Range-overlap check: the local exapps range must not overlap the external HTTPS range.
+	if [ "$n_harp_instances" -gt 0 ] \
+		&& [ "$HARP_PORT_BASE" -le $((HARP_EXTERNAL_PORT_BASE + n_harp_instances - 1)) ] \
+		&& [ "$HARP_EXTERNAL_PORT_BASE" -le $((HARP_PORT_BASE + n_harp_instances - 1)) ]; then
+		HARP_SETUP_ERRORS+=("compose deploy: local HaRP port range overlaps the external HTTPS port range")
+		DOCKER_PHASE_COMPOSE_DEPLOY_STATUS="failed"
+		DOCKER_PHASE_VERIFY_STATUS="failed"
+		DOCKER_SETUP_ERRORS+=("compose deploy: local HaRP port range overlaps the external HTTPS port range")
+		log_err "Invalid port configuration: local HaRP port range overlaps the external HTTPS port range."
+		return 1
 	fi
 
 	if [ "${#NEXTCLOUD_SERVER_FQDNS[@]}" -eq 0 ]; then
