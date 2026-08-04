@@ -463,28 +463,61 @@ function docker_harp_write_secrets_to_file() {
 
 function docker_harp_print_info() {
 	log "=== Docker HaRP Setup ==="
-	log "HaRP enabled: ${cyan}$SHOULD_INSTALL_HARP"
-	log "HaRP port base: ${cyan}$HARP_PORT_BASE"
-	log "HaRP external port base: ${cyan}$HARP_EXTERNAL_PORT_BASE"
-
-	for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
-		deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
-		https_port="${HARP_INSTANCE_HTTPS_PORTS["$nc_server"]}"
-		instance_id="${HARP_INSTANCE_IDS["$nc_server"]}"
-		local_port="${HARP_INSTANCE_PORTS["$nc_server"]}"
-		project_name="${HARP_INSTANCE_PROJECT_NAMES["$nc_server"]}"
-		shared_key="${HARP_INSTANCE_SHARED_KEYS["$nc_server"]}"
-
-		if [ -n "$instance_id" ]; then
-			log "HaRP instance '$instance_id' for '$nc_server': project=${cyan}$project_name${blue}, exapps-port=${cyan}$local_port${blue}, https-port=${cyan}$https_port${blue}, status=${cyan}$deploy_status${normal}"
-			log "  - HP shared key: ${cyan}$shared_key${normal}"
-		fi
-	done
-
 	if [ ${#HARP_SETUP_ERRORS[@]} -gt 0 ]; then
 		log_err "HaRP setup phase failures:"
 		for err in "${HARP_SETUP_ERRORS[@]}"; do
 			log_err "  - $err"
 		done
+	else
+		for nc_server in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do
+			deploy_status="${HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]}"
+			https_port="${HARP_INSTANCE_HTTPS_PORTS["$nc_server"]}"
+			instance_id="${HARP_INSTANCE_IDS["$nc_server"]}"
+			project_name="${HARP_INSTANCE_PROJECT_NAMES["$nc_server"]}"
+			shared_key="${HARP_INSTANCE_SHARED_KEYS["$nc_server"]}"
+
+			if [ -z "$instance_id" ]; then
+				continue
+			fi
+
+			log "\nHaRP registration for ${cyan}$nc_server${blue} (instance ${cyan}$instance_id${blue}, status ${cyan}$deploy_status${blue}):"
+			log "  1. Log into Nextcloud ${magenta}https://$nc_server${blue} as administrator."
+			log "  2. Install and enable the ${cyan}AppAPI${blue} app."
+			# These are instructions how to register via UI. Unfortunately HTTPS setting is hidden in the UI, so we recommend using occ instead.
+			# log "  3. Open ${cyan}Settings -> Administration -> AppAPI${blue}."
+			# log "  4. Click ${cyan}Add new HaRP instance${blue} and choose ${cyan}HaRP Proxy (Docker)${blue}."
+			# log "  5. Paste HP shared key: ${cyan}$shared_key${blue}"
+			# log "  6. Replace ${cyan}appapi-harp:8780${blue} with ${cyan}$SERVER_FQDN:$https_port${blue} (no scheme, no trailing slash)."
+			# log "  7. Enable ${cyan}Deactivate FRP${blue}."
+			# log "  8. Set docker network to ${cyan}${project_name}_default${blue}."
+			# log "  9. Click ${cyan}Check connection${blue} and verify success."
+			# log ""
+			log "  3. Register daemon via ${white}occ ${yellow}(Do not register via AppAPI Nextcloud UI - the HTTPS setting is hidden unfortunately)${blue}:"
+			log "    - ${red}On containerized installs like Nextcloud AIO: Prefix the following occ command with"
+			log "      * ${yellow}docker exec -u www-data -it nextcloud-aio-nextcloud php"
+			log "    - ${cyan}occ app_api:daemon:register harp_proxy_host \"$(hostname -s) HaRP\" docker-install \\${normal}"
+			log "      ${cyan}https $SERVER_FQDN:$https_port \"https://$nc_server\" \\${normal}"
+			log "      ${cyan}--net ${project_name}_default --harp --harp_frp_address \"none\" \\${normal}"
+			log "      ${cyan}--harp_shared_key '$shared_key' --harp_exapp_direct --set-default${normal}"
+			log ""
+			log "  4. Route ExApps path on the Nextcloud host to this proxy (one-time per Nextcloud instance):"
+			log "    - ${green}Nextcloud Standalone${blue}: If you're using your own reverse proxy, use this URL:"
+			log "      * ${cyan}https://${SERVER_FQDN}:${https_port}/exapps"
+			log "      * See ${magenta}https://github.com/nextcloud/HaRP#configuring-your-reverse-proxy${blue} for details and examples."
+			log ""
+			log "    - ${green}Nextcloud AIO${blue}: Not supported for an external HaRP"
+			log "      * See ${magenta}https://github.com/nextcloud/app_api/blob/main/docs/appapi/aio.md#what-not-to-do-on-aio${blue}"
+			log ""
+			log "  5. Verify the HaRP proxy is working:"
+			log "    - Execute this command on any machine (preferably on your local machine):"
+			log "      * ${cyan}curl -fsS -H \"harp-shared-key: $shared_key\" -H \"docker-engine-port: 24000\" https://$SERVER_FQDN:$https_port/exapps/app_api/v1.44/_ping"
+			log "      * Expected output is: OK"
+			log "    - Visit using webbrowser: ${magenta}https://${nc_server}/settings/admin/app_api"
+			log "    - Under "Deploy daemons" -> Click on the 3 dots on the newly registered daemon."
+			log "    - Click "Test deploy" and wait for the result."
+			log ""
+		done
+
+		log "\nSee the wiki for more details: ${magenta}https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki${blue}"
 	fi
 }
