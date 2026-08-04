@@ -89,6 +89,13 @@ function install_harp() {
 			continue
 		fi
 
+		if ! is_dry_run && ! harp_preflight_port_free "$https_port" "$instance_id" "https" "$project_name"; then
+			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+			HARP_SETUP_ERRORS+=("compose deploy: public HTTPS port '$https_port' already in use for '$instance_id'")
+			DOCKER_SETUP_ERRORS+=("compose deploy: HTTPS port conflict '$https_port' for '$instance_id'")
+			continue
+		fi
+
 		HARP_INSTANCE_IDS["$nc_server"]="$instance_id"
 		HARP_INSTANCE_PORTS["$nc_server"]="$local_port"
 		HARP_INSTANCE_HTTPS_PORTS["$nc_server"]="$https_port"
@@ -478,11 +485,22 @@ function harp_verify_instance() {
 	return 1
 }
 
+# Returns 0 iff the nginx vhost file exists and contains `listen 0.0.0.0:<port>`.
+function harp_nginx_vhost_owns_port() {
+	local vhost_path="$1"
+	local port="$2"
+	[ -f "$vhost_path" ] || return 1
+	grep -q "listen 0.0.0.0:${port}" "$vhost_path" || return 1
+	return 0
+}
+
 function harp_preflight_port_free() {
 	local port="$1"
 	local instance_id="$2"
 	local role="$3"
 	local project_name="$4"
+	local instance_index
+	local vhost_path
 
 	if command -v ss >/dev/null 2>&1; then
 		if ss -ltn "sport = :$port" 2>/dev/null | tail -n +2 | grep -q .; then
@@ -492,6 +510,17 @@ function harp_preflight_port_free() {
 					--filter "label=com.docker.compose.project=$project_name" \
 					--format '{{.Ports}}' 2>/dev/null | grep -q "127.0.0.1:$port->"; then
 					log "Port '$port' for '$instance_id' ($role) is already bound by compose project '$project_name'; allowing reuse."
+					return 0
+				fi
+			fi
+
+			# Allow re-runs for the public HTTPS port when our own nginx vhost
+			# from a previous run still listens on it.
+			if [ "$role" = "https" ]; then
+				instance_index="${instance_id##*-}"   # instance_id = <slug>-<idx>; last dash segment is the index
+				vhost_path="/etc/nginx/sites-available/harp-exapps-${instance_index}.conf"
+				if harp_nginx_vhost_owns_port "$vhost_path" "$port"; then
+					log "Port '$port' for '$instance_id' ($role) is already owned by our nginx vhost '$vhost_path'; allowing reuse."
 					return 0
 				fi
 			fi
