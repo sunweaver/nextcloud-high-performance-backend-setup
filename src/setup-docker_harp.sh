@@ -59,8 +59,21 @@ function install_harp() {
 		local_port=$((HARP_PORT_BASE + idx))
 		https_port=$((HARP_EXTERNAL_PORT_BASE + idx))
 		nc_instance_url="https://$nc_server"
-		hp_shared_key="$(openssl rand -hex 32)"
+
+		# The instance dir must exist before the shared key can be persisted into it.
+		is_dry_run "Would've created instance dir '$instance_dir'." || install -d -m 0770 -o "$NCHPB_DOCKER_USER" -g "$NCHPB_DOCKER_GROUP" "$instance_dir"
+
+		hp_shared_key="$(harp_load_or_create_shared_key "$instance_dir")"
 		project_name="nchpb-harp-$instance_id"
+
+		# Reordering NEXTCLOUD_SERVER_FQDNS changes ports, keys and instance identity.
+		for d in "$HARP_BASE_DIR"/${nc_server_slug}-*/; do
+			[ -d "$d" ] || continue
+			if [ "$(basename "$d")" != "$instance_id" ] && [ -f "$d/.hp_shared_key" ]; then
+				log_warn "HaRP instance dirs for domain '$nc_server' exist under different indices; reordering NEXTCLOUD_SERVER_FQDNS changes ports, keys and instance identity."
+				break
+			fi
+		done
 
 		if [ "${#hp_shared_key}" -lt 12 ]; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
@@ -329,6 +342,26 @@ function harp_config_sanity_check() {
 		log_err "Missing HaRP template '$HARP_TEMPLATE_COMPOSE_PATH'."
 		return 1
 	fi
+}
+
+# Loads the persisted per-instance HaRP shared key, or generates and persists a new one.
+# stdout = the 64-hex shared key. Dry-run: returns the generated key WITHOUT writing the file.
+function harp_load_or_create_shared_key() {
+	local instance_dir="$1"
+	local key_file="$instance_dir/.hp_shared_key"
+	local key
+	if [ -f "$key_file" ]; then
+		cat "$key_file"
+		return 0
+	fi
+	key="$(openssl rand -hex 32)"
+	# Redirect is_dry_run's log output to stderr so the message never pollutes
+	# the key captured via command substitution (stdout contract = the key only).
+	is_dry_run "Would've persisted shared key to '$key_file'." >&2 || {
+		umask 077
+		printf '%s' "$key" > "$key_file"
+	}
+	printf '%s' "$key"
 }
 
 function harp_prepare_instance() {
