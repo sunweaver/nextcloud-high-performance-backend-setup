@@ -205,6 +205,15 @@ function install_harp() {
 			continue
 		fi
 
+		is_dry_run "Would've derived HP_TRUSTED_PROXY_IPS from the '${project_name}_default' network subnet and converged the container." || {
+			harp_converge_trusted_proxy_ips "$instance_dir" "$project_name" "$instance_id" || {
+				HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
+				HARP_SETUP_ERRORS+=("compose deploy: trusted-proxy derivation failed for '$instance_id'")
+				DOCKER_SETUP_ERRORS+=("compose deploy: trusted-proxy derivation failed for '$instance_id'")
+				continue
+			}
+		}
+
 		if ! harp_verify_instance "$instance_dir" "$project_name" "$local_port" "$hp_shared_key" "$instance_id"; then
 			HARP_INSTANCE_DEPLOY_STATUSES["$nc_server"]="failed"
 			HARP_SETUP_ERRORS+=("verify: failed checks for instance '$instance_id' ('$nc_server')")
@@ -401,6 +410,12 @@ function harp_prepare_instance() {
 		return 1
 	fi
 
+	# Re-apply the persisted trusted-proxy value so reruns don't reset it to the template bootstrap.
+	if [ -f "$instance_dir/.hp_trusted_proxy_ips" ]; then
+		sidecar_value="$(cat "$instance_dir/.hp_trusted_proxy_ips")"
+		sed -i "s|HP_TRUSTED_PROXY_IPS: \".*\"|HP_TRUSTED_PROXY_IPS: \"$sidecar_value\"|" "$compose_file_path" || return 1
+	fi
+
 	return 0
 }
 
@@ -421,6 +436,44 @@ function harp_compose_up() {
 		docker compose -p "$project_name" up -d
 	) 2>&1 | tee -a "$LOGFILE_PATH"
 	return ${PIPESTATUS[0]}
+}
+
+# Joins the given subnets after the loopback prefix. stdout = `127.0.0.1/8,<sub1>[,<sub2>...]`.
+# Empty input -> non-zero, no stdout.
+function harp_trusted_proxy_join() {
+	local subnet
+	local joined="127.0.0.1/8"
+	[ $# -gt 0 ] || return 1
+	for subnet in "$@"; do
+		[ -n "$subnet" ] || continue
+		joined="${joined},${subnet}"
+	done
+	printf '%s' "$joined"
+}
+
+function harp_derive_trusted_proxy_ips() {
+	local project_name="$1"
+	local subnets
+	subnets="$(docker network inspect "${project_name}_default" --format '{{range .IPAM.Config}}{{.Subnet}} {{end}}' 2>/dev/null)" || return 1
+	# shellcheck disable=SC2086  # intentional word-splitting into the join args
+	harp_trusted_proxy_join $subnets
+}
+
+function harp_converge_trusted_proxy_ips() {
+	local instance_dir="$1" project_name="$2" instance_id="$3"
+	local compose_file="$instance_dir/docker-compose.yml"
+	local derived sidecar current
+	derived="$(harp_derive_trusted_proxy_ips "$project_name")" || return 1
+	sidecar="$instance_dir/.hp_trusted_proxy_ips"
+	current="$(sed -n 's/^[[:space:]]*HP_TRUSTED_PROXY_IPS: "\(.*\)"/\1/p' "$compose_file" | head -1)"
+	if [ -n "$current" ] && [ "$current" != "$derived" ]; then
+		sed -i "s|HP_TRUSTED_PROXY_IPS: \".*\"|HP_TRUSTED_PROXY_IPS: \"$derived\"|" "$compose_file" || return 1
+		harp_compose_up "$instance_dir" "$project_name" || return 1   # compose recreates the container when the env changed
+		umask 077
+		printf '%s' "$derived" > "$sidecar" || return 1
+		log "Converged HP_TRUSTED_PROXY_IPS for '$instance_id' to '$derived'."
+	fi
+	return 0
 }
 
 function harp_verify_instance() {
