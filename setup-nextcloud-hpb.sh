@@ -422,36 +422,81 @@ function generate_dhparam_file() {
 	BUILT_DHPARAM_FILE="true"
 }
 
-# Deploys target_file_path to source_file_path while respecting
-# potential custom user config.
-# param 1: source_file_path
-# param 2: target_file_path
-# returns: 1 if already deployed and 0 if not.
+# Deploys a configuration file using Debian's 'ucf' (Update Configuration File).
+# It supports 3-way merges and respects custom user configurations.
+#
+# Arguments:
+#   $1 - Path to the source file (new version).
+#   $2 - Path to the target file (deployment destination).
+#
+# Environment Variables:
+#   UNATTENDED_INSTALL - If set to "true", forces overwriting on conflicts
+#                        and silences standard ucf output to keep logs clean.
 function deploy_file() {
-	source_file_path="$1"
-	target_file_path="$2"
-	log "Deploying $target_file_path"
-	if [[ -s "$target_file_path" ]]; then
-		checksum_deployed=$(sha256sum "$target_file_path" | cut -d " " -f1)
-		checksum_expected=$(sha256sum "$source_file_path" | cut -d " " -f1)
-		if [ "${checksum_deployed}" = "${checksum_expected}" ]; then
-			log "$target_file_path was already deployed."
-			return 1
-		else
-			if [ "$UNATTENDED_INSTALL" = true ]; then
-				is_dry_run "Would've replaced existing '$target_file_path'." || \
-					cp "$source_file_path" "$target_file_path"
-			else
-				log "file '$target_file_path' exists and will be updated deployed."
-				is_dry_run "Would've replaced existing '$target_file_path'." || \
-					cp "$source_file_path" "$target_file_path"
-			fi
-		fi
-	else
-		# Target file is empty or doesn't exist.
-		is_dry_run "Would've deployed '$target_file_path'." || cp "$source_file_path" "$target_file_path"
-	fi
-	return 0
+    # Ensure exactly two arguments are provided
+    if [[ $# -ne 2 ]]; then
+        log_err "deploy_file requires exactly 2 arguments: source_path and target_path."
+        return 1
+    fi
+
+    local source_file_path="$1"
+    local target_file_path="$2"
+
+    log "Deploying '$target_file_path' using ucf..."
+
+    if [[ ! -f "$source_file_path" ]]; then
+        log_err "Source file '$source_file_path' does not exist. Aborting deployment."
+        return 1
+    fi
+
+    # Handle dry-run mode
+    if is_dry_run "Would've deployed or updated '$target_file_path' via ucf."; then
+        return 0
+    fi
+
+    local ucf_opts=("--three-way")
+    local exit_code=0
+    local ucf_out=""
+
+    if [[ "${UNATTENDED_INSTALL}" == "true" ]]; then
+        log "Unattended install active: Forcing new version for '$target_file_path'."
+        export UCF_FORCE_CONFFNEW=1
+
+        # In unattended mode, we capture stdout/stderr to prevent cluttering the logs.
+        # No interactive prompts will occur because UCF_FORCE_CONFFNEW is set.
+        if ucf_out=$(ucf "${ucf_opts[@]}" "$source_file_path" "$target_file_path" 2>&1); then
+            exit_code=0
+        else
+            exit_code=$?
+        fi
+
+        unset UCF_FORCE_CONFFNEW
+    else
+        # In interactive mode, we do NOT capture the output. This ensures that
+        # user prompts (text or debconf) remain visible and the script doesn't hang.
+        if ucf "${ucf_opts[@]}" "$source_file_path" "$target_file_path"; then
+            exit_code=0
+        else
+            exit_code=$?
+        fi
+    fi
+
+    if [[ $exit_code -eq 0 ]]; then
+        log "Successfully deployed and updated '$target_file_path'."
+    else
+        log_err "Deployment failed or was aborted by the user for '$target_file_path'."
+
+        # Output the captured ucf logs only if an error occurred in unattended mode
+        if [[ -n "$ucf_out" ]]; then
+            log_err "ucf error details:"
+            # Printing line by line or as a block depending on how log_err handles newlines
+            echo "$ucf_out" | while IFS= read -r line; do
+                log_err "  $line"
+            done
+        fi
+    fi
+
+    return "$exit_code"
 }
 
 function check_root_perm() {
