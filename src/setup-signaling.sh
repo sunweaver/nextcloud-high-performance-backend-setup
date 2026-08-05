@@ -119,7 +119,7 @@ function install_signaling() {
 
 		for pkg in $APT_PACKAGES; do
 			if is_dry_run; then
-				log "Would purge package: $pkg now…"
+				log "Would've purged package: $pkg now…"
 				continue
 			fi
 
@@ -138,7 +138,7 @@ function install_signaling() {
 		log "Installing Signaling build dependencies…"
 		is_dry_run || apt-get install $APT_PARAMS wget curl jq protobuf-compiler build-essential make golang-go 2>&1 | tee -a $LOGFILE_PATH
 
-		is_dry_run "Would have built nextcloud-spreed-signaling now…" || signaling_build_nextcloud-spreed-signaling
+		is_dry_run "Would've built nextcloud-spreed-signaling now…" || signaling_build_nextcloud-spreed-signaling
 
 		# Installing:
 		# - ssl-cert
@@ -146,7 +146,7 @@ function install_signaling() {
 		# - coturn
 		is_dry_run || apt-get install $APT_PARAMS ssl-cert nats-server coturn 2>&1 | tee -a $LOGFILE_PATH
 
-		is_dry_run "Would have built janus now…" || signaling_build_janus
+		is_dry_run "Would've built janus now…" || signaling_build_janus
 	else
 		# Skipped because, we don't need sunweaver's packages anymore.
 		# The packages arived in official Debian repositories.
@@ -485,17 +485,21 @@ function signaling_step4() {
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
 
 	# Make SSL certificates available for coturn
-	if [ "$SHOULD_INSTALL_CERTBOT" = true ] && ! is_dry_run; then
-		mkdir -p "$COTURN_DIR/certs"
-		adduser turnserver ssl-cert
+	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
+		is_dry_run "Would've prepared coturn certificate directory and granted 'ssl-cert' group access." || {
+			mkdir -p "$COTURN_DIR/certs"
+			adduser turnserver ssl-cert
+		}
 	else
-		is_dry_run || mkdir -p "$COTURN_DIR"
+		is_dry_run "Would've created '$COTURN_DIR'." || mkdir -p "$COTURN_DIR"
 	fi
 
 	generate_dhparam_file
 
-	is_dry_run || chown -R turnserver:turnserver "$COTURN_DIR"
-	is_dry_run || chmod -R 740 "$COTURN_DIR"
+	is_dry_run "Would've secured ownership and permissions for '$COTURN_DIR'." || {
+		chown -R turnserver:turnserver "$COTURN_DIR"
+		chmod -R 740 "$COTURN_DIR"
+	}
 
 	i=0
 	for NC_SERVER in "${NEXTCLOUD_SERVER_FQDNS[@]}"; do

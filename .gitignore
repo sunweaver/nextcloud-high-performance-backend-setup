@@ -2,3 +2,5 @@
 .vscode
 tmp/
 *secrets*
+dev-docs/*
+nc-docs/*
