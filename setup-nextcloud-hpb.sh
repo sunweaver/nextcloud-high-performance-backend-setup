@@ -415,7 +415,7 @@ function generate_dhparam_file() {
 	is_dry_run "Would've generated and secured dhparam file '$DHPARAM_PATH'." || {
 		mkdir -p "$(dirname "$DHPARAM_PATH")"
 		touch "$DHPARAM_PATH"
-		openssl dhparam -dsaparam -out "$DHPARAM_PATH" 4096
+		run_with_progress "Generating Diffie–Hellman parameters file for stronger cryptography." "openssl dhparam -dsaparam -out \"${DHPARAM_PATH}\" 4096" || true
 		chmod 644 "$DHPARAM_PATH"
 	}
 
