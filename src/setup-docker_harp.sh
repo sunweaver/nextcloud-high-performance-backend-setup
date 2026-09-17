@@ -635,6 +635,13 @@ function docker_harp_print_info() {
 			fi
 
 			log "\nHaRP registration for ${cyan}$nc_server${blue} (instance ${cyan}$instance_id${blue}, status ${cyan}$deploy_status${blue}):"
+			log "  Nextcloud AIO prerequisites for external HaRP:"
+			log "    - Use an external reverse proxy that routes /exapps/ to the HPB host."
+			log "    - Configure AIO using ${magenta}https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md${blue}"
+			log "    - Disable AIO's bundled HaRP and Docker Socket Proxy; set NEXTCLOUD_KEEP_DISABLED_APPS=true on the mastercontainer."
+			log "    - Enable the shipped AppAPI app manually. AIO's internal proxy has no supported external-HaRP endpoint override."
+			log "    - See ${magenta}https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki/13-HaRP-(en)${blue} for HaRP setup and operation."
+			log ""
 			log "  1. Log into Nextcloud ${magenta}https://$nc_server${blue} as administrator."
 			log "  2. Install and enable the ${cyan}AppAPI${blue} app."
 			# These are instructions how to register via UI. Unfortunately HTTPS setting is hidden in the UI, so we recommend using occ instead.
@@ -659,8 +666,8 @@ function docker_harp_print_info() {
 			log "      * ${cyan}https://${SERVER_FQDN}:${https_port}/exapps"
 			log "      * See ${magenta}https://github.com/nextcloud/HaRP#configuring-your-reverse-proxy${blue} for details and examples."
 			log ""
-			log "    - ${green}Nextcloud AIO${blue}: Not supported for an external HaRP"
-			log "      * See ${magenta}https://github.com/nextcloud/app_api/blob/main/docs/appapi/aio.md#what-not-to-do-on-aio${blue}"
+			log "    - nginx configuration is provided for standalone Nextcloud and AIO with an external reverse proxy."
+			log "    - Other reverse proxies, including Apache2 and Caddy, require manual configuration."
 			log ""
 			log "  5. Verify the HaRP proxy is working:"
 			log "    - Execute this command on any machine (preferably on your local machine):"
