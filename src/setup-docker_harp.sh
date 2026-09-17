@@ -3,7 +3,7 @@
 HARP_PORT_BASE="${HARP_PORT_BASE:-8780}"                    # Default base port for internal HaRP container ports. Override in settings.sh if needed.
 HARP_EXTERNAL_PORT_BASE="${HARP_EXTERNAL_PORT_BASE:-18780}" # Default base port for external HTTPS reverse-proxied HaRP ports. Override in settings.sh if needed.
 HARP_BASE_DIR="$NCHPB_DOCKER_RUNTIME_DIR/harp"
-HARP_TEMPLATE_COMPOSE_PATH="$TMP_DIR_PATH/harp/docker-compose.yml"
+HARP_TEMPLATE_COMPOSE_PATH="$TMP_DIR_PATH/harp/docker-compose.yml.template"
 HARP_TEMPLATE_NGINX_CONF_PATH="$TMP_DIR_PATH/harp/harp-exapps.conf.template"
 
 # Explicitly document naming behavior for both compose-managed and HaRP-spawned containers.
