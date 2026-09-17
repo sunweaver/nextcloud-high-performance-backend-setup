@@ -438,11 +438,11 @@ function harp_compose_up() {
 	return ${PIPESTATUS[0]}
 }
 
-# Joins the given subnets after the loopback prefix. stdout = `127.0.0.1/8,<sub1>[,<sub2>...]`.
+# Joins the given subnets after the loopback prefix. stdout = `127.0.0.0/8,<sub1>[,<sub2>...]`.
 # Empty input -> non-zero, no stdout.
 function harp_trusted_proxy_join() {
 	local subnet
-	local joined="127.0.0.1/8"
+	local joined="127.0.0.0/8"
 	[ $# -gt 0 ] || return 1
 	for subnet in "$@"; do
 		[ -n "$subnet" ] || continue
@@ -615,6 +615,19 @@ function docker_harp_write_secrets_to_file() {
 	} >> "$1"
 }
 
+function harp_print_nextcloud_nginx_snippet() {
+	local nc_server="$1" https_port="$2" line
+	local server_esc nc_server_esc
+	server_esc="$(printf '%s' "$SERVER_FQDN" | sed 's/[&|\\]/\\&/g')"
+	nc_server_esc="$(printf '%s' "$nc_server" | sed 's/[&|\\]/\\&/g')"
+	while IFS= read -r line; do
+		log "$line"
+	done < <(sed -e "s|{{SERVER_FQDN}}|$server_esc|g" \
+		-e "s|{{NEXTCLOUD_FQDN}}|$nc_server_esc|g" \
+		-e "s|{{HARP_HTTPS_PORT}}|$https_port|g" \
+		"$TMP_DIR_PATH/harp/nginx_reverse-proxy.conf.template")
+}
+
 function docker_harp_print_info() {
 	log "=== Docker HaRP Setup ==="
 	if [ ${#HARP_SETUP_ERRORS[@]} -gt 0 ]; then
@@ -662,9 +675,10 @@ function docker_harp_print_info() {
 			log "      ${cyan}--harp_shared_key '$shared_key' --harp_exapp_direct --set-default${normal}"
 			log ""
 			log "  4. Route ExApps path on the Nextcloud host to this proxy (one-time per Nextcloud instance):"
-			log "    - ${green}Nextcloud Standalone${blue}: If you're using your own reverse proxy, use this URL:"
-			log "      * ${cyan}https://${SERVER_FQDN}:${https_port}/exapps"
-			log "      * See ${magenta}https://github.com/nextcloud/HaRP#configuring-your-reverse-proxy${blue} for details and examples."
+			log "    - Add this location beside Nextcloud's existing location in the HTTPS server block on your nginx front proxy."
+			log "    - The upstream is the HPB host. Preserve /exapps/ in the forwarded request."
+			harp_print_nextcloud_nginx_snippet "$nc_server" "$https_port"
+			log "    - Validate with nginx -t, then reload nginx on that proxy."
 			log ""
 			log "    - nginx configuration is provided for standalone Nextcloud and AIO with an external reverse proxy."
 			log "    - Other reverse proxies, including Apache2 and Caddy, require manual configuration."
