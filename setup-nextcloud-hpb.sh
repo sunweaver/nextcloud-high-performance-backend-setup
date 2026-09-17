@@ -2,9 +2,8 @@
 
 set -eo pipefail
 
-# Sane defaults (Don't override these settings here!)
-# Can be overridden by specifying a settings file as first parameter.
-# See settings.sh
+# Sane defaults (Don't manually override these settings here!)
+# Manual edits can be done by editing settings.sh and '$ ./setup-nextcloud-hpb.sh settings.sh'.
 DRY_RUN=false
 UNATTENDED_INSTALL=false
 NEXTCLOUD_SERVER_FQDNS=""  # Ask user
@@ -16,17 +15,18 @@ SSL_CERT_PATH_ECDSA=""     # Will be auto filled, if not overriden by settings f
 SSL_CERT_KEY_PATH_ECDSA="" # Will be auto filled, if not overriden by settings file.
 SSL_CHAIN_PATH_ECDSA=""    # Will be auto filled, if not overriden by settings file.
 DHPARAM_PATH=""            # Will be auto filled, if not overriden by settings file.
-LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log"
-TMP_DIR_PATH="./tmp"
-SECRETS_FILE_PATH=""   # Ask user
+LOGFILE_PATH="setup-nextcloud-hpb-$(date +%Y-%m-%dT%H:%M:%SZ).log" # Lookup in order: settings.sh, this, finally ask user if not set.
+TMP_DIR_PATH="./tmp"                                               # Lookup in order: settings.sh, this, finally ask user if not set.
+SECRETS_FILE_PATH="./nextcloud-hpb.secrets"                        # Lookup in order: settings.sh, this, finally ask user if not set.
 EMAIL_USE_STARTTLS=""  # Ask user
 EMAIL_USER_ADDRESS=""  # Ask user
 EMAIL_USER_PASSWORD="" # Ask user
 EMAIL_USER_USERNAME="" # Ask user
 EMAIL_SERVER_HOST=""   # Ask user
 EMAIL_SERVER_PORT=""   # Ask user
-DISABLE_SSH_SERVER=false
-DEBIAN_VERSION_ATLEAST="13"
+DISABLE_SSH_SERVER=""  # Ask user
+DOCKER_SERVICES=""     # Ask user
+DEBIAN_VERSION_ATLEAST="13" # Hardcoded requirement. This script is NOT SUPPORTED FOR DEBIAN 12 OR OLDER anymore!
 
 # External IP lookup endpoints (can be overridden via settings file)
 EXTERNAL_IP_PRIMARY_ENDPOINT="https://ident.me"
@@ -389,6 +389,16 @@ function log_err() {
 	echo -e "${red}✗ Error: $@${normal}" >&2
 }
 
+function usage() {
+	cat >&2 <<EOF
+Usage: $0 [settings-file]
+Example: $0 settings.sh
+
+Documentation:
+  https://github.com/sunweaver/nextcloud-high-performance-backend-setup/wiki
+EOF
+}
+
 function generate_dhparam_file() {
 	if [ "$BUILT_DHPARAM_FILE" == "true" ]; then
 		# Skip if we already generated dhparam file.
@@ -398,48 +408,95 @@ function generate_dhparam_file() {
 	if [ -s "$DHPARAM_PATH" ]; then
 		# Rebuilding dhparam file.
 		log "Removing old dhparam file at '$DHPARAM_PATH'."
-		rm -fv "$DHPARAM_PATH" 2>&1 | tee -a "$LOGFILE_PATH"
+		is_dry_run "Would've removed old dhparam file at '$DHPARAM_PATH'." || rm -fv "$DHPARAM_PATH" 2>&1 | tee -a "$LOGFILE_PATH"
 	fi
 
 	log "Generating new dhparam file…"
-	is_dry_run || mkdir -p "$(dirname $DHPARAM_PATH)"
-	is_dry_run || touch "$DHPARAM_PATH"
-	is_dry_run || openssl dhparam -dsaparam -out "$DHPARAM_PATH" 4096
-	is_dry_run || chmod 644 "$DHPARAM_PATH"
+	is_dry_run "Would've generated and secured dhparam file '$DHPARAM_PATH'." || {
+		mkdir -p "$(dirname "$DHPARAM_PATH")"
+		touch "$DHPARAM_PATH"
+		run_with_progress "Generating Diffie–Hellman parameters file for stronger cryptography." "openssl dhparam -dsaparam -out \"${DHPARAM_PATH}\" 4096" || true
+		chmod 644 "$DHPARAM_PATH"
+	}
 
 	BUILT_DHPARAM_FILE="true"
 }
 
-# Deploys target_file_path to source_file_path while respecting
-# potential custom user config.
-# param 1: source_file_path
-# param 2: target_file_path
-# returns: 1 if already deployed and 0 if not.
+# Deploys a configuration file using Debian's 'ucf' (Update Configuration File).
+# It supports 3-way merges and respects custom user configurations.
+#
+# Arguments:
+#   $1 - Path to the source file (new version).
+#   $2 - Path to the target file (deployment destination).
+#
+# Environment Variables:
+#   UNATTENDED_INSTALL - If set to "true", forces overwriting on conflicts
+#                        and silences standard ucf output to keep logs clean.
 function deploy_file() {
-	source_file_path="$1"
-	target_file_path="$2"
-	log "Deploying $target_file_path"
-	if [[ -s "$target_file_path" ]]; then
-		checksum_deployed=$(sha256sum "$target_file_path" | cut -d " " -f1)
-		checksum_expected=$(sha256sum "$source_file_path" | cut -d " " -f1)
-		if [ "${checksum_deployed}" = "${checksum_expected}" ]; then
-			log "$target_file_path was already deployed."
-			return 1
-		else
-			if [ "$UNATTENDED_INSTALL" = true ]; then
-				is_dry_run "Would've replaced existing '$target_file_path'." || \
-					cp "$source_file_path" "$target_file_path"
-			else
-				log "file '$target_file_path' exists and will be updated deployed."
-				is_dry_run "Would've replaced existing '$target_file_path'." || \
-					cp "$source_file_path" "$target_file_path"
-			fi
-		fi
-	else
-		# Target file is empty or doesn't exist.
-		is_dry_run "Would've deployed '$target_file_path'." || cp "$source_file_path" "$target_file_path"
-	fi
-	return 0
+    # Ensure exactly two arguments are provided
+    if [[ $# -ne 2 ]]; then
+        log_err "deploy_file requires exactly 2 arguments: source_path and target_path."
+        return 1
+    fi
+
+    local source_file_path="$1"
+    local target_file_path="$2"
+
+    log "Deploying '$target_file_path' using ucf..."
+
+    if [[ ! -f "$source_file_path" ]]; then
+        log_err "Source file '$source_file_path' does not exist. Aborting deployment."
+        return 1
+    fi
+
+    # Handle dry-run mode
+    if is_dry_run "Would've deployed or updated '$target_file_path' via ucf."; then
+        return 0
+    fi
+
+    local ucf_opts=("--three-way")
+    local exit_code=0
+    local ucf_out=""
+
+    if [[ "${UNATTENDED_INSTALL}" == "true" ]]; then
+        log "Unattended install active: Forcing new version for '$target_file_path'."
+        export UCF_FORCE_CONFFNEW=1
+
+        # In unattended mode, we capture stdout/stderr to prevent cluttering the logs.
+        # No interactive prompts will occur because UCF_FORCE_CONFFNEW is set.
+        if ucf_out=$(ucf "${ucf_opts[@]}" "$source_file_path" "$target_file_path" 2>&1); then
+            exit_code=0
+        else
+            exit_code=$?
+        fi
+
+        unset UCF_FORCE_CONFFNEW
+    else
+        # In interactive mode, we do NOT capture the output. This ensures that
+        # user prompts (text or debconf) remain visible and the script doesn't hang.
+        if ucf "${ucf_opts[@]}" "$source_file_path" "$target_file_path"; then
+            exit_code=0
+        else
+            exit_code=$?
+        fi
+    fi
+
+    if [[ $exit_code -eq 0 ]]; then
+        log "Successfully deployed and updated '$target_file_path'."
+    else
+        log_err "Deployment failed or was aborted by the user for '$target_file_path'."
+
+        # Output the captured ucf logs only if an error occurred in unattended mode
+        if [[ -n "$ucf_out" ]]; then
+            log_err "ucf error details:"
+            # Printing line by line or as a block depending on how log_err handles newlines
+            echo "$ucf_out" | while IFS= read -r line; do
+                log_err "  $line"
+            done
+        fi
+    fi
+
+    return "$exit_code"
 }
 
 function check_root_perm() {
@@ -558,6 +615,53 @@ function replace_placeholder_in_files() {
         ' -- "$@"
 }
 
+function fill_dns_resolver_variable() {
+	# TODO: Extract /etc/resolv.conf's nameservers
+	# TODO: Make DNS_RESOLVER hold multiple DNS servers. (Rename to DNS_RESOLVERS)
+
+	if [ "$DNS_RESOLVER" = "" ]; then
+		DNS_RESOLVER="9.9.9.9"
+		log "Using default value '$DNS_RESOLVER' for DNS_RESOLVER".
+	else
+		log "Using '$DNS_RESOLVER' for DNS_RESOLVER".
+	fi
+}
+
+function parse_docker_service_selection() {
+	SHOULD_INSTALL_HARP=false
+
+	if [ "$SHOULD_INSTALL_DOCKER" != true ]; then
+		DOCKER_SERVICES=""
+		log "Using '$SHOULD_INSTALL_DOCKER' for SHOULD_INSTALL_DOCKER."
+		log "Docker support disabled. Skipping Docker service selection."
+		return 0
+	fi
+
+	DOCKER_SERVICES=$(echo "$DOCKER_SERVICES" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]' | sed -r 's/,+/,/g; s/^,+//; s/,+$//')
+
+	if [ -z "$DOCKER_SERVICES" ]; then
+		log_err "SHOULD_INSTALL_DOCKER is true but DOCKER_SERVICES is empty."
+		exit 1
+	fi
+
+	DOCKER_SERVICE_LIST=($(echo "$DOCKER_SERVICES" | tr ',' ' '))
+	for DOCKER_SERVICE in "${DOCKER_SERVICE_LIST[@]}"; do
+		case "$DOCKER_SERVICE" in
+		"harp")
+			SHOULD_INSTALL_HARP=true
+			;;
+		*)
+			log_err "Unsupported Docker service '$DOCKER_SERVICE'. Supported values: harp"
+			exit 1
+			;;
+		esac
+	done
+
+	log "Using '$SHOULD_INSTALL_DOCKER' for SHOULD_INSTALL_DOCKER."
+	log "Using '$DOCKER_SERVICES' for DOCKER_SERVICES."
+	log "Resolved '$SHOULD_INSTALL_HARP' for SHOULD_INSTALL_HARP."
+}
+
 function main() {
 	if [ -s "$LOGFILE_PATH" ]; then
 		rm -v $LOGFILE_PATH |& tee -a $LOGFILE_PATH
@@ -576,12 +680,22 @@ function main() {
 
 	# Load Settings (hopefully vars above get overwritten!)
 	SETTINGS_FILE="$1"
-	if [ -s "$SETTINGS_FILE" ]; then
+	if [ -z "$SETTINGS_FILE" ]; then
+		log "No settings file specified using defaults or asking user for input."
+	elif [ ! -e "$SETTINGS_FILE" ]; then
+		log_err "Settings file '$SETTINGS_FILE' does not exist."
+		usage
+		exit 1
+	elif [ ! -r "$SETTINGS_FILE" ]; then
+		log_err "Settings file '$SETTINGS_FILE' is not readable."
+		usage
+		exit 1
+	else
 		log "Loading settings file '$SETTINGS_FILE'…"
 		source "$SETTINGS_FILE"
-	else
-		log "No settings file specified using defaults or asking user for input."
 	fi
+
+	fill_dns_resolver_variable
 
 	### INSTALL DEPENDENCIES
 	# Check 'whiptail' dependency
@@ -627,13 +741,17 @@ function main() {
 		SHOULD_INSTALL_NGINX=false
 		SHOULD_INSTALL_UNATTENDEDUPGRADES=false
 		SHOULD_INSTALL_MSMTP=false
+		SHOULD_INSTALL_DOCKER=false
+		SHOULD_INSTALL_HARP=false
+		DOCKER_SERVICES=""
 
 		CHOICES=$(whiptail --title "Select services" --separate-output \
 			--checklist "Use the space bar key to select/deselect the services $(
 			)you want to install.\n\nThe following services/packages will also be $(
-			)installed: Certbot Nginx ssl-cert ufw unattended-upgrades" 15 90 2 \
+			)installed: Certbot Nginx ssl-cert ufw unattended-upgrades" 16 100 3 \
 			"1" "Install Collabora (coolwsd, code-brand)" ON \
 			"2" "Install Signaling (nats-server, coturn, janus, nextcloud-spreed-signaling)" ON \
+			"3" "Enable Docker support (required for HaRP)" OFF \
 			3>&1 1>&2 2>&3 || true)
 
 		if [ -z "$CHOICES" ]; then
@@ -660,6 +778,13 @@ function main() {
 					SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 					SHOULD_INSTALL_MSMTP=true
 					;;
+				"3")
+					log "Docker support (certbot, nginx, ufw) will be installed."
+					SHOULD_INSTALL_UFW=true
+					SHOULD_INSTALL_CERTBOT=true
+					SHOULD_INSTALL_NGINX=true
+					SHOULD_INSTALL_DOCKER=true
+					;;
 				*)
 					log_err "Unsupported service $CHOICE!" >&2
 					exit 1
@@ -667,7 +792,35 @@ function main() {
 				esac
 			done
 		fi
+
+		if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+			DOCKER_CHOICES=$(whiptail --title "Select Docker services" --separate-output \
+				--checklist "Select Docker-managed services to install.\n\n$(
+				)This script currently supports HaRP only." 12 100 1 \
+				"1" "Install HaRP (Nextcloud AppAPI HaProxy Reverse Proxy)" ON \
+				3>&1 1>&2 2>&3 || true)
+
+			if [ -z "$DOCKER_CHOICES" ]; then
+				log_err "Docker support selected but no Docker service was selected. Exiting…"
+				exit 1
+			fi
+
+			for DOCKER_CHOICE in $DOCKER_CHOICES; do
+				case "$DOCKER_CHOICE" in
+				"1")
+					DOCKER_SERVICES="${DOCKER_SERVICES:+$DOCKER_SERVICES,}harp"
+					log "Docker service selected: HaRP."
+					;;
+				*)
+					log_err "Unsupported Docker service '$DOCKER_CHOICE'!" >&2
+					exit 1
+					;;
+				esac
+			done
+		fi
 	fi
+
+	parse_docker_service_selection
 
 	show_dialogs
 
@@ -704,16 +857,17 @@ function main() {
 	log "Moving config files into '$TMP_DIR_PATH'."
 	cp -rv data/* "$TMP_DIR_PATH" 2>&1 | tee -a $LOGFILE_PATH
 
-	log "Deleting every '127.0.1.1' entry in /etc/hosts."
-	is_dry_run || sed -i "/127.0.1.1/d" /etc/hosts
-
 	entry="127.0.1.1 $SERVER_FQDN $(hostname)"
-	log "Deploying '$entry' in /etc/hosts."
-	is_dry_run || echo "$entry" >>/etc/hosts
+	log "Updating /etc/hosts with '$entry'."
+	is_dry_run "Would've updated '/etc/hosts' for hostname '$SERVER_FQDN'." || {
+		sed -i "/127.0.1.1/d" /etc/hosts
+		echo "$entry" >>/etc/hosts
+	}
 
 	scripts=('src/setup-ufw.sh' 'src/setup-collabora.sh'
 		'src/setup-signaling.sh' 'src/setup-nginx.sh' 'src/setup-certbot.sh'
-		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh')
+		'src/setup-unattendedupgrades.sh' 'src/setup-msmtp.sh' 'src/setup-docker.sh'
+		'src/setup-docker_harp.sh')
 	for script in "${scripts[@]}"; do
 		log "Sourcing '$script'."
 		source "$script"
@@ -721,6 +875,9 @@ function main() {
 
 	if [ "$SHOULD_INSTALL_UFW" = true ]; then install_ufw; else
 		log "Won't install UFW."
+	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then install_docker; else
+		log "Won't install Docker platform."
 	fi
 	if [ "$SHOULD_INSTALL_COLLABORA" = true ]; then install_collabora; else
 		log "Won't install Collabora."
@@ -734,6 +891,9 @@ function main() {
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then install_nginx; else
 		log "Won't install Nginx."
 	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then install_harp; else
+		log "Won't install Docker HaRP."
+	fi
 	if [ "$SHOULD_INSTALL_UNATTENDEDUPGRADES" = true ]; then install_unattendedupgrades; else
 		log "Won't install unattended upgrades."
 	fi
@@ -745,7 +905,7 @@ function main() {
 
 	if [ "DISABLE_SSH_SERVER" = true ]; then
 		log "Disabling 'ssh' service…"
-		is_dry_run || systemctl disable ssh
+		is_dry_run "Would've disabled service 'ssh'." || systemctl disable ssh
 	fi
 
 	log "Enabling and restarting services…"
@@ -759,6 +919,9 @@ function main() {
 	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		SERVICES_TO_ENABLE+=("coturn" "nats-server" "nextcloud-spreed-signaling" "janus")
 	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+		SERVICES_TO_ENABLE+=("docker")
+	fi
 	#if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then fi
 	if [ "$SHOULD_INSTALL_NGINX" = true ]; then
 		SERVICES_TO_ENABLE+=("nginx")
@@ -767,7 +930,7 @@ function main() {
 	#if [ "$SHOULD_INSTALL_MSMTP" = true ]; then fi
 
 	SERVICE_ERRORS=()
-	if ! is_dry_run; then
+	if ! is_dry_run "Would've restarted Systemd services."; then
 		for i in "${SERVICES_TO_ENABLE[@]}"; do
 			log "Enabling and restarting service '$i'…"
 			if ! systemctl unmask "$i" 2>&1 | tee -a $LOGFILE_PATH; then
@@ -798,6 +961,14 @@ function main() {
 		signaling_print_info
 		log "======================================================================"
 	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+		docker_print_info
+		log "======================================================================"
+	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then
+		docker_harp_print_info
+		log "======================================================================"
+	fi
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		certbot_print_info
 		log "======================================================================"
@@ -815,13 +986,17 @@ function main() {
 		log "======================================================================"
 	fi
 
-	is_dry_run || mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
-	is_dry_run || touch "$SECRETS_FILE_PATH"
-	is_dry_run || chmod 0640 "$SECRETS_FILE_PATH"
+	is_dry_run "Would've securely deployed '$SECRETS_FILE_PATH'." || {
+		mkdir -p "$(dirname "$SECRETS_FILE_PATH")"
+		touch "$SECRETS_FILE_PATH"
+		chmod 0640 "$SECRETS_FILE_PATH"
+	}
 
-	echo -e "This file contains secrets, passwords and configuration" \
-		"generated by the Nextcloud High-Performance backend setup." \
-		>$SECRETS_FILE_PATH
+	if ! is_dry_run "Would've written base secrets header to '$SECRETS_FILE_PATH'."; then
+		echo -e "This file contains secrets, passwords and configuration" \
+			"generated by the Nextcloud High-Performance backend setup." \
+			>$SECRETS_FILE_PATH
+	fi
 	# if [ "$SHOULD_INSTALL_UFW" = true ]; then
 	# 	ufw_write_secrets_to_file "$SECRETS_FILE_PATH"
 	# fi
@@ -830,6 +1005,12 @@ function main() {
 	fi
 	if [ "$SHOULD_INSTALL_SIGNALING" = true ]; then
 		signaling_write_secrets_to_file "$SECRETS_FILE_PATH"
+	fi
+	if [ "$SHOULD_INSTALL_DOCKER" = true ]; then
+		docker_write_secrets_to_file "$SECRETS_FILE_PATH"
+	fi
+	if [ "$SHOULD_INSTALL_HARP" = true ]; then
+		docker_harp_write_secrets_to_file "$SECRETS_FILE_PATH"
 	fi
 	if [ "$SHOULD_INSTALL_CERTBOT" = true ]; then
 		certbot_write_secrets_to_file "$SECRETS_FILE_PATH"
@@ -857,10 +1038,9 @@ function main() {
 		log ""
 	fi
 
+	is_dry_run "\nDry-run mode: No changes were made to the system. Review the above logs to see what would have happened."
 	log "\nThank you for using this script.\n"
 }
 
 # Execute main function.
 main "$1"
-
-set +eo pipefail

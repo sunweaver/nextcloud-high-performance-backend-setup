@@ -90,13 +90,17 @@ function nginx_step2() {
 
 function nginx_step3() {
 	log "Deploying config files…"
-	deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
+	is_dry_run "Would've created sites-available and sites-enabled dirs." || mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled || true
+	deploy_file "$TMP_DIR_PATH"/nginx/nextcloud-hpb.conf /etc/nginx/sites-available/nextcloud-hpb.conf || true
+	is_dry_run "Would've symlinked nextcloud-hpb.conf into sites-enabled." || ln -sf /etc/nginx/sites-available/nextcloud-hpb.conf /etc/nginx/sites-enabled/nextcloud-hpb.conf || true
 
 	is_dry_run || mkdir -p /etc/nginx/snippets || true
 	deploy_file "$TMP_DIR_PATH"/nginx/headers.conf /etc/nginx/snippets/headers.conf || true
 
-	is_dry_run || mkdir -p /var/www/html || true
-	is_dry_run || rm /var/www/html/index.nginx-debian.html || true
+	is_dry_run "Would've refreshed '/var/www/html' base files." || {
+		mkdir -p /var/www/html || true
+		rm /var/www/html/index.nginx-debian.html || true
+	}
 	deploy_file "$TMP_DIR_PATH"/nginx/index.html /var/www/html/index.html || true
 	deploy_file "$TMP_DIR_PATH"/nginx/robots.txt /var/www/html/robots.txt || true
 }

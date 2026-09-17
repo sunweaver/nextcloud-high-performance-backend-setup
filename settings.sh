@@ -39,6 +39,19 @@ SHOULD_INSTALL_NGINX=true
 SHOULD_INSTALL_CERTBOT=true
 SHOULD_INSTALL_UNATTENDEDUPGRADES=true
 SHOULD_INSTALL_MSMTP=true
+# Docker platform support
+SHOULD_INSTALL_DOCKER=false
+
+# Comma-separated list of Docker-managed services.
+# Available services:
+#   - harp: HaRP (Nextcloud AppAPI HaProxy Reverse Proxy)[https://github.com/nextcloud/HaRP]
+DOCKER_SERVICES="harp"
+
+# Optional overrides for base ports of HaRP instances and their external HTTPS reverse-proxied port.
+# 8780, 8781, 8782, ... (Instances 1, 2 and 3)
+#HARP_PORT_BASE="8780"
+# 18780, 18781, 18782, ... (Instances 1, 2 and 3)
+#HARP_EXTERNAL_PORT_BASE="18780"
 
 # Logfile get created if UNATTENDED_INSTALL is true.
 # Leave empty, if you wish that the user will be asked about this.
@@ -51,7 +64,7 @@ TMP_DIR_PATH="./tmp"
 
 # Secrets, passwords and configuration gets saved in this file.
 # Leave empty, if you wish that the user will be asked about this.
-SECRETS_FILE_PATH=""
+SECRETS_FILE_PATH="./nextcloud-hpb.secrets"
 
 # Use Let's Encrypt staging certificates for Certbot.
 CERTBOT_SSL_USE_STAGING_CERTS=false
@@ -75,7 +88,7 @@ EMAIL_SERVER_HOST=""
 #EMAIL_SERVER_PORT="2525"
 
 # Should the ssh service be disabled?
-#DISABLE_SSH_SERVER=false
+DISABLE_SSH_SERVER="false"
 
 # DNS Resolver. Here a custom DNS server can be specified,
 # otherwise the one configured in resolv.conf is used

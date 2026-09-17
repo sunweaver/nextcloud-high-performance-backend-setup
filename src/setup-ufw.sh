@@ -63,6 +63,20 @@ function ufw_step2() {
 	${_cmdprefix}ufw "$_ufwargs" enable | tee -a $LOGFILE_PATH
 }
 
+# arg: $1 is https_port
+function ufw_allow_harp_ports() {
+	if [ "$SHOULD_INSTALL_HARP" != true ] || [ "$SHOULD_INSTALL_UFW" != true ]; then
+		return 0
+	fi
+
+	# Prefix command with 'log' if in dry run mode.
+	local _cmdprefix=""
+	is_dry_run && _cmdprefix="log " || true
+
+	local https_port="$1"
+	${_cmdprefix}ufw allow "$https_port/tcp" comment "Nextcloud HPB HaRP HTTPS (instance $https_port)" | tee -a "$LOGFILE_PATH"
+}
+
 # arg: $1 is secret file path
 # function ufw_write_secrets_to_file() { }
 # function ufw_print_info() { }
